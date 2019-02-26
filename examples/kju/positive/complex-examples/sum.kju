@@ -1,0 +1,29 @@
+/* This program computes 1 + 2 + .. + n in a very unusual way :) */
+
+fun a(n : Int) : Int
+{
+    return b(n);
+};
+
+fun b(n : Int) : Int
+{
+    return c(n);
+};
+
+fun c(n : Int) : Int
+{
+    if (n == 0)
+    then
+    {
+        return 0;
+    };
+    else
+    {
+        return a(n - 1) + n;
+    };
+};
+
+fun kju() : Unit
+{
+    a(5);
+};

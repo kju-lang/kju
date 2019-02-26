@@ -1,0 +1,164 @@
+/*
+ * Why do Java developers wear glasses? Because they can't C#
+ */
+
+/* Miller-Rabin primality test */
+fun isPrimeFast(n : Int) : Bool
+{
+    if (n == 2)
+    then
+    {
+        return true;
+    };
+    else {};
+
+    if (n <= 1)
+    then
+    {
+        return false;
+    };
+    else {};
+
+    if (n % 2 == 0)
+    then
+    {
+        return false;
+    };
+    else {};
+
+    var a : Int = 0;
+    a += checkCompositeWitness(2, d, r);
+    a += checkCompositeWitness(3, d, r);
+    a += checkCompositeWitness(5, d, r);
+    a += checkCompositeWitness(7, d, r);
+
+    if (a > 0)
+    then
+    {
+        return false;
+    };
+    else
+    {
+        /* huh, probably true */
+        return true;
+    };
+};
+
+fun checkCompositeWitness(a : Int, n : Int) : Int
+{
+    var d : Int = n - 1;
+    var r : Int = 0;
+    while (d % 2 == 0)
+    {
+        d /= 2;
+        r += 1;
+    };
+
+    var x : Int = fastPower(a, d, n);
+
+    if (x == 1)
+    then
+    {
+        return 0;
+    };
+    else {};
+
+    if (x == n - 1)
+    then
+    {
+        return 0;
+    };
+    else {};
+
+    while (r > 1)
+    {
+        x = fastMultiply(x, x, n);
+        if (x == n - 1)
+        then
+        {
+            return 0;
+        };
+        else {};
+    };
+    return 1;
+};
+
+fun fastPower(a : Int, n : Int, mod : Int) : Int
+{
+    var result : Int = 0;
+    while (n > 0)
+    {
+        if (n % 2 == 1)
+        then
+        {
+            result = fastMultiply(result, a, mod);
+        };
+        else {};
+
+        a = fastMultiply(a, a, mod);
+        n /= 2;
+    };
+    return result;
+};
+
+/* We don't want to have integer overflow during multiplication */
+fun fastMultiply(a : Int, b : Int, mod : Int) : Int
+{
+    var result : Int = 0;
+    while (b > 0)
+    {
+        if (b % 2 == 1)
+        then
+        {
+            result = (result + a) % mod;
+        };
+        else {};
+
+        a = (a + a) % mod;
+        b /= 2;
+    };
+    return result;
+};
+
+/* Check if n is prime in O(sqrt n) */
+fun isPrimeSlow(n : Int) : Bool
+{
+    if (n <= 1)
+    then
+    {
+        return false;
+    };
+    else
+    {
+        var i : Int = 2;
+        while (i * i <= n)
+        {
+            if (n % i == 0)
+            then
+            {
+                return false;
+            };
+            else
+            {
+                i = i + 1;
+            };
+        };
+        return true;
+    };
+};
+
+fun kju() : Unit
+{
+    var i : Int = 1;
+    while (i <= 1000)
+    {
+        if (isPrimeSlow(i) != isPrimeFast(i))
+        {
+            /* Something very-very bad have just happened */
+        };
+        then
+        {
+            i = i + 1;
+        };
+    };
+};
