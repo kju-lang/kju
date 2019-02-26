@@ -1,0 +1,7 @@
+/*
+	Here we have some nested comments
+	/*
+		And some more text
+*/
+fun kju():Unit{
+}
