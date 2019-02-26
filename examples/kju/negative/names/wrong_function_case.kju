@@ -1,0 +1,6 @@
+fun F():Unit{
+}
+
+fun kju():Unit{
+	F();
+}
