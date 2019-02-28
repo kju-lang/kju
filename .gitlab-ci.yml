@@ -1,0 +1,43 @@
+image: microsoft/dotnet:latest
+
+
+before_script:
+  - "cd src"
+
+
+debug build KJU.Application:
+  script:
+    - "dotnet build --configuration Debug KJU.Application"
+  artifacts:
+    paths:
+      - src/KJU.Application/bin
+
+debug build KJU.Core:
+  script:
+    - "dotnet build --configuration Debug KJU.Core"
+  artifacts:
+    paths:
+      - src/KJU.Core/bin
+
+
+release build KJU.Application:
+  script:
+    - "dotnet build --configuration Release KJU.Application"
+  artifacts:
+    paths:
+      - src/KJU.Application/bin
+
+release build KJU.Core:
+  script:
+    - "dotnet build --configuration Release KJU.Core"
+  artifacts:
+    paths:
+      - src/KJU.Core/bin
+
+
+test:
+  script:
+    - "dotnet test /p:CollectCoverage=true KJU.Tests"
+  artifacts:
+    paths:
+      - src/KJU.Tests/coverage.json
