@@ -1,0 +1,4 @@
+fun kju():Unit
+{
+    var nickelback /* well known band */ : Int /* band type */ = 0 /* band value */;
+}
