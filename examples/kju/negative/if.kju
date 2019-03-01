@@ -1,0 +1,17 @@
+fun f(a: Int): Unit
+{
+	if (a)
+	then
+	{
+		a=1;
+	}
+	else
+	{
+		a=2;
+	}
+}
+fun kju(): Unit
+{
+	var a: Int;
+	a=f(2);
+}

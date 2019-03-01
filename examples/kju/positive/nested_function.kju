@@ -1,0 +1,19 @@
+fun f(a: Int): Int
+{
+	fun g(b: Bool): Unit
+	{
+		var a: Unit;
+	}
+	fun h(): Int
+	{
+		return 0;
+	}
+	var c: Bool;
+	return h();
+}
+fun kju(): Unit
+{
+	var a: Int;
+	a=7;
+	a=f(a);
+}

@@ -1,0 +1,7 @@
+fun kju(): Unit
+{
+	var a: Int;
+	var b: Bool;
+	a = 10;
+	b=a;
+}

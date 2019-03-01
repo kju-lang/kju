@@ -1,0 +1,8 @@
+fun f(a: Bool, b: Int): Int
+{
+	return 0;
+}
+fun g(a: Bool, b: Int): Bool
+{
+	return a;
+}

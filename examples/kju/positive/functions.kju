@@ -1,0 +1,28 @@
+fun f (a: Bool): Int
+{
+	var b: Int;
+	b=1;
+	return b;
+}
+fun g(b: Bool, c: Int): Bool
+{
+	return b;
+}
+fun r(n: Int): Int
+{
+	if (n==0)
+	then
+	{
+		return 1;
+	}
+	else
+	{
+		return f(n-1);
+	}
+}
+fun kju(): Unit
+{
+	var a: Int;
+	var b: Bool;
+	a=f(5);
+}
