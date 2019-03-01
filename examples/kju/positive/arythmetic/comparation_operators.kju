@@ -1,0 +1,8 @@
+fun kju():Unit{
+	var a:Bool=3==5;
+	var b:Bool=3!=5;
+	var c:Bool=3<5;
+	var d:Bool=3<=5;
+	var e:Bool=3>5;
+	var f:Bool=3>=5;
+}

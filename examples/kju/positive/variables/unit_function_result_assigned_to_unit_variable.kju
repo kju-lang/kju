@@ -1,0 +1,6 @@
+fun f():Unit{
+}
+
+fun kju():Unit{
+	var x:Unit=f();
+}

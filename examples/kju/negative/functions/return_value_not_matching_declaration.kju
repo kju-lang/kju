@@ -1,0 +1,7 @@
+fun f():Bool{
+	return 5;
+}
+
+fun kju():Unit{
+	f();
+}

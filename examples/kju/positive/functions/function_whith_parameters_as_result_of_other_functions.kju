@@ -1,0 +1,11 @@
+fun f(x:Int,y:Int){
+	return 5;
+}
+
+fun g():Int{
+	return 5;
+}
+
+fun kju():Unit{
+	var x:Int=f(g(),g());
+}

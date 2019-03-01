@@ -1,0 +1,7 @@
+fun kju():Unit{
+	var x:Int=f();
+}
+
+fun f():Int{
+	return 5;
+}

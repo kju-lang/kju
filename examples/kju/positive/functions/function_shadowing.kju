@@ -1,0 +1,10 @@
+fun f():Int{
+	return 5;
+}
+
+fun kju():Unit{
+	fun f():Int{
+		return 3;
+	}
+	var x:Int=f();
+}

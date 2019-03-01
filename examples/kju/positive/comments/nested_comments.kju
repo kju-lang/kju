@@ -1,0 +1,13 @@
+/*
+	Here we have some nested comments
+	/*
+		And some more text
+	*/
+	And also commented out piece of code
+	/*
+		fun kju():Unit{
+    	}
+    */
+*/	
+fun kju():Unit{
+}

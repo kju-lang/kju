@@ -1,0 +1,6 @@
+
+
+fun kju():Unit{
+	var x:Int=2++2;
+	var y:Int=2+-2;
+}

@@ -1,0 +1,6 @@
+fun kju():Unit{
+	var x:Int;
+	var y:Int;
+	var z:Int=5;
+	x=y=z;
+}

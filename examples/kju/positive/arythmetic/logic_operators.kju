@@ -1,0 +1,5 @@
+fun kju():Unit{
+	var a:Bool=true||false;
+	var b:Bool=true&&false;
+	var c:Bool=!true;
+}

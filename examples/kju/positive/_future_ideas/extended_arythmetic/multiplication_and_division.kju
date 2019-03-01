@@ -1,0 +1,4 @@
+fun kju():Unit{
+	var x:Int=6/3;
+	var y:Int=7/3;
+}

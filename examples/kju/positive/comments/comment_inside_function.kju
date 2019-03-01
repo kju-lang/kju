@@ -1,0 +1,7 @@
+fun kju():Unit{
+	/*
+		Here is some comment inside function
+	
+		var x:Int=5;
+	*/
+}
