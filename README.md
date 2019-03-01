@@ -1,4 +1,4 @@
-# KJU, the superior language
+# KJU, the supreme language
 
 aka kompilatory-2019-1
 
