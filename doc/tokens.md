@@ -13,6 +13,7 @@ These tokens are described with simple regular expressions – special construct
  - ``comma ::= `,` ``
  - ``colon ::= `:` ``
  - ``semicolon ::= `;` ``
+ - ``whitespace ::= `[ \r\n\t][ \r\n\t]*` ``
 
 ## Keywords
  - ``if ::= `if` ``
