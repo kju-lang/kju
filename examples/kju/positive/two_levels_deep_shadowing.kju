@@ -1,0 +1,13 @@
+fun f(): Unit {
+	var a: Int = 1;
+
+	fun g(): Unit {
+		var b: Bool;
+
+		fun h(): Unit {
+			var a: Int = 3;
+		}
+	}
+}
+
+fun kju(): Unit {}

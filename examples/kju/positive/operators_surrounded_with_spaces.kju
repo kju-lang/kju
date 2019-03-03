@@ -1,0 +1,6 @@
+fun kju(): Unit {
+	var x: Int = 123 + 45;
+	var y: Int = x * 10 + x / 10;
+	var u: Bool = x > y;
+	var v: Bool = y <= 200;
+}

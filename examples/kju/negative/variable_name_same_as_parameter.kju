@@ -1,0 +1,5 @@
+fun f(a: Int): Unit {
+	var a: Int = 5;
+}
+
+fun kju(): Unit {}

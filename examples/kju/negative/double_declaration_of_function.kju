@@ -1,0 +1,11 @@
+fun f(x: Int): Bool {
+	return true;
+}
+
+fun f(x: Int): Bool {
+	return false;
+}
+
+fun kju(): Unit {
+	f(1);
+}

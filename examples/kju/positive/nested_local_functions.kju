@@ -1,0 +1,15 @@
+fun f(): Int {
+	fun g(): Int {
+		fun h(): Int {
+			return 5;
+		}
+
+		return h();
+	}
+
+	return g();
+}
+
+fun kju(): Unit {
+	var x: Int = f();
+}
