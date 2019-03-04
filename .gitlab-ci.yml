@@ -2,19 +2,20 @@ image: microsoft/dotnet:latest
 
 
 before_script:
-  - "cd src"
+  - 'export PATH="$PATH:/root/.dotnet/tools"'
+  - 'dotnet restore'
 
 
 debug build KJU.Application:
   script:
-    - "dotnet build --configuration Debug KJU.Application"
+    - 'dotnet build --configuration Debug src/KJU.Application'
   artifacts:
     paths:
       - src/KJU.Application/bin
 
 debug build KJU.Core:
   script:
-    - "dotnet build --configuration Debug KJU.Core"
+    - 'dotnet build --configuration Debug src/KJU.Core'
   artifacts:
     paths:
       - src/KJU.Core/bin
@@ -22,14 +23,14 @@ debug build KJU.Core:
 
 release build KJU.Application:
   script:
-    - "dotnet build --configuration Release KJU.Application"
+    - 'dotnet build --configuration Release src/KJU.Application'
   artifacts:
     paths:
       - src/KJU.Application/bin
 
 release build KJU.Core:
   script:
-    - "dotnet build --configuration Release KJU.Core"
+    - 'dotnet build --configuration Release src/KJU.Core'
   artifacts:
     paths:
       - src/KJU.Core/bin
@@ -37,7 +38,10 @@ release build KJU.Core:
 
 test:
   script:
-    - "dotnet test /p:CollectCoverage=true KJU.Tests"
+    - 'dotnet tool install --global dotnet-xunit-to-junit'
+    - 'dotnet test /p:CollectCoverage=true src/KJU.Tests --logger:xunit'
+    - 'dotnet-xunit-to-junit  src/KJU.Tests/TestResults/TestResults.xml src/KJU.Tests/TestResults/TestResults.junit.xml'
   artifacts:
-    paths:
-      - src/KJU.Tests/coverage.json
+    reports:
+      junit: src/KJU.Tests/TestResults/TestResults.junit.xml
+  coverage: '/Total\s*\|\s*(\d+\.\d+\%)/'
