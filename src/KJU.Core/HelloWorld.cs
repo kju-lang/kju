@@ -1,10 +1,4 @@
-﻿// <copyright file="HelloWorld.cs" company="KJU Supreme Language Development Team">
-// Copyright (c) KJU Supreme Language Development Team. All rights reserved.
-// Licensed under the BSD License 2.0. See LICENSE file in the project root for
-// full license information.
-// </copyright>
-
-namespace KJU.Core
+﻿namespace KJU.Core
 {
     using System;
 
