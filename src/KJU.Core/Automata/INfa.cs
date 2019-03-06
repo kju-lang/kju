@@ -4,12 +4,12 @@
 
     public interface INfa
     {
-        NfaState StaringState();
+        IState StartingState();
 
-        IReadOnlyDictionary<char, IReadOnlyCollection<NfaState>> Transitions(NfaState state);
+        IReadOnlyDictionary<char, IReadOnlyCollection<IState>> Transitions(IState state);
 
-        IReadOnlyCollection<NfaState> EpsilonTransitions(NfaState state);
+        IReadOnlyCollection<IState> EpsilonTransitions(IState state);
 
-        bool IsAccepting(NfaState state);
+        bool IsAccepting(IState state);
     }
 }

@@ -6,13 +6,13 @@
     // but Enum doesnt work with IEquatable
     public interface IDfa<TLabel>
     {
-        DfaState StaringState();
+        IState StartingState();
 
-        IReadOnlyDictionary<char, DfaState> Transitions(DfaState state);
+        IReadOnlyDictionary<char, IState> Transitions(IState state);
 
-        TLabel Label(DfaState state);
+        TLabel Label(IState state);
 
         // Wherever we move from state we always accept the same label
-        bool IsStable(DfaState state);
+        bool IsStable(IState state);
     }
 }
