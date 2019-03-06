@@ -1,11 +1,39 @@
 ﻿namespace KJU.Core.Regex
 {
-    using System;
     using System.Collections.Generic;
-    using System.Text;
-    using KJU.Core.Automata;
 
-    internal class SumRegex : Regex
+    public sealed class SumRegex : Regex
     {
+        public SumRegex(Regex left, Regex right)
+        {
+            this.Left = left;
+            this.Right = right;
+        }
+
+        public Regex Left { get; }
+
+        public Regex Right { get; }
+
+        public override bool Equals(object other)
+        {
+            if (!(other is SumRegex))
+            {
+                return false;
+            }
+
+            var sumOther = (SumRegex)other;
+
+            return this.Left.Equals(sumOther.Left) && this.Right.Equals(sumOther.Right);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Left.GetHashCode() + (this.Right.GetHashCode() * 31);
+        }
+
+        public override string ToString()
+        {
+            return $"SumRegex{{{this.Left}, {this.Right}}}";
+        }
     }
 }
