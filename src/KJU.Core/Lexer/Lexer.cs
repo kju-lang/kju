@@ -20,6 +20,6 @@
             throw new NotImplementedException();
         }
 
-        // private readonly Dfa<TokenCategory> minimalizedDfa;
+        // private readonly IDfa<TokenCategory> minimalizedDfa;
     }
 }

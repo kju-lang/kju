@@ -7,7 +7,7 @@
 
     public static class DfaEquivalence<TLabel>
     {
-        public static bool AreEquivalent(Dfa<TLabel> dfa_1, Dfa<TLabel> dfa_2)
+        public static bool AreEquivalent(IDfa<TLabel> dfa_1, IDfa<TLabel> dfa_2)
         {
             throw new NotImplementedException();
         }

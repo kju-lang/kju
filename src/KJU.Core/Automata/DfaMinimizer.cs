@@ -6,7 +6,7 @@
 
     public static class DfaMinimizer<TLabel>
     {
-        public static Dfa<TLabel> Minimize(Dfa<TLabel> dfa)
+        public static IDfa<TLabel> Minimize(IDfa<TLabel> dfa)
         {
             throw new NotImplementedException();
         }

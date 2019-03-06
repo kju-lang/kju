@@ -6,12 +6,14 @@
 
     public class Preprocessor
     {
-        public string PreprocessInput(string input)
+        public IEnumerable<KeyValuePair<ILocation, char>>
+            PreprocessInput(IEnumerable<KeyValuePair<ILocation, char>> input)
         {
             throw new NotImplementedException();
         }
 
-        private string RemoveComments(string input)
+        public IEnumerable<KeyValuePair<ILocation, char>>
+            RemoveComments(IEnumerable<KeyValuePair<ILocation, char>> input)
         {
             throw new NotImplementedException();
         }

@@ -7,7 +7,7 @@
 
     public static class RegexToNfaConverter
     {
-        public static Nfa Convert(Regex regex)
+        public static INfa Convert(Regex regex)
         {
             switch (regex)
             {

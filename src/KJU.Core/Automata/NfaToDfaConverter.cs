@@ -6,7 +6,7 @@
 
     public static class NfaToDfaConverter
     {
-        public static Dfa<bool> Convert(Nfa nfa)
+        public static IDfa<bool> Convert(INfa nfa)
         {
             throw new NotImplementedException();
         }

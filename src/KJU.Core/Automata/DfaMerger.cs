@@ -6,8 +6,8 @@
 
     public static class DfaMerger<TLabel>
     {
-        public static Dfa<TLabel> Merge(
-            IReadOnlyDictionary<TLabel, Dfa<bool>> dfas,
+        public static IDfa<TLabel> Merge(
+            IReadOnlyDictionary<TLabel, IDfa<bool>> dfas,
             Func<IEnumerable<TLabel>, TLabel> conflictSolver)
         {
             throw new NotImplementedException();
