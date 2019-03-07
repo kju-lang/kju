@@ -1,0 +1,6 @@
+fun kju():Unit{
+	var a:Bool=5||false;
+	var x:Int = 10;
+	var b:Bool=true&&x;
+	var c:Bool=!10;
+}
