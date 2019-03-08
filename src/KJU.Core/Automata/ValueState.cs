@@ -11,7 +11,7 @@ namespace KJU.Core.Automata
 
         public bool Equals(IState iother)
         {
-            return this.Equals(iother);
+            return (this as object).Equals(iother);
         }
 
         public override bool Equals(object iother)
