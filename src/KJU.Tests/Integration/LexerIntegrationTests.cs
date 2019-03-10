@@ -1,6 +1,8 @@
 namespace KJU.Tests
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
     using System.Linq;
     using KJU.Core.Input;
     using KJU.Core.Lexer;
@@ -9,59 +11,67 @@ namespace KJU.Tests
     [TestClass]
     public class LexerIntegrationTests
     {
+        private enum StringTestCategory
+        {
+            None = 0, Paren, Operator, Number, Variable, Whitespace
+        }
+
         /// <summary>
         /// Test Lexer on a simple expression read from string.
         /// </summary>
         [TestMethod]
-        public void TestStringInputOnMath()
+        public void TestWithStringInput()
         {
             string inputString = "(a +40)*num   +\n[(g] * -45x";
 
-            List<KeyValuePair<TokenCategory, string>> tokenCategories = new List<KeyValuePair<TokenCategory, string>>
+            var tokenCategories = new List<KeyValuePair<StringTestCategory, string>>
             {
-                /*
-                paren:      "[()\[\]]"
-                operator:   "[*+-]"
-                number:     "0|[1-9][0-9]*"
-                variable:   "[a-z][a-z]*"
-                whitespace: "[ \n][ \n]*"
-
-                            (unescaped)
-                */
+                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Paren,      "[()\\[\\]]"),
+                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Operator,   "[*+-]"),
+                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Number,     "0|[1-9][0-9]*"),
+                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Variable,   "[a-z][a-z]*"),
+                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Whitespace, "[ \\n][ \\n]*"),
             };
 
-            List<Token> expectedTokens = new List<Token>
+            var expectedTokens = new List<Token<StringTestCategory>>
             {
-                /*
-                paren,      "(",    0
-                variable,   "a",    1
-                whitespace, " ",    2
-                operator,   "+",    3
-                number,     "40",   4
-                paren,      ")",    6
-                operator,   "*",    7
-                variable,   "num",  8
-                whitespace, "   ", 11
-                operator,   "+",   14
-                whitespace, "\n",  15
-                paren,      "[",   16
-                paren,      "(",   17
-                variable,   "g",   18
-                paren,      "]",   19
-                whitespace, " ",   20
-                operator,   "*",   21
-                whitespace, " ",   22
-                operator,   "-",   23
-                number,     "45",  24
-                variable,   "x",   26
-                */
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,       "("),
+                CreateToken<StringTestCategory>(StringTestCategory.Variable,    "a"),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  " "),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "+"),
+                CreateToken<StringTestCategory>(StringTestCategory.Number,      "40"),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,       ")"),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "*"),
+                CreateToken<StringTestCategory>(StringTestCategory.Variable,    "num"),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  "   "),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "+"),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  "\n"),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,       "["),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,       "("),
+                CreateToken<StringTestCategory>(StringTestCategory.Variable,    "g"),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,       "]"),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  " "),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "*"),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  " "),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "-"),
+                CreateToken<StringTestCategory>(StringTestCategory.Number,      "45"),
+                CreateToken<StringTestCategory>(StringTestCategory.Variable,    "x"),
             };
 
-            InputReader inputReader = new InputReader();
-            List<KeyValuePair<ILocation, char>> input = inputReader.InputFromString(inputString);
-            Lexer lexer = new Lexer(tokenCategories);
-            IEnumerable<Token> outputTokens = lexer.Scan(input);
-            Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens)); // TODO: token comparison
+            IInputReader inputReader = new StringInputReader(inputString);
+            var resolver = new ConflictResolver<StringTestCategory>(StringTestCategory.None);
+            var lexer = new Lexer<StringTestCategory>(tokenCategories, resolver.ResolveWithMaxValue);
+            var outputTokens = lexer.Scan(inputReader.Read());
+            Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<StringTestCategory>()));
+        }
+
+        [SuppressMessage(
+            "StyleCop.CSharp.OrderingRules",
+            "SA1201:ElementsMustAppearInTheCorrectOrder",
+            Justification="This enum type should be grouped with the following test method")]
+        private enum FileTestCategory
+        {
+            None = 0, Brace, Bracket, Colon, Comma, Minus, Number, Boolean, Null, QuotedString, Whitespace
         }
 
         /// <summary>
@@ -69,81 +79,95 @@ namespace KJU.Tests
         /// (limits allowed key/string characters, no escapes, simpler numbers).
         /// </summary>
         [TestMethod]
-        public void TestFileInputOnJSON()
+        public void TestWithFileInput()
         {
-            string filename = string.Empty; // TODO: figure out file access in tests
+            string filename = GetFullPathToFile(Path.Combine("Integration", "pseudoJSONSample.txt"));
 
             /*
             Input from file:
 
             "[ {\"2Ws8P0wYj\":  -17, \"dbV\":   true,\"B5b0BofwT\":  -13.607189896949151 }, [], \tnull,    [], \n{\n\"NwAssf8pU\":null  }\n  ]"
-            (quotes unescaped)
-
-            Token categories:
-
-            brace:        "{|}"
-            bracket:      "\[|\]"
-            colon:        ":"
-            comma:        ","
-            minus:        "-"
-            number:       "[1-9][0-9]*|[1-9][0-9]*.[0-9][0-9]*|0.[0-9][0-9]*"
-            boolean:      "true|false"
-            null:         "null"
-            quotedString: ""[a-zA-Z0-9_]*""
-            whitespace:   "[ \n\r\t\v][ \n\r\t\v]*"
-
-            Tokens:
-
-            bracket,      "[",                    0
-            whitespace,   " ",                    1
-            brace,        "{",                    2
-            quotedString, "\"2Ws8P0wYj\"",        3
-            colon,        ":",                   14
-            whitespace,   "  ",                  15
-            minus,        "-",                   17
-            number,       "17",                  18
-            comma,        ",",                   20
-            whitespace,   " ",                   21
-            quotedString, "\"dbV\"",             22
-            colon,        ":",                   27
-            whitespace,   "   ",                 28
-            boolean,      "true",                31
-            comma,        ",",                   35
-            quotedString, "\"B5b0BofwT\"",       36
-            colon,        ":",                   47
-            whitespace,   "  ",                  48
-            minus,        "-",                   50
-            number,       "13.607189896949151",  51
-            whitespace,   " ",                   69
-            brace,        "}",                   70
-            comma,        ",",                   71
-            whitespace,   " ",                   72
-            bracket,      "[",                   73
-            bracket,      "]",                   74
-            comma,        ",",                   75
-            whitespace,   " \t",                 76
-            null,         "null",                78
-            comma,        ",",                   82
-            whitespace,   "    ",                83
-            bracket,      "[",                   87
-            bracket,      "]",                   88
-            comma,        ",",                   89
-            whitespace,   " \n",                 90
-            brace,        "{",                   92
-            whitespace,   "\n",                  93
-            quotedString, "\"NwAssf8pU\"",       94
-            colon,        ":",                  105
-            null,         "null",               106
-            whitespace,   "  ",                 110
-            brace,        "}",                  112
-            whitespace,   "\n  ",               113
-            bracket,      "]",                  116
             */
 
-            InputReader inputReader = new InputReader();
-            List<KeyValuePair<ILocation, char>> input = inputReader.InputFromFile(filename);
+            var tokenCategories = new List<KeyValuePair<FileTestCategory, string>>
+            {
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Brace,        "{|}"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Bracket,      "\\[|\\]"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Colon,        ":"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Comma,        ","),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Minus,        "-"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Number,       "[1-9][0-9]*|[1-9][0-9]*.[0-9][0-9]*|0.[0-9][0-9]*"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Boolean,      "true|false"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Null,         "null"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.QuotedString, "\"[a-zA-Z0-9_]*\""),
 
-            // TODO: pass to lexer and compare
+                // TODO: check if string-to-regex expects actual whitespace characters or escape codes
+                //       unescape backslashes if it's the latter case
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Whitespace,   "[ \\n\\r\\t\\v][ \\n\\r\\t\\v]*"),
+            };
+
+            var expectedTokens = new List<Token<FileTestCategory>>
+            {
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "["),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " "),
+                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "{"),
+                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"2Ws8P0wYj\""),
+                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":"),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  "),
+                CreateToken<FileTestCategory>(FileTestCategory.Minus,        "-"),
+                CreateToken<FileTestCategory>(FileTestCategory.Number,       "17"),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " "),
+                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"dbV\""),
+                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":"),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "   "),
+                CreateToken<FileTestCategory>(FileTestCategory.Boolean,      "true"),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
+                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"B5b0BofwT\""),
+                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":"),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  "),
+                CreateToken<FileTestCategory>(FileTestCategory.Minus,        "-"),
+                CreateToken<FileTestCategory>(FileTestCategory.Number,       "13.607189896949151"),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " "),
+                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "}"),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " "),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "["),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]"),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " \t"),
+                CreateToken<FileTestCategory>(FileTestCategory.Null,         "null"),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "    "),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "["),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]"),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " \n"),
+                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "{"),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n"),
+                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"NwAssf8pU\""),
+                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":"),
+                CreateToken<FileTestCategory>(FileTestCategory.Null,         "null"),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  "),
+                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "}"),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n  "),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]"),
+            };
+
+            IInputReader inputReader = new FileInputReader(filename);
+            var resolver = new ConflictResolver<FileTestCategory>(FileTestCategory.None);
+            var lexer = new Lexer<FileTestCategory>(tokenCategories, resolver.ResolveWithMaxValue);
+            var outputTokens = lexer.Scan(inputReader.Read());
+            Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<FileTestCategory>()));
+        }
+
+        [SuppressMessage(
+            "StyleCop.CSharp.OrderingRules",
+            "SA1201:ElementsMustAppearInTheCorrectOrder",
+            Justification="This enum type should be grouped with the following test method")]
+        private enum CommentsTestCategory
+        {
+            None = 0, UppercaseWord, LowercaseWord, Punctuation, Space
         }
 
         /// <summary>
@@ -157,56 +181,92 @@ namespace KJU.Tests
                                  "irure est cupi*/datat, minim. Incid*/idunt occaecat ipsum officia. " +
                                  "Consectetur labore volup/*tate voluptate inci*/didunt, eu occaecat.";
 
-            /*
-            Token categories:
+            var tokenCategories = new List<KeyValuePair<CommentsTestCategory, string>>
+            {
+                new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.UppercaseWord, "[A-Z][a-z]*"),
+                new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.LowercaseWord, "[a-z][a-z]*"),
+                new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.Punctuation,   ".|[,-]"),
+                new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.Space,         " "),
+            };
 
-            uppercaseWord: "[A-Z][a-z]*"
-            lowercaseWord: "[a-z][a-z]*"
-            punctuation:   ".|[,-]"
-            space:         " "
+            var expectedTokens = new List<Token<CommentsTestCategory>>
+            {
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.UppercaseWord, "Velit"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "qui"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "eu"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "cillum"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "anim"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "idunt"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "occaecat"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "ipsum"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "officia"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   "."),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.UppercaseWord, "Consectetur"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "labore"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "volup"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "didunt"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   ","),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "eu"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "occaecat"),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   "."),
+            };
 
-            Tokens:
-
-            uppercaseWord, "Velit",         0
-            space,         " ",             5
-            lowercaseWord, "qui",           6
-            space,         " ",             9
-            lowercaseWord, "eu",           10
-            space,         " ",            12
-            lowercaseWord, "cillum",       13
-            space,         " ",            19
-            lowercaseWord, "anim",         20
-            space,         " ",            24
-            lowercaseWord, "idunt",       149
-            space,         " ",           154
-            lowercaseWord, "occaecat",    155
-            space,         " ",           163
-            lowercaseWord, "ipsum",       164
-            space,         " ",           169
-            lowercaseWord, "officia",     170
-            punctuation,   ".",           177
-            space,         " ",           178
-            uppercaseWord, "Consectetur", 179
-            space,         " ",           190
-            lowercaseWord, "labore",      191
-            space,         " ",           197
-            lowercaseWord, "volup",       198
-            space,         " ",           203
-            lowercaseWord, "didunt",      226
-            punctuation,   ",",           232
-            space,         " ",           233
-            lowercaseWord, "eu",          234
-            space,         " ",           236
-            lowercaseWord, "occaecat",    237
-            punctuation,   ".",           245
-            */
-
-            InputReader inputReader = new InputReader();
+            StringInputReader inputReader = new StringInputReader(inputString);
             Preprocessor preprocessor = new Preprocessor();
-            IEnumerable<KeyValuePair<ILocation, char>> input = inputReader.InputFromString(inputString);
-            input = preprocessor.PreprocessInput(input);
+            var input = preprocessor.PreprocessInput(inputReader.ReadGenerator());
+            var resolver = new ConflictResolver<CommentsTestCategory>(CommentsTestCategory.None);
+            var lexer = new Lexer<CommentsTestCategory>(tokenCategories, resolver.ResolveWithMaxValue);
+            var outputTokens = lexer.Scan(input);
+            Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<CommentsTestCategory>()));
+        }
 
-            // TODO: pass to lexer and compare
+        // pathRelative is relative to src/KJU.Tests
+        // see https://stackoverflow.com/questions/23826773/how-do-i-make-a-data-file-available-to-unit-tests/53004985#53004985
+        // changed to use cross-platform delimiters
+        private static string GetFullPathToFile(string pathRelative)
+        {
+            string pathAssembly = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string folderAssembly = Path.GetDirectoryName(pathAssembly);
+            string combinedPath = Path.Combine(folderAssembly, "..", "..", "..", pathRelative);
+            return Path.GetFullPath(combinedPath);
+        }
+
+        private static Token<TLabel> CreateToken<TLabel>(TLabel category, string text)
+        {
+            var token = new Token<TLabel>();
+            token.Category = category;
+            token.Text = text;
+            return token;
+        }
+
+        // TODO: Take token.InputRange into account
+        private class TokenComparer<TLabel> : IEqualityComparer<Token<TLabel>>
+            where TLabel : System.IComparable
+        {
+            public bool Equals(Token<TLabel> x, Token<TLabel> y)
+            {
+                return x.Category.CompareTo(y.Category) == 0
+                    && x.Text == y.Text;
+            }
+
+            public int GetHashCode(Token<TLabel> obj)
+            {
+                return System.Tuple.Create(obj.Category, obj.Text).GetHashCode();
+            }
         }
     }
 }
