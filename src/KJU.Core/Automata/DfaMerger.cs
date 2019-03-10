@@ -29,7 +29,7 @@
 
             IState IDfa<TLabel>.StartingState()
             {
-                return new ValueState<List<IState>>(
+                return new ListState<IState>(
                     this.dfas.Select(x => x.Item2.StartingState()).ToList());
             }
 
@@ -41,7 +41,7 @@
 
             TLabel IDfa<TLabel>.Label(IState state)
             {
-                var states = (state as ValueState<List<IState>>).Value;
+                var states = (state as ListState<IState>).Value;
                 return this.conflictSolver(states
                         .Select((innerState, index) => new
                         {
@@ -55,7 +55,7 @@
 
             IReadOnlyDictionary<char, IState> IDfa<TLabel>.Transitions(IState state)
             {
-                var states = (state as ValueState<List<IState>>).Value;
+                var states = (state as ListState<IState>).Value;
                 var result = new Dictionary<char, IState>();
 
                 for (int i = 0; i < states.Count(); i++)
@@ -73,10 +73,10 @@
                         if (!result.ContainsKey(edge))
                         {
                             // create empty state (only nulls) - null acts as an implicit fail state
-                            result[edge] = new ValueState<List<IState>>(states.Select(x => null as IState).ToList());
+                            result[edge] = new ListState<IState>(states.Select(x => null as IState).ToList());
                         }
 
-                        (result[edge] as ValueState<List<IState>>).Value[i] = newState;
+                        (result[edge] as ListState<IState>).Value[i] = newState;
                     }
                 }
 

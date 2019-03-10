@@ -51,8 +51,22 @@ namespace KJU.Tests.Automata
 
             Assert.AreEqual(1, GetTargetLabel(merged, "a", 0));
             Assert.AreEqual(2, GetTargetLabel(merged, "b", 0));
+            Assert.AreEqual(2, GetTargetLabel(merged, "bb", 0));
+            Assert.AreEqual(2, GetTargetLabel(merged, "bbbbb", 0));
+            Assert.AreEqual(1, GetTargetLabel(merged, "aaaaaaaaaa", 0));
             Assert.AreEqual(0, GetTargetLabel(merged, string.Empty, 0));
             Assert.AreEqual(0, GetTargetLabel(merged, "baa", 0));
+
+            var merged2 = new ConcreteDfa<int>();
+            merged2.AddEdge(0, 'a', 1);
+            merged2.AddEdge(1, 'a', 1);
+            merged2.AddEdge(0, 'b', 2);
+            merged2.AddEdge(2, 'b', 2);
+            merged2.Labels[0] = 0;
+            merged2.Labels[1] = 1;
+            merged2.Labels[2] = 2;
+
+            Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged, merged2));
         }
 
         [TestMethod]
@@ -71,6 +85,14 @@ namespace KJU.Tests.Automata
             Assert.AreEqual(0, GetTargetLabel(merged1, string.Empty, 0));
             Assert.AreEqual(1, GetTargetLabel(merged1, "a", 0));
             Assert.AreEqual(0, GetTargetLabel(merged1, "b", 0));
+
+            var a1Numeric = new ConcreteDfa<int>(); // a+
+            a1Numeric.AddEdge(0, 'a', 1);
+            a1Numeric.AddEdge(1, 'a', 1);
+            a1Numeric.Labels[0] = 0;
+            a1Numeric.Labels[1] = 1;
+
+            Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged1, a1Numeric));
         }
 
         [TestMethod]
@@ -99,6 +121,22 @@ namespace KJU.Tests.Automata
             Assert.AreEqual(2, GetTargetLabel(merged1, "abab", 0));
             Assert.AreEqual(2, GetTargetLabel(merged1, "ababab", 0));
             Assert.AreEqual(0, GetTargetLabel(merged1, "ababa", 0));
+
+            Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged1, merged1));
+
+            var merged2 = new ConcreteDfa<int>();
+            merged2.AddEdge(0, 'a', 1);
+            merged2.AddEdge(1, 'b', 2);
+            merged2.AddEdge(2, 'a', 3);
+            merged2.AddEdge(3, 'b', 4);
+            merged2.AddEdge(4, 'a', 3);
+            merged2.Labels[0] = 2;
+            merged2.Labels[1] = 0;
+            merged2.Labels[2] = 1;
+            merged2.Labels[3] = 0;
+            merged2.Labels[4] = 2;
+
+            Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged1, merged2));
         }
     }
 }
