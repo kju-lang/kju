@@ -35,7 +35,7 @@ namespace KJU.Core.Automata
 
         public override string ToString()
         {
-            return string.Join(", ", this.Value.Select(x => x.ToString()));
+            return string.Join(", ", this.Value.Select(x => (x == null) ? "null" : x.ToString()));
         }
     }
 }

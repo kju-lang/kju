@@ -20,11 +20,14 @@
         {
             private List<Tuple<TLabel, IDfa<bool>>> dfas;
             private Func<IEnumerable<TLabel>, TLabel> conflictSolver;
+            private ISet<char> allEdges;
 
             public MergedDfa(List<Tuple<TLabel, IDfa<bool>>> dfas, Func<IEnumerable<TLabel>, TLabel> conflictSolver)
             {
                 this.dfas = dfas;
                 this.conflictSolver = conflictSolver;
+                this.allEdges = new HashSet<char>(this.dfas
+                    .SelectMany(x => x.Item2.Transitions(x.Item2.StartingState()).Keys));
             }
 
             IState IDfa<TLabel>.StartingState()
@@ -57,6 +60,11 @@
             {
                 var states = (state as ListState<IState>).Value;
                 var result = new Dictionary<char, IState>();
+
+                foreach (var edge in this.allEdges)
+                {
+                    result[edge] = new ListState<IState>(states.Select(x => null as IState).ToList());
+                }
 
                 for (int i = 0; i < states.Count(); i++)
                 {

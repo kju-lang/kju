@@ -59,12 +59,21 @@ namespace KJU.Tests.Automata
 
             var merged2 = new ConcreteDfa<int>();
             merged2.AddEdge(0, 'a', 1);
-            merged2.AddEdge(1, 'a', 1);
             merged2.AddEdge(0, 'b', 2);
+
+            merged2.AddEdge(1, 'a', 1);
+            merged2.AddEdge(1, 'b', 3);
+
+            merged2.AddEdge(2, 'a', 3);
             merged2.AddEdge(2, 'b', 2);
+
+            merged2.AddEdge(3, 'a', 3);
+            merged2.AddEdge(3, 'b', 3);
+
             merged2.Labels[0] = 0;
             merged2.Labels[1] = 1;
             merged2.Labels[2] = 2;
+            merged2.Labels[3] = 0;
 
             Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged, merged2));
         }
@@ -99,11 +108,14 @@ namespace KJU.Tests.Automata
         public void TestSimple2()
         {
             var a1 = new ConcreteDfa<bool>(); // ab
+
+            a1.AddEdge(0, 'b', 3);
             a1.AddEdge(0, 'a', 1);
             a1.AddEdge(1, 'b', 2);
             a1.Labels[0] = false;
             a1.Labels[1] = false;
             a1.Labels[2] = true;
+            a1.Labels[3] = false;
 
             var a2 = new ConcreteDfa<bool>(); // (ab)*
             a2.AddEdge(0, 'a', 1);
@@ -130,11 +142,22 @@ namespace KJU.Tests.Automata
             merged2.AddEdge(2, 'a', 3);
             merged2.AddEdge(3, 'b', 4);
             merged2.AddEdge(4, 'a', 3);
+
+            merged2.AddEdge(0, 'b', 5);
+            merged2.AddEdge(1, 'a', 5);
+            merged2.AddEdge(2, 'b', 5);
+            merged2.AddEdge(3, 'a', 5);
+            merged2.AddEdge(4, 'b', 5);
+
+            merged2.AddEdge(5, 'a', 5);
+            merged2.AddEdge(5, 'b', 5);
+
             merged2.Labels[0] = 2;
             merged2.Labels[1] = 0;
             merged2.Labels[2] = 1;
             merged2.Labels[3] = 0;
             merged2.Labels[4] = 2;
+            merged2.Labels[5] = 0;
 
             Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged1, merged2));
         }
