@@ -5,9 +5,9 @@
     using System.Text;
     using KJU.Core.Input;
 
-    public class Token
+    public class Token<TLabel>
     {
-        public TokenCategory Category { get; set; }
+        public TLabel Category { get; set; }
 
         public string Text { get; set; }
 
