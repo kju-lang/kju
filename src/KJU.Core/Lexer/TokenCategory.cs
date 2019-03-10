@@ -6,5 +6,6 @@
 
     public enum TokenCategory
     {
+        None, A, B, C, D
     }
 }

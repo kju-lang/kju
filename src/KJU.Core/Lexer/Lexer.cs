@@ -13,10 +13,12 @@
     public class Lexer<TLabel>
     {
         private readonly IDfa<TLabel> minimalizedDfa;
+        private readonly TLabel noneValue;
 
         // tokenCategories - List of pair (Token, Regex for thie Token)
-        public Lexer(IEnumerable<KeyValuePair<TLabel, string>> tokenCategories, Func<IEnumerable<TLabel>, TLabel> conflictSolver)
+        public Lexer(IEnumerable<KeyValuePair<TLabel, string>> tokenCategories, TLabel noneValue, Func<IEnumerable<TLabel>, TLabel> conflictSolver)
         {
+            this.noneValue = noneValue;
             var converter = new StringToRegexConverterFactory().CreateConverter();
             Dictionary<TLabel, IDfa<bool>> multipleDfa = tokenCategories.ToDictionary(
                 x => x.Key,
@@ -50,13 +52,28 @@
                 {
                     it.MoveNext();
                     var nextChar = it.Current;
-                    var nextState = this.minimalizedDfa.Transitions(currState)[nextChar.Value];
-                    tokenText.Append(currChar.Value);
-                    if (this.minimalizedDfa.IsStable(nextState))
+                    if (nextChar.Value == Constants.EndOfInput)
                     {
                         TLabel label = this.minimalizedDfa.Label(currState);
                         Range rng = new Range { Begin = begin, End = nextChar.Key };
-                        if (label == null)
+                        if (label.Equals(this.noneValue))
+                        {
+                            throw new FormatException($"Non-token at position {rng} with text {tokenText}");
+                        }
+
+                        Token<TLabel> ret = new Token<TLabel> { Category = label, InputRange = rng, Text = tokenText.ToString() };
+                        yield return ret;
+                        yield break;
+                    }
+
+                    var nextState = this.minimalizedDfa.Transitions(currState)[nextChar.Value];
+
+                    tokenText.Append(currChar.Value);
+                    if (nextChar.Value == Constants.EndOfInput || this.minimalizedDfa.IsStable(nextState))
+                    {
+                        TLabel label = this.minimalizedDfa.Label(currState);
+                        Range rng = new Range { Begin = begin, End = nextChar.Key };
+                        if (label.Equals(this.noneValue))
                         {
                             throw new FormatException($"Non-token at position {rng} with text {tokenText}");
                         }
