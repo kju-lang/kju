@@ -60,7 +60,7 @@ namespace KJU.Tests
 
             IInputReader inputReader = new StringInputReader(inputString);
             var resolver = new ConflictResolver<StringTestCategory>(StringTestCategory.None);
-            var lexer = new Lexer<StringTestCategory>(tokenCategories, resolver.ResolveWithMaxValue);
+            var lexer = new Lexer<StringTestCategory>(tokenCategories, StringTestCategory.None, resolver.ResolveWithMaxValue);
             var outputTokens = lexer.Scan(inputReader.Read());
             Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<StringTestCategory>()));
         }
@@ -156,7 +156,7 @@ namespace KJU.Tests
 
             IInputReader inputReader = new FileInputReader(filename);
             var resolver = new ConflictResolver<FileTestCategory>(FileTestCategory.None);
-            var lexer = new Lexer<FileTestCategory>(tokenCategories, resolver.ResolveWithMaxValue);
+            var lexer = new Lexer<FileTestCategory>(tokenCategories, FileTestCategory.None, resolver.ResolveWithMaxValue);
             var outputTokens = lexer.Scan(inputReader.Read());
             Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<FileTestCategory>()));
         }
@@ -229,7 +229,7 @@ namespace KJU.Tests
             Preprocessor preprocessor = new Preprocessor();
             var input = preprocessor.PreprocessInput(inputReader.ReadGenerator());
             var resolver = new ConflictResolver<CommentsTestCategory>(CommentsTestCategory.None);
-            var lexer = new Lexer<CommentsTestCategory>(tokenCategories, resolver.ResolveWithMaxValue);
+            var lexer = new Lexer<CommentsTestCategory>(tokenCategories, CommentsTestCategory.None, resolver.ResolveWithMaxValue);
             var outputTokens = lexer.Scan(input);
             Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<CommentsTestCategory>()));
         }
