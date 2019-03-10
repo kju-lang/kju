@@ -35,27 +35,27 @@ namespace KJU.Tests
 
             var expectedTokens = new List<Token<StringTestCategory>>
             {
-                CreateToken<StringTestCategory>(StringTestCategory.Paren,       "("),
-                CreateToken<StringTestCategory>(StringTestCategory.Variable,    "a"),
-                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  " "),
-                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "+"),
-                CreateToken<StringTestCategory>(StringTestCategory.Number,      "40"),
-                CreateToken<StringTestCategory>(StringTestCategory.Paren,       ")"),
-                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "*"),
-                CreateToken<StringTestCategory>(StringTestCategory.Variable,    "num"),
-                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  "   "),
-                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "+"),
-                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  "\n"),
-                CreateToken<StringTestCategory>(StringTestCategory.Paren,       "["),
-                CreateToken<StringTestCategory>(StringTestCategory.Paren,       "("),
-                CreateToken<StringTestCategory>(StringTestCategory.Variable,    "g"),
-                CreateToken<StringTestCategory>(StringTestCategory.Paren,       "]"),
-                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  " "),
-                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "*"),
-                CreateToken<StringTestCategory>(StringTestCategory.Whitespace,  " "),
-                CreateToken<StringTestCategory>(StringTestCategory.Operator,    "-"),
-                CreateToken<StringTestCategory>(StringTestCategory.Number,      "45"),
-                CreateToken<StringTestCategory>(StringTestCategory.Variable,    "x"),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,      "(",   new StringLocation(0),  new StringLocation(1)),
+                CreateToken<StringTestCategory>(StringTestCategory.Variable,   "a",   new StringLocation(1),  new StringLocation(2)),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace, " ",   new StringLocation(2),  new StringLocation(3)),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,   "+",   new StringLocation(3),  new StringLocation(4)),
+                CreateToken<StringTestCategory>(StringTestCategory.Number,     "40",  new StringLocation(4),  new StringLocation(6)),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,      ")",   new StringLocation(6),  new StringLocation(7)),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,   "*",   new StringLocation(7),  new StringLocation(8)),
+                CreateToken<StringTestCategory>(StringTestCategory.Variable,   "num", new StringLocation(8),  new StringLocation(11)),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace, "   ", new StringLocation(11), new StringLocation(14)),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,   "+",   new StringLocation(14), new StringLocation(15)),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace, "\n",  new StringLocation(15), new StringLocation(16)),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,      "[",   new StringLocation(16), new StringLocation(17)),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,      "(",   new StringLocation(17), new StringLocation(18)),
+                CreateToken<StringTestCategory>(StringTestCategory.Variable,   "g",   new StringLocation(18), new StringLocation(19)),
+                CreateToken<StringTestCategory>(StringTestCategory.Paren,      "]",   new StringLocation(19), new StringLocation(20)),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace, " ",   new StringLocation(20), new StringLocation(21)),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,   "*",   new StringLocation(21), new StringLocation(22)),
+                CreateToken<StringTestCategory>(StringTestCategory.Whitespace, " ",   new StringLocation(22), new StringLocation(23)),
+                CreateToken<StringTestCategory>(StringTestCategory.Operator,   "-",   new StringLocation(23), new StringLocation(24)),
+                CreateToken<StringTestCategory>(StringTestCategory.Number,     "45",  new StringLocation(24), new StringLocation(26)),
+                CreateToken<StringTestCategory>(StringTestCategory.Variable,   "x",   new StringLocation(26), new StringLocation(27)),
             };
 
             IInputReader inputReader = new StringInputReader(inputString);
@@ -108,50 +108,50 @@ namespace KJU.Tests
 
             var expectedTokens = new List<Token<FileTestCategory>>
             {
-                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "["),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " "),
-                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "{"),
-                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"2Ws8P0wYj\""),
-                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":"),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  "),
-                CreateToken<FileTestCategory>(FileTestCategory.Minus,        "-"),
-                CreateToken<FileTestCategory>(FileTestCategory.Number,       "17"),
-                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " "),
-                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"dbV\""),
-                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":"),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "   "),
-                CreateToken<FileTestCategory>(FileTestCategory.Boolean,      "true"),
-                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
-                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"B5b0BofwT\""),
-                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":"),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  "),
-                CreateToken<FileTestCategory>(FileTestCategory.Minus,        "-"),
-                CreateToken<FileTestCategory>(FileTestCategory.Number,       "13.607189896949151"),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " "),
-                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "}"),
-                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " "),
-                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "["),
-                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]"),
-                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " \t"),
-                CreateToken<FileTestCategory>(FileTestCategory.Null,         "null"),
-                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "    "),
-                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "["),
-                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]"),
-                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ","),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " \n"),
-                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "{"),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n"),
-                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"NwAssf8pU\""),
-                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":"),
-                CreateToken<FileTestCategory>(FileTestCategory.Null,         "null"),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  "),
-                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "}"),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n  "),
-                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]"),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "[",                  new FileLocation(filename, 1, 1),  new FileLocation(filename, 1, 2)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " ",                  new FileLocation(filename, 1, 2),  new FileLocation(filename, 1, 3)),
+                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "{",                  new FileLocation(filename, 1, 3),  new FileLocation(filename, 1, 4)),
+                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"2Ws8P0wYj\"",      new FileLocation(filename, 1, 4),  new FileLocation(filename, 1, 15)),
+                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":",                  new FileLocation(filename, 1, 15), new FileLocation(filename, 1, 16)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  ",                 new FileLocation(filename, 1, 16), new FileLocation(filename, 1, 18)),
+                CreateToken<FileTestCategory>(FileTestCategory.Minus,        "-",                  new FileLocation(filename, 1, 18), new FileLocation(filename, 1, 19)),
+                CreateToken<FileTestCategory>(FileTestCategory.Number,       "17",                 new FileLocation(filename, 1, 19), new FileLocation(filename, 1, 21)),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ",",                  new FileLocation(filename, 1, 21), new FileLocation(filename, 1, 22)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " ",                  new FileLocation(filename, 1, 22), new FileLocation(filename, 1, 23)),
+                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"dbV\"",            new FileLocation(filename, 1, 23), new FileLocation(filename, 1, 28)),
+                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":",                  new FileLocation(filename, 1, 28), new FileLocation(filename, 1, 29)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "   ",                new FileLocation(filename, 1, 29), new FileLocation(filename, 1, 32)),
+                CreateToken<FileTestCategory>(FileTestCategory.Boolean,      "true",               new FileLocation(filename, 1, 32), new FileLocation(filename, 1, 36)),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ",",                  new FileLocation(filename, 1, 36), new FileLocation(filename, 1, 37)),
+                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"B5b0BofwT\"",      new FileLocation(filename, 1, 37), new FileLocation(filename, 1, 48)),
+                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":",                  new FileLocation(filename, 1, 48), new FileLocation(filename, 1, 49)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  ",                 new FileLocation(filename, 1, 49), new FileLocation(filename, 1, 51)),
+                CreateToken<FileTestCategory>(FileTestCategory.Minus,        "-",                  new FileLocation(filename, 1, 51), new FileLocation(filename, 1, 52)),
+                CreateToken<FileTestCategory>(FileTestCategory.Number,       "13.607189896949151", new FileLocation(filename, 1, 52), new FileLocation(filename, 1, 70)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " ",                  new FileLocation(filename, 1, 70), new FileLocation(filename, 1, 71)),
+                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "}",                  new FileLocation(filename, 1, 71), new FileLocation(filename, 1, 72)),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ",",                  new FileLocation(filename, 1, 72), new FileLocation(filename, 1, 73)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " ",                  new FileLocation(filename, 1, 73), new FileLocation(filename, 1, 74)),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "[",                  new FileLocation(filename, 1, 74), new FileLocation(filename, 1, 75)),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]",                  new FileLocation(filename, 1, 75), new FileLocation(filename, 1, 76)),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ",",                  new FileLocation(filename, 1, 76), new FileLocation(filename, 1, 77)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " \t",                new FileLocation(filename, 1, 77), new FileLocation(filename, 1, 79)),
+                CreateToken<FileTestCategory>(FileTestCategory.Null,         "null",               new FileLocation(filename, 1, 79), new FileLocation(filename, 1, 83)),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ",",                  new FileLocation(filename, 1, 83), new FileLocation(filename, 1, 84)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "    ",               new FileLocation(filename, 1, 84), new FileLocation(filename, 1, 88)),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "[",                  new FileLocation(filename, 1, 88), new FileLocation(filename, 1, 89)),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]",                  new FileLocation(filename, 1, 89), new FileLocation(filename, 1, 90)),
+                CreateToken<FileTestCategory>(FileTestCategory.Comma,        ",",                  new FileLocation(filename, 1, 90), new FileLocation(filename, 1, 91)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " \n",                new FileLocation(filename, 1, 91), new FileLocation(filename, 2, 1)),
+                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "{",                  new FileLocation(filename, 2, 1),  new FileLocation(filename, 2, 2)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n",                 new FileLocation(filename, 2, 2),  new FileLocation(filename, 3, 3)),
+                CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"NwAssf8pU\"",      new FileLocation(filename, 3, 3),  new FileLocation(filename, 3, 14)),
+                CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":",                  new FileLocation(filename, 3, 14), new FileLocation(filename, 3, 15)),
+                CreateToken<FileTestCategory>(FileTestCategory.Null,         "null",               new FileLocation(filename, 3, 15), new FileLocation(filename, 3, 19)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  ",                 new FileLocation(filename, 3, 19), new FileLocation(filename, 3, 21)),
+                CreateToken<FileTestCategory>(FileTestCategory.Brace,        "}",                  new FileLocation(filename, 3, 21), new FileLocation(filename, 3, 22)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n  ",               new FileLocation(filename, 3, 22), new FileLocation(filename, 4, 25)),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]",                  new FileLocation(filename, 4, 25), new FileLocation(filename, 4, 26)),
             };
 
             IInputReader inputReader = new FileInputReader(filename);
@@ -191,38 +191,38 @@ namespace KJU.Tests
 
             var expectedTokens = new List<Token<CommentsTestCategory>>
             {
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.UppercaseWord, "Velit"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "qui"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "eu"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "cillum"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "anim"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "idunt"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "occaecat"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "ipsum"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "officia"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   "."),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.UppercaseWord, "Consectetur"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "labore"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "volup"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "didunt"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   ","),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "eu"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " "),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "occaecat"),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   "."),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.UppercaseWord, "Velit",       new StringLocation(0),   new StringLocation(5)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(5),   new StringLocation(6)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "qui",         new StringLocation(6),   new StringLocation(9)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(9),   new StringLocation(10)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "eu",          new StringLocation(10),  new StringLocation(12)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(12),  new StringLocation(13)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "cillum",      new StringLocation(13),  new StringLocation(19)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(19),  new StringLocation(20)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "anim",        new StringLocation(20),  new StringLocation(24)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(24),  new StringLocation(25)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "idunt",       new StringLocation(149), new StringLocation(154)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(154), new StringLocation(155)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "occaecat",    new StringLocation(155), new StringLocation(163)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(163), new StringLocation(164)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "ipsum",       new StringLocation(164), new StringLocation(169)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(169), new StringLocation(170)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "officia",     new StringLocation(170), new StringLocation(177)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   ".",           new StringLocation(177), new StringLocation(178)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(178), new StringLocation(179)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.UppercaseWord, "Consectetur", new StringLocation(179), new StringLocation(190)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(190), new StringLocation(191)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "labore",      new StringLocation(191), new StringLocation(197)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(197), new StringLocation(198)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "volup",       new StringLocation(198), new StringLocation(203)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(203), new StringLocation(204)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "didunt",      new StringLocation(226), new StringLocation(232)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   ",",           new StringLocation(232), new StringLocation(233)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(233), new StringLocation(234)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "eu",          new StringLocation(234), new StringLocation(236)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(236), new StringLocation(237)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "occaecat",    new StringLocation(237), new StringLocation(245)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   ".",           new StringLocation(245), new StringLocation(246)),
             };
 
             StringInputReader inputReader = new StringInputReader(inputString);
@@ -245,27 +245,35 @@ namespace KJU.Tests
             return Path.GetFullPath(combinedPath);
         }
 
-        private static Token<TLabel> CreateToken<TLabel>(TLabel category, string text)
+        private static Token<TLabel> CreateToken<TLabel>(TLabel category, string text, ILocation s, ILocation t)
         {
             var token = new Token<TLabel>();
             token.Category = category;
             token.Text = text;
+            token.InputRange = new Range();
+            token.InputRange.Begin = s;
+            token.InputRange.End = t;
             return token;
         }
 
-        // TODO: Take token.InputRange into account
         private class TokenComparer<TLabel> : IEqualityComparer<Token<TLabel>>
             where TLabel : System.IComparable
         {
             public bool Equals(Token<TLabel> x, Token<TLabel> y)
             {
                 return x.Category.CompareTo(y.Category) == 0
-                    && x.Text == y.Text;
+                    && x.Text == y.Text
+                    && x.InputRange.Begin.ToString() == y.InputRange.Begin.ToString()
+                    && x.InputRange.End.ToString() == y.InputRange.End.ToString();
             }
 
             public int GetHashCode(Token<TLabel> obj)
             {
-                return System.Tuple.Create(obj.Category, obj.Text).GetHashCode();
+                return System.Tuple.Create(
+                    obj.Category,
+                    obj.Text,
+                    obj.InputRange.Begin.ToString(),
+                    obj.InputRange.End.ToString()).GetHashCode();
             }
         }
     }
