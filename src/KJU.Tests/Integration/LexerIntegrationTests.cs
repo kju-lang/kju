@@ -26,11 +26,11 @@ namespace KJU.Tests
 
             var tokenCategories = new List<KeyValuePair<StringTestCategory, string>>
             {
-                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Paren,      "[()\\[\\]]"),
-                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Operator,   "[*+-]"),
+                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Paren,      "[\\(\\)\\[\\]]"),
+                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Operator,   "[\\*+\\-]"),
                 new KeyValuePair<StringTestCategory, string>(StringTestCategory.Number,     "0|[1-9][0-9]*"),
                 new KeyValuePair<StringTestCategory, string>(StringTestCategory.Variable,   "[a-z][a-z]*"),
-                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Whitespace, "[ \\n][ \\n]*"),
+                new KeyValuePair<StringTestCategory, string>(StringTestCategory.Whitespace, "[ \n][ \n]*"),
             };
 
             var expectedTokens = new List<Token<StringTestCategory>>
@@ -100,10 +100,7 @@ namespace KJU.Tests
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.Boolean,      "true|false"),
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.Null,         "null"),
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.QuotedString, "\"[a-zA-Z0-9_]*\""),
-
-                // TODO: check if string-to-regex expects actual whitespace characters or escape codes
-                //       unescape backslashes if it's the latter case
-                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Whitespace,   "[ \\n\\r\\t\\v][ \\n\\r\\t\\v]*"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Whitespace,   "[ \n\r\t\v][ \n\r\t\v]*"),
             };
 
             var expectedTokens = new List<Token<FileTestCategory>>
@@ -185,7 +182,7 @@ namespace KJU.Tests
             {
                 new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.UppercaseWord, "[A-Z][a-z]*"),
                 new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.LowercaseWord, "[a-z][a-z]*"),
-                new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.Punctuation,   ".|[,-]"),
+                new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.Punctuation,   ".|[,\\-]"),
                 new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.Space,         " "),
             };
 
