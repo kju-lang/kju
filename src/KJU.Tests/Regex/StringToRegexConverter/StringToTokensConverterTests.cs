@@ -14,7 +14,7 @@ namespace KJU.Tests.Regex
         public void SimpleAtom()
         {
             const string input = "a";
-            var expected = new List<Token> { new CharacterClassToken("a") };
+            var expected = new List<Token> { new CharacterClassToken("\\a") };
             var actual = this.converter.Convert(input);
             var expectedToString = string.Join(", ", expected);
             var actualToString = string.Join(", ", actual);

@@ -36,7 +36,7 @@ namespace KJU.Core.Regex.StringToRegexConverter
                             throw new RegexParseException($"Backslash at the end of input escaping nothing.");
                         }
 
-                        toAdd = new CharacterClassToken(regexString[currentCharIndex].ToString());
+                        toAdd = new CharacterClassToken($"\\{regexString[currentCharIndex]}");
                         break;
                     case '[':
                         currentCharIndex++;
@@ -62,7 +62,7 @@ namespace KJU.Core.Regex.StringToRegexConverter
                         break;
 
                     default:
-                        toAdd = new CharacterClassToken(currentChar.ToString());
+                        toAdd = new CharacterClassToken($"\\{currentChar}");
                         break;
                 }
 

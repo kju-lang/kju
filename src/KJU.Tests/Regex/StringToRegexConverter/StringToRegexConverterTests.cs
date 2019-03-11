@@ -209,5 +209,14 @@ namespace KJU.Tests.Regex.StringToRegexConverter
             const string input = "[a-Z]";
             Assert.ThrowsException<RegexParseException>(() => this.converter.Convert(input));
         }
+
+        [TestMethod]
+        public void MinusCharacterRegex()
+        {
+            const string input = "\\-";
+            var expected = new AtomicRegex('-');
+            var actual = this.converter.Convert(input);
+            Assert.AreEqual(expected, actual);
+        }
     }
 }
