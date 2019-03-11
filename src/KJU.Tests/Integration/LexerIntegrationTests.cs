@@ -95,7 +95,7 @@ namespace KJU.Tests
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.Bracket,      "\\[|\\]"),
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.Colon,        ":"),
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.Comma,        ","),
-                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Minus,        "-"),
+                new KeyValuePair<FileTestCategory, string>(FileTestCategory.Minus,        "[\\-]"),
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.Number,       "[1-9][0-9]*|[1-9][0-9]*.[0-9][0-9]*|0.[0-9][0-9]*"),
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.Boolean,      "true|false"),
                 new KeyValuePair<FileTestCategory, string>(FileTestCategory.Null,         "null"),
