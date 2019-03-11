@@ -183,7 +183,7 @@ namespace KJU.Tests
                 new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.UppercaseWord, "[A-Z][a-z]*"),
                 new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.LowercaseWord, "[a-z][a-z]*"),
                 new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.Punctuation,   ".|[,\\-]"),
-                new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.Space,         " "),
+                new KeyValuePair<CommentsTestCategory, string>(CommentsTestCategory.Space,         "  *"),
             };
 
             var expectedTokens = new List<Token<CommentsTestCategory>>
@@ -197,7 +197,7 @@ namespace KJU.Tests
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "cillum",      new StringLocation(13),  new StringLocation(19)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(19),  new StringLocation(20)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "anim",        new StringLocation(20),  new StringLocation(24)),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(24),  new StringLocation(25)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         "  ",          new StringLocation(24),  new StringLocation(149)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "idunt",       new StringLocation(149), new StringLocation(154)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(154), new StringLocation(155)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "occaecat",    new StringLocation(155), new StringLocation(163)),
@@ -212,7 +212,7 @@ namespace KJU.Tests
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "labore",      new StringLocation(191), new StringLocation(197)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(197), new StringLocation(198)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "volup",       new StringLocation(198), new StringLocation(203)),
-                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(203), new StringLocation(204)),
+                CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(203), new StringLocation(226)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.LowercaseWord, "didunt",      new StringLocation(226), new StringLocation(232)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.Punctuation,   ",",           new StringLocation(232), new StringLocation(233)),
                 CreateToken<CommentsTestCategory>(CommentsTestCategory.Space,         " ",           new StringLocation(233), new StringLocation(234)),
