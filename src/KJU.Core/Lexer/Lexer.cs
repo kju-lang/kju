@@ -45,31 +45,16 @@
                 it.MoveNext();
                 var currChar = it.Current;
                 var currState = this.minimalizedDfa.StartingState();
-                currState = this.minimalizedDfa.Transitions(currState)[currChar.Value];
+                currState = currChar.Value == Constants.EndOfInput ? null : this.minimalizedDfa.Transitions(currState)[currChar.Value];
                 ILocation begin = currChar.Key;
                 StringBuilder tokenText = new StringBuilder();
                 while (currChar.Value != Constants.EndOfInput)
                 {
                     it.MoveNext();
                     var nextChar = it.Current;
-                    if (nextChar.Value == Constants.EndOfInput)
-                    {
-                        TLabel label = this.minimalizedDfa.Label(currState);
-                        Range rng = new Range { Begin = begin, End = nextChar.Key };
-                        if (label.Equals(this.noneValue))
-                        {
-                            throw new FormatException($"Non-token at position {rng} with text {tokenText}");
-                        }
-
-                        Token<TLabel> ret = new Token<TLabel> { Category = label, InputRange = rng, Text = tokenText.ToString() };
-                        yield return ret;
-                        yield break;
-                    }
-
-                    var nextState = this.minimalizedDfa.Transitions(currState)[nextChar.Value];
-
+                    IState nextState = nextChar.Value == Constants.EndOfInput ? null : this.minimalizedDfa.Transitions(currState)[nextChar.Value];
                     tokenText.Append(currChar.Value);
-                    if (nextChar.Value == Constants.EndOfInput || this.minimalizedDfa.IsStable(nextState))
+                    if (nextState == null || this.minimalizedDfa.IsStable(nextState))
                     {
                         TLabel label = this.minimalizedDfa.Label(currState);
                         Range rng = new Range { Begin = begin, End = nextChar.Key };
@@ -82,7 +67,7 @@
                         tokenText.Clear();
                         begin = nextChar.Key;
                         nextState = this.minimalizedDfa.StartingState();
-                        nextState = this.minimalizedDfa.Transitions(nextState)[nextChar.Value];
+                        nextState = nextChar.Value == Constants.EndOfInput ? null : this.minimalizedDfa.Transitions(nextState)[nextChar.Value];
                         yield return ret;
                     }
 
