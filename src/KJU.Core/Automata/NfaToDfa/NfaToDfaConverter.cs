@@ -71,7 +71,7 @@
                 }
             }
 
-            return new Dfa(map[start], accepting, trans);
+            return new Dfa(map[startingClosure], accepting, trans);
         }
 
         private static HashSet<char> GetAlphabet(INfa nfa)
