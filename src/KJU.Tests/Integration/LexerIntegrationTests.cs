@@ -141,21 +141,24 @@ namespace KJU.Tests
                 CreateToken<FileTestCategory>(FileTestCategory.Comma,        ",",                  new FileLocation(filename, 1, 90), new FileLocation(filename, 1, 91)),
                 CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   " \n",                new FileLocation(filename, 1, 91), new FileLocation(filename, 2, 1)),
                 CreateToken<FileTestCategory>(FileTestCategory.Brace,        "{",                  new FileLocation(filename, 2, 1),  new FileLocation(filename, 2, 2)),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n",                 new FileLocation(filename, 2, 2),  new FileLocation(filename, 3, 3)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n  ",               new FileLocation(filename, 2, 2),  new FileLocation(filename, 3, 3)),
                 CreateToken<FileTestCategory>(FileTestCategory.QuotedString, "\"NwAssf8pU\"",      new FileLocation(filename, 3, 3),  new FileLocation(filename, 3, 14)),
                 CreateToken<FileTestCategory>(FileTestCategory.Colon,        ":",                  new FileLocation(filename, 3, 14), new FileLocation(filename, 3, 15)),
                 CreateToken<FileTestCategory>(FileTestCategory.Null,         "null",               new FileLocation(filename, 3, 15), new FileLocation(filename, 3, 19)),
                 CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "  ",                 new FileLocation(filename, 3, 19), new FileLocation(filename, 3, 21)),
                 CreateToken<FileTestCategory>(FileTestCategory.Brace,        "}",                  new FileLocation(filename, 3, 21), new FileLocation(filename, 3, 22)),
-                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n  ",               new FileLocation(filename, 3, 22), new FileLocation(filename, 4, 25)),
-                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]",                  new FileLocation(filename, 4, 25), new FileLocation(filename, 4, 26)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n  ",               new FileLocation(filename, 3, 22), new FileLocation(filename, 4, 3)),
+                CreateToken<FileTestCategory>(FileTestCategory.Bracket,      "]",                  new FileLocation(filename, 4, 3),  new FileLocation(filename, 4, 4)),
+                CreateToken<FileTestCategory>(FileTestCategory.Whitespace,   "\n",                 new FileLocation(filename, 4, 4),  new FileLocation(filename, 5, 1)),
             };
 
             IInputReader inputReader = new FileInputReader(filename);
             var resolver = new ConflictResolver<FileTestCategory>(FileTestCategory.None);
             var lexer = new Lexer<FileTestCategory>(tokenCategories, FileTestCategory.None, resolver.ResolveWithMaxValue);
             var outputTokens = lexer.Scan(inputReader.Read());
-            Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<FileTestCategory>()));
+            var expectedText = string.Join(",\n", expectedTokens);
+            var actualText = string.Join(",\n", outputTokens);
+            Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<FileTestCategory>()), $"Expected:\n{expectedText}\nactual:\n{actualText}");
         }
 
         [SuppressMessage(
@@ -228,7 +231,9 @@ namespace KJU.Tests
             var resolver = new ConflictResolver<CommentsTestCategory>(CommentsTestCategory.None);
             var lexer = new Lexer<CommentsTestCategory>(tokenCategories, CommentsTestCategory.None, resolver.ResolveWithMaxValue);
             var outputTokens = lexer.Scan(input);
-            Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<CommentsTestCategory>()));
+            var expectedText = string.Join(",\n", expectedTokens);
+            var actualText = string.Join(",\n", outputTokens);
+            Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<CommentsTestCategory>()), $"Expected:\n{expectedText}\nactual:\n{actualText}");
         }
 
         // pathRelative is relative to src/KJU.Tests
@@ -244,12 +249,10 @@ namespace KJU.Tests
 
         private static Token<TLabel> CreateToken<TLabel>(TLabel category, string text, ILocation s, ILocation t)
         {
-            var token = new Token<TLabel>();
-            token.Category = category;
-            token.Text = text;
-            token.InputRange = new Range();
-            token.InputRange.Begin = s;
-            token.InputRange.End = t;
+            var token = new Token<TLabel>
+            {
+                Category = category, Text = text, InputRange = new Range { Begin = s, End = t }
+            };
             return token;
         }
 

@@ -10,5 +10,10 @@
         public ILocation Begin { get; set; }
 
         public ILocation End { get; set; }
+
+        public override string ToString()
+        {
+            return $"{{{this.Begin}, {this.End}}}";
+        }
     }
 }
