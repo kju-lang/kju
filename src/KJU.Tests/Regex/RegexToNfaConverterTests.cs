@@ -95,6 +95,58 @@ namespace KJU.Tests.Regex
             Assert.IsTrue(accepted.SequenceEqual(expected));
         }
 
+        [TestMethod]
+        public void TestHashSet()
+        {
+            var regex = new SumRegex(
+                new SumRegex(new SumRegex(new AtomicRegex('x'), new AtomicRegex('y')), new AtomicRegex('z')), new AtomicRegex('t'));
+
+            var nfa = RegexToNfaConverter.Convert(regex);
+            var returned = new HashSet<IState>();
+
+            for (int tries = 1; tries <= 10; tries++)
+            {
+                var epsReachable = new HashSet<IState>() { nfa.StartingState() };
+                for (int depth = 1; depth <= 20; depth++)
+                {
+                    var toAdd = new HashSet<IState>();
+                    foreach (var state in epsReachable)
+                    {
+                        foreach (var nextState in nfa.EpsilonTransitions(state))
+                        {
+                            if (!epsReachable.Contains(nextState))
+                            {
+                                toAdd.Add(nextState);
+                            }
+                        }
+                    }
+
+                    foreach (var state in toAdd)
+                    {
+                        epsReachable.Add(state);
+                    }
+
+                    // the size of this set should be a small constant (at most the total number of states)
+                    Assert.IsTrue(epsReachable.Count < 10);
+                }
+
+                foreach (IState start in epsReachable)
+                {
+                    var transitions = nfa.Transitions(start);
+                    if (transitions.ContainsKey('x'))
+                    {
+                        foreach (IState state in transitions['x'])
+                        {
+                            returned.Add(state);
+                        }
+                    }
+                }
+            }
+
+            // all tries should consistently return the same single state corresponding to just having read the letter x
+            Assert.AreEqual(returned.Count, 1);
+        }
+
         private List<string> GetAllAcceptedStringsUpToLength(int maxLength, List<char> vocabulary, INfa nfa)
         {
             var result = new List<string>();

@@ -77,11 +77,11 @@
 
             public IReadOnlyDictionary<char, IReadOnlyCollection<IState>> Transitions(IState state)
             {
-                if (state == this.Start)
+                if (state.Equals(this.Start))
                 {
                     return this.StartTransitions();
                 }
-                else if (state == this.Accept)
+                else if (state.Equals(this.Accept))
                 {
                     return new Dictionary<char, IReadOnlyCollection<IState>>();
                 }
@@ -107,11 +107,11 @@
 
             public IReadOnlyCollection<IState> EpsilonTransitions(IState state)
             {
-                if (state == this.Start)
+                if (state.Equals(this.Start))
                 {
                     return this.StartEpsilonTransitions();
                 }
-                else if (state == this.Accept)
+                else if (state.Equals(this.Accept))
                 {
                     return new List<IState>();
                 }
@@ -127,7 +127,7 @@
 
             public bool IsAccepting(IState state)
             {
-                return state == this.Accept;
+                return state.Equals(this.Accept);
             }
         }
 
@@ -306,7 +306,7 @@
 
             public IState InternalState { get; }
 
-            public bool Equals(IState other)
+            public override bool Equals(object other)
             {
                 if (!(other is StateWithBit))
                 {
@@ -314,7 +314,12 @@
                 }
 
                 var otherStateWithBit = (StateWithBit)other;
-                return this.FromRight == otherStateWithBit.FromRight && this.InternalState == otherStateWithBit.InternalState;
+                return this.FromRight == otherStateWithBit.FromRight && this.InternalState.Equals(otherStateWithBit.InternalState);
+            }
+
+            public bool Equals(IState state)
+            {
+                return this.Equals((object)state);
             }
 
             public override int GetHashCode()
@@ -332,7 +337,7 @@
 
             public bool Accepting { get; }
 
-            public bool Equals(IState other)
+            public override bool Equals(object other)
             {
                 if (!(other is StateBase))
                 {
@@ -341,6 +346,11 @@
 
                 var otherStateBase = (StateBase)other;
                 return this.Accepting == otherStateBase.Accepting;
+            }
+
+            public bool Equals(IState state)
+            {
+                return this.Equals((object)state);
             }
 
             public override int GetHashCode()
