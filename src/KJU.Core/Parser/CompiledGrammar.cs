@@ -9,6 +9,8 @@ namespace KJU.Core.Parser
 
     public class CompiledGrammar<TLabel>
     {
+        // TODO: IDfa<TLable, Rule>
+        // Note that Rule is nullable - null should be used when no rules match.
         public IReadOnlyDictionary<TLabel, IDfa<Rule<TLabel>>> Rules { get; set; }
 
         public TLabel StartSymbol { get; set; }

@@ -15,8 +15,6 @@ namespace KJU.Core.Parser
 
         public CompiledGrammar<TLabel> CompileRegexes()
         {
-            // TODO: IDfa<TLable, Rule>
-            // note that Rule is nullable
             throw new NotImplementedException();
         }
     }
