@@ -9,8 +9,8 @@ namespace KJU.Core.Parser
 
     public class Grammar<TLabel>
     {
-        public IReadOnlyCollection<Rule<TLabel>> Rules { get; set; }
-
         public TLabel StartSymbol { get; set; }
+
+        public IReadOnlyCollection<Rule<TLabel>> Rules { get; set; }
     }
 }
