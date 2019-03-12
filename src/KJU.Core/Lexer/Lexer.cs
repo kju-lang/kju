@@ -12,7 +12,7 @@
 
     public class Lexer<TLabel>
     {
-        private readonly IDfa<TLabel> minimalizedDfa;
+        private readonly IDfa<TLabel, char> minimalizedDfa;
         private readonly TLabel noneValue;
 
         // tokenCategories - List of pair (Token, Regex for thie Token)
@@ -20,20 +20,20 @@
         {
             this.noneValue = noneValue;
             var converter = new StringToRegexConverterFactory().CreateConverter();
-            Dictionary<TLabel, IDfa<bool>> multipleDfa = tokenCategories.ToDictionary(
+            Dictionary<TLabel, IDfa<bool, char>> multipleDfa = tokenCategories.ToDictionary(
                 x => x.Key,
                 x =>
                 {
-                    Regex regex = converter.Convert(x.Value);
-                    INfa nfa = RegexToNfaConverter.Convert(regex);
-                    IDfa<bool> dfa = NfaToDfaConverter.Convert(nfa);
-                    return DfaMinimizer<bool>.Minimize(dfa);
+                    Regex<char> regex = converter.Convert(x.Value);
+                    INfa<char> nfa = RegexToNfaConverter<char>.Convert(regex);
+                    IDfa<bool, char> dfa = NfaToDfaConverter<char>.Convert(nfa);
+                    return DfaMinimizer<bool, char>.Minimize(dfa);
                 });
-            var mergedDfa = DfaMerger<TLabel>.Merge(multipleDfa, conflictSolver);
-            this.minimalizedDfa = DfaMinimizer<TLabel>.Minimize(mergedDfa);
+            var mergedDfa = DfaMerger<TLabel, char>.Merge(multipleDfa, conflictSolver);
+            this.minimalizedDfa = DfaMinimizer<TLabel, char>.Minimize(mergedDfa);
         }
 
-        public Lexer(IDfa<TLabel> dfa)
+        public Lexer(IDfa<TLabel, char> dfa)
         {
             this.minimalizedDfa = dfa;
         }

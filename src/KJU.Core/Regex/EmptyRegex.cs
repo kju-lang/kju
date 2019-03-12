@@ -5,11 +5,11 @@
     using System.Text;
     using KJU.Core.Automata;
 
-    public sealed class EmptyRegex : Regex
+    public sealed class EmptyRegex<Symbol> : Regex<Symbol>
     {
         public override bool Equals(object other)
         {
-            return other is EmptyRegex;
+            return other is EmptyRegex<Symbol>;
         }
 
         public override int GetHashCode()

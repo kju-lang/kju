@@ -5,23 +5,23 @@
     using System.Text;
     using KJU.Core.Automata;
 
-    public sealed class AtomicRegex : Regex
+    public sealed class AtomicRegex<Symbol> : Regex<Symbol>
     {
-        public AtomicRegex(char value)
+        public AtomicRegex(Symbol value)
         {
             this.Value = value;
         }
 
-        public char Value { get; }
+        public Symbol Value { get; }
 
         public override bool Equals(object other)
         {
-            if (!(other is AtomicRegex))
+            if (!(other is AtomicRegex<Symbol>))
             {
                 return false;
             }
 
-            var otherAtomic = (AtomicRegex)other;
+            var otherAtomic = (AtomicRegex<Symbol>)other;
             return this.Value.Equals(otherAtomic.Value);
         }
 

@@ -4,26 +4,26 @@
     using System.Collections.ObjectModel;
     using System.Linq;
 
-    public sealed class ConcatRegex : Regex
+    public sealed class ConcatRegex<Symbol> : Regex<Symbol>
     {
-        public ConcatRegex(Regex left, Regex right)
+        public ConcatRegex(Regex<Symbol> left, Regex<Symbol> right)
         {
             this.Left = left;
             this.Right = right;
         }
 
-        public Regex Left { get; }
+        public Regex<Symbol> Left { get; }
 
-        public Regex Right { get; }
+        public Regex<Symbol> Right { get; }
 
         public override bool Equals(object other)
         {
-            if (!(other is ConcatRegex))
+            if (!(other is ConcatRegex<Symbol>))
             {
                 return false;
             }
 
-            var concatOther = (ConcatRegex)other;
+            var concatOther = (ConcatRegex<Symbol>)other;
             return this.Left.Equals(concatOther.Left) && this.Right.Equals(concatOther.Right);
         }
 

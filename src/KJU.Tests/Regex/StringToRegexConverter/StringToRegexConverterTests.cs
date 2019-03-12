@@ -21,7 +21,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void SimpleAtom()
         {
             const string input = "a";
-            var expected = new AtomicRegex('a');
+            var expected = new AtomicRegex<char>('a');
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -30,7 +30,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void AtomAndStar()
         {
             const string input = "a*";
-            var expected = new StarRegex(new AtomicRegex('a'));
+            var expected = new StarRegex<char>(new AtomicRegex<char>('a'));
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -39,13 +39,13 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void Sum()
         {
             const string input = "a|b|c|d";
-            var expected = new SumRegex(
-                new SumRegex(
-                    new SumRegex(
-                        new AtomicRegex('a'),
-                        new AtomicRegex('b')),
-                    new AtomicRegex('c')),
-                new AtomicRegex('d'));
+            var expected = new SumRegex<char>(
+                new SumRegex<char>(
+                    new SumRegex<char>(
+                        new AtomicRegex<char>('a'),
+                        new AtomicRegex<char>('b')),
+                    new AtomicRegex<char>('c')),
+                new AtomicRegex<char>('d'));
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -54,13 +54,13 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void CharacterClass()
         {
             const string input = "[a-d]";
-            var expected = new SumRegex(
-                new SumRegex(
-                    new SumRegex(
-                        new AtomicRegex('a'),
-                        new AtomicRegex('b')),
-                    new AtomicRegex('c')),
-                new AtomicRegex('d'));
+            var expected = new SumRegex<char>(
+                new SumRegex<char>(
+                    new SumRegex<char>(
+                        new AtomicRegex<char>('a'),
+                        new AtomicRegex<char>('b')),
+                    new AtomicRegex<char>('c')),
+                new AtomicRegex<char>('d'));
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -90,12 +90,12 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void Catenation()
         {
             const string input = "abcd";
-            var expected = new ConcatRegex(
-                new ConcatRegex(
-                    new ConcatRegex(
-                        new AtomicRegex('a'),
-                        new AtomicRegex('b')),
-                    new AtomicRegex('c')), new AtomicRegex('d'));
+            var expected = new ConcatRegex<char>(
+                new ConcatRegex<char>(
+                    new ConcatRegex<char>(
+                        new AtomicRegex<char>('a'),
+                        new AtomicRegex<char>('b')),
+                    new AtomicRegex<char>('c')), new AtomicRegex<char>('d'));
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -104,7 +104,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void StarEscape()
         {
             const string input = "\\*";
-            var expected = new AtomicRegex('*');
+            var expected = new AtomicRegex<char>('*');
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -113,7 +113,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void EscapeInCharacterClass()
         {
             const string input = "[\\-]";
-            var expected = new AtomicRegex('-');
+            var expected = new AtomicRegex<char>('-');
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -122,7 +122,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void Brackets()
         {
             const string input = "(a)";
-            var expected = new AtomicRegex('a');
+            var expected = new AtomicRegex<char>('a');
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -138,7 +138,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void EpsilonRegex()
         {
             const string input = "";
-            var expected = new EpsilonRegex();
+            var expected = new EpsilonRegex<char>();
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -147,7 +147,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void SumAndEpsilonRegex()
         {
             const string input = "a|";
-            var expected = new SumRegex(new AtomicRegex('a'), new EpsilonRegex());
+            var expected = new SumRegex<char>(new AtomicRegex<char>('a'), new EpsilonRegex<char>());
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -156,7 +156,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void BracketsEpsilonRegex()
         {
             const string input = "()";
-            var expected = new EpsilonRegex();
+            var expected = new EpsilonRegex<char>();
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -165,11 +165,11 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void EpsilonRegexInsideSum()
         {
             const string input = "a||b";
-            var expected = new SumRegex(
-                new SumRegex(
-                    new AtomicRegex('a'),
-                    new EpsilonRegex()),
-                new AtomicRegex('b'));
+            var expected = new SumRegex<char>(
+                new SumRegex<char>(
+                    new AtomicRegex<char>('a'),
+                    new EpsilonRegex<char>()),
+                new AtomicRegex<char>('b'));
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -178,7 +178,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void EmptyCharacterClass()
         {
             const string input = "[]";
-            var expected = new EmptyRegex();
+            var expected = new EmptyRegex<char>();
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -198,7 +198,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void CharacterClassEscapedBrackets()
         {
             const string input = "[\\[-\\]]";
-            var expected = new SumRegex(new SumRegex(new AtomicRegex('['), new AtomicRegex('\\')), new AtomicRegex(']'));
+            var expected = new SumRegex<char>(new SumRegex<char>(new AtomicRegex<char>('['), new AtomicRegex<char>('\\')), new AtomicRegex<char>(']'));
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }
@@ -214,7 +214,7 @@ namespace KJU.Tests.Regex.StringToRegexConverter
         public void MinusCharacterRegex()
         {
             const string input = "\\-";
-            var expected = new AtomicRegex('-');
+            var expected = new AtomicRegex<char>('-');
             var actual = this.converter.Convert(input);
             Assert.AreEqual(expected, actual);
         }

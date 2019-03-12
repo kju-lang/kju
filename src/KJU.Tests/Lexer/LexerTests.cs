@@ -33,7 +33,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test0Empty()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
             trans0['\uffff'] = this.states[0];
@@ -47,7 +47,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test1OneToken()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
@@ -71,7 +71,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test2NoTokensNonempty()
         {
-                var dfa = new Mock<IDfa<DummyTokens?>>();
+                var dfa = new Mock<IDfa<DummyTokens?, char>>();
                 Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
                 Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
                 trans0['a'] = this.states[0];
@@ -92,7 +92,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test3TwoTokens()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
@@ -121,7 +121,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test4TwoDifferentTokens()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
@@ -154,7 +154,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test5TokenNontoken()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
@@ -184,7 +184,7 @@ namespace KJU.Tests.Lexer
 [TestMethod]
         public void Test6LongToken()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
@@ -217,7 +217,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test7LongTokenInterrupted()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
@@ -252,7 +252,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test8Greedy()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
@@ -282,7 +282,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void Test9GreedySub()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();
@@ -312,7 +312,7 @@ namespace KJU.Tests.Lexer
         [TestMethod]
         public void TestAGreedyTwo()
         {
-            var dfa = new Mock<IDfa<DummyTokens?>>();
+            var dfa = new Mock<IDfa<DummyTokens?, char>>();
             Lexer<DummyTokens?> lexer = new Lexer<DummyTokens?>(dfa.Object);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             Dictionary<char, IState> trans0 = new Dictionary<char, IState>();

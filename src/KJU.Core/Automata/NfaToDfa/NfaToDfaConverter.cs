@@ -5,14 +5,14 @@
     using System.Diagnostics;
     using System.Text;
 
-    public static class NfaToDfaConverter
+    public static class NfaToDfaConverter<Symbol>
     {
-        public static IDfa<bool> Convert(INfa nfa)
+        public static IDfa<bool, Symbol> Convert(INfa<Symbol> nfa)
         {
-            HashSet<char> alphabet = GetAlphabet(nfa);
+            HashSet<Symbol> alphabet = GetAlphabet(nfa);
             Dictionary<Util.HashableHashSet<IState>, DfaState> map = new Dictionary<Util.HashableHashSet<IState>, DfaState>();
             HashSet<DfaState> accepting = new HashSet<DfaState>();
-            Dictionary<DfaState, Dictionary<char, IState>> trans = new Dictionary<DfaState, Dictionary<char, IState>>();
+            Dictionary<DfaState, Dictionary<Symbol, IState>> trans = new Dictionary<DfaState, Dictionary<Symbol, IState>>();
             Queue<Util.HashableHashSet<IState>> q = new Queue<Util.HashableHashSet<IState>>();
             Util.HashableHashSet<IState> start = new Util.HashableHashSet<IState> { nfa.StartingState() };
             Util.HashableHashSet<IState> startingClosure = EpsilonClosure(nfa, start);
@@ -30,11 +30,11 @@
                     }
                 }
 
-                Dictionary<char, Util.HashableHashSet<IState>> dict = new Dictionary<char, Util.HashableHashSet<IState>>();
+                Dictionary<Symbol, Util.HashableHashSet<IState>> dict = new Dictionary<Symbol, Util.HashableHashSet<IState>>();
                 foreach (IState state in currentSet)
                 {
-                    IReadOnlyDictionary<char, IReadOnlyCollection<IState>> edges = nfa.Transitions(state);
-                    foreach (char key in edges.Keys)
+                    IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> edges = nfa.Transitions(state);
+                    foreach (Symbol key in edges.Keys)
                     {
                         if (!dict.ContainsKey(key))
                         {
@@ -48,7 +48,7 @@
                     }
                 }
 
-                foreach (char key in alphabet)
+                foreach (Symbol key in alphabet)
                 {
                     if (!dict.ContainsKey(key))
                     {
@@ -56,8 +56,8 @@
                     }
                 }
 
-                trans.Add(map[currentSet], new Dictionary<char, IState>());
-                foreach (char key in dict.Keys)
+                trans.Add(map[currentSet], new Dictionary<Symbol, IState>());
+                foreach (Symbol key in dict.Keys)
                 {
                     Util.HashableHashSet<IState> neighbour = EpsilonClosure(nfa, dict[key]);
                     if (!map.ContainsKey(neighbour))
@@ -71,12 +71,12 @@
                 }
             }
 
-            return new Dfa(map[startingClosure], accepting, trans);
+            return new Dfa<Symbol>(map[startingClosure], accepting, trans);
         }
 
-        private static HashSet<char> GetAlphabet(INfa nfa)
+        private static HashSet<Symbol> GetAlphabet(INfa<Symbol> nfa)
         {
-            HashSet<char> alphabet = new HashSet<char>();
+            HashSet<Symbol> alphabet = new HashSet<Symbol>();
             Queue<IState> q = new Queue<IState>();
             IState state = nfa.StartingState();
             Util.HashableHashSet<IState> visited = new Util.HashableHashSet<IState>();
@@ -85,8 +85,8 @@
             while (q.Count != 0)
             {
                 state = q.Dequeue();
-                IReadOnlyDictionary<char, IReadOnlyCollection<IState>> edges = nfa.Transitions(state);
-                foreach (char key in edges.Keys)
+                IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> edges = nfa.Transitions(state);
+                foreach (Symbol key in edges.Keys)
                 {
                     alphabet.Add(key);
                     foreach (IState neighbour in edges[key])
@@ -112,7 +112,7 @@
             return alphabet;
         }
 
-        private static Util.HashableHashSet<IState> EpsilonClosure(INfa nfa, Util.HashableHashSet<IState> states)
+        private static Util.HashableHashSet<IState> EpsilonClosure(INfa<Symbol> nfa, Util.HashableHashSet<IState> states)
         {
             Util.HashableHashSet<IState> closure = new Util.HashableHashSet<IState>();
             Queue<IState> q = new Queue<IState>();

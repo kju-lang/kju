@@ -5,7 +5,7 @@
     using System.Text;
     using KJU.Core.Automata;
 
-    public abstract class Regex
+    public abstract class Regex<Symbol>
     {
         /*
          * AtomicRegex - regex containing one letter (char)

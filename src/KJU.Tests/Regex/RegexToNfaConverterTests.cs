@@ -15,7 +15,7 @@ namespace KJU.Tests.Regex
         [TestMethod]
         public void TestAtomic()
         {
-            var nfaAtomic = RegexToNfaConverter.Convert(new AtomicRegex('a'));
+            var nfaAtomic = RegexToNfaConverter<char>.Convert(new AtomicRegex<char>('a'));
             var vocabulary = new List<char>() { 'a', 'b' };
             var accepted = this.GetAllAcceptedStringsUpToLength(3, vocabulary, nfaAtomic);
 
@@ -25,8 +25,8 @@ namespace KJU.Tests.Regex
         [TestMethod]
         public void TestConcat()
         {
-            var regexConcat = new ConcatRegex(new AtomicRegex('x'), new AtomicRegex('y'));
-            var nfaConcat = RegexToNfaConverter.Convert(regexConcat);
+            var regexConcat = new ConcatRegex<char>(new AtomicRegex<char>('x'), new AtomicRegex<char>('y'));
+            var nfaConcat = RegexToNfaConverter<char>.Convert(regexConcat);
             var vocabulary = new List<char>() { 'x', 'y', 'z' };
             var accepted = this.GetAllAcceptedStringsUpToLength(4, vocabulary, nfaConcat);
 
@@ -36,7 +36,7 @@ namespace KJU.Tests.Regex
         [TestMethod]
         public void TestEmpty()
         {
-            var nfaEmpty = RegexToNfaConverter.Convert(new EmptyRegex());
+            var nfaEmpty = RegexToNfaConverter<char>.Convert(new EmptyRegex<char>());
             var vocabulary = new List<char>() { 'p', 'q' };
             var accepted = this.GetAllAcceptedStringsUpToLength(2, vocabulary, nfaEmpty);
 
@@ -46,7 +46,7 @@ namespace KJU.Tests.Regex
         [TestMethod]
         public void TestEpsilon()
         {
-            var nfaEpsilon = RegexToNfaConverter.Convert(new EpsilonRegex());
+            var nfaEpsilon = RegexToNfaConverter<char>.Convert(new EpsilonRegex<char>());
             var vocabulary = new List<char>() { 'a', 'e' };
             var accepted = this.GetAllAcceptedStringsUpToLength(2, vocabulary, nfaEpsilon);
 
@@ -56,7 +56,7 @@ namespace KJU.Tests.Regex
         [TestMethod]
         public void TestStar()
         {
-            var nfaStar = RegexToNfaConverter.Convert(new StarRegex(new AtomicRegex('b')));
+            var nfaStar = RegexToNfaConverter<char>.Convert(new StarRegex<char>(new AtomicRegex<char>('b')));
             var vocabulary = new List<char>() { 'a', 'b' };
             var accepted = this.GetAllAcceptedStringsUpToLength(4, vocabulary, nfaStar);
 
@@ -66,8 +66,8 @@ namespace KJU.Tests.Regex
         [TestMethod]
         public void TestSum()
         {
-            var regexSum = new SumRegex(new AtomicRegex('x'), new AtomicRegex('y'));
-            var nfaStar = RegexToNfaConverter.Convert(regexSum);
+            var regexSum = new SumRegex<char>(new AtomicRegex<char>('x'), new AtomicRegex<char>('y'));
+            var nfaStar = RegexToNfaConverter<char>.Convert(regexSum);
             var vocabulary = new List<char>() { 'x', 'y', 'z' };
             var accepted = this.GetAllAcceptedStringsUpToLength(3, vocabulary, nfaStar);
 
@@ -78,15 +78,15 @@ namespace KJU.Tests.Regex
         public void TestComplex()
         {
             // equivalent to: a*b | bc* | bad
-            var regex = new SumRegex(
-                new ConcatRegex(
-                    new SumRegex(
-                        new ConcatRegex(new StarRegex(new AtomicRegex('a')), new AtomicRegex('b')),
-                        new ConcatRegex(new AtomicRegex('b'), new StarRegex(new AtomicRegex('c')))),
-                    new SumRegex(new EmptyRegex(), new EpsilonRegex())),
-                new ConcatRegex(new AtomicRegex('b'), new ConcatRegex(new AtomicRegex('a'), new AtomicRegex('d'))));
+            var regex = new SumRegex<char>(
+                new ConcatRegex<char>(
+                    new SumRegex<char>(
+                        new ConcatRegex<char>(new StarRegex<char>(new AtomicRegex<char>('a')), new AtomicRegex<char>('b')),
+                        new ConcatRegex<char>(new AtomicRegex<char>('b'), new StarRegex<char>(new AtomicRegex<char>('c')))),
+                    new SumRegex<char>(new EmptyRegex<char>(), new EpsilonRegex<char>())),
+                new ConcatRegex<char>(new AtomicRegex<char>('b'), new ConcatRegex<char>(new AtomicRegex<char>('a'), new AtomicRegex<char>('d'))));
 
-            var nfa = RegexToNfaConverter.Convert(regex);
+            var nfa = RegexToNfaConverter<char>.Convert(regex);
             var vocabulary = new List<char>() { 'a', 'b', 'c', 'd' };
 
             var accepted = this.GetAllAcceptedStringsUpToLength(5, vocabulary, nfa);
@@ -98,10 +98,10 @@ namespace KJU.Tests.Regex
         [TestMethod]
         public void TestHashSet()
         {
-            var regex = new SumRegex(
-                new SumRegex(new SumRegex(new AtomicRegex('x'), new AtomicRegex('y')), new AtomicRegex('z')), new AtomicRegex('t'));
+            var regex = new SumRegex<char>(
+                new SumRegex<char>(new SumRegex<char>(new AtomicRegex<char>('x'), new AtomicRegex<char>('y')), new AtomicRegex<char>('z')), new AtomicRegex<char>('t'));
 
-            var nfa = RegexToNfaConverter.Convert(regex);
+            var nfa = RegexToNfaConverter<char>.Convert(regex);
             var returned = new HashSet<IState>();
 
             for (int tries = 1; tries <= 10; tries++)
@@ -147,7 +147,7 @@ namespace KJU.Tests.Regex
             Assert.AreEqual(returned.Count, 1);
         }
 
-        private List<string> GetAllAcceptedStringsUpToLength(int maxLength, List<char> vocabulary, INfa nfa)
+        private List<string> GetAllAcceptedStringsUpToLength(int maxLength, List<char> vocabulary, INfa<char> nfa)
         {
             var result = new List<string>();
             foreach (string input in this.GetAllStringsUpToLength(maxLength, vocabulary))

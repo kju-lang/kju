@@ -2,11 +2,11 @@
 {
     using System.Collections.Generic;
 
-    public interface INfa
+    public interface INfa<Symbol>
     {
         IState StartingState();
 
-        IReadOnlyDictionary<char, IReadOnlyCollection<IState>> Transitions(IState state);
+        IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> Transitions(IState state);
 
         IReadOnlyCollection<IState> EpsilonTransitions(IState state);
 

@@ -41,7 +41,7 @@
             }
         }
 
-        private class IntNfa : INfa
+        private class IntNfa : INfa<char>
         {
             public IReadOnlyCollection<IState> EpsilonTransitions(IState state)
             {
@@ -87,9 +87,9 @@
         public void TestNfaToDfa()
 #pragma warning restore SA1201 // Elements must appear in the correct order
         {
-            INfa nfa = new IntNfa();
+            INfa<char> nfa = new IntNfa();
 
-            IDfa<bool> dfa = NfaToDfaConverter.Convert(nfa);
+            IDfa<bool, char> dfa = NfaToDfaConverter<char>.Convert(nfa);
 
             IState start = dfa.StartingState();
             Assert.IsFalse(dfa.Label(start));
@@ -136,7 +136,7 @@
             IReadOnlyCollection<IState> etrans4 = new HashSet<IState> { states[5] };
             IReadOnlyCollection<IState> etrans5 = new HashSet<IState>();
 
-            Mock<INfa> nfa = new Mock<INfa>();
+            Mock<INfa<char>> nfa = new Mock<INfa<char>>();
             nfa.Setup(foo => foo.StartingState()).Returns(states[0]);
             nfa.Setup(foo => foo.IsAccepting(states[0])).Returns(false);
             nfa.Setup(foo => foo.IsAccepting(states[1])).Returns(false);
@@ -159,7 +159,7 @@
             nfa.Setup(foo => foo.EpsilonTransitions(states[4])).Returns(etrans4);
             nfa.Setup(foo => foo.EpsilonTransitions(states[5])).Returns(etrans5);
 
-            IDfa<bool> dfa = NfaToDfaConverter.Convert(nfa.Object);
+            IDfa<bool, char> dfa = NfaToDfaConverter<char>.Convert(nfa.Object);
             IState s = dfa.StartingState();
             Assert.IsFalse(dfa.Label(s));
             IReadOnlyDictionary<char, IState> t = dfa.Transitions(s);

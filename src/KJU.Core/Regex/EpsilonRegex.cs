@@ -1,15 +1,10 @@
 ﻿namespace KJU.Core.Regex
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using KJU.Core.Automata;
-
-    public sealed class EpsilonRegex : Regex
+    public sealed class EpsilonRegex<Symbol> : Regex<Symbol>
     {
         public override bool Equals(object other)
         {
-            return other is EpsilonRegex;
+            return other is EpsilonRegex<Symbol>;
         }
 
         public override int GetHashCode()

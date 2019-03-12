@@ -2,9 +2,10 @@ namespace KJU.Core.Regex.StringToRegexConverter
 {
     using System.Collections.Generic;
     using Tokens;
+    using Regex = Regex<char>;
 
     public interface IRegexTokensParser
     {
-        Regex Parse(List<Token> tokensToParse);
+        Regex<char> Parse(List<Token> tokensToParse);
     }
 }

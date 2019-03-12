@@ -5,23 +5,23 @@
     using System.Text;
     using KJU.Core.Automata;
 
-    public sealed class StarRegex : Regex
+    public sealed class StarRegex<Symbol> : Regex<Symbol>
     {
-        public StarRegex(Regex child)
+        public StarRegex(Regex<Symbol> child)
         {
             this.Child = child;
         }
 
-        public Regex Child { get; }
+        public Regex<Symbol> Child { get; }
 
         public override bool Equals(object other)
         {
-            if (!(other is StarRegex))
+            if (!(other is StarRegex<Symbol>))
             {
                 return false;
             }
 
-            var otherStar = (StarRegex)other;
+            var otherStar = (StarRegex<Symbol>)other;
             return this.Child.Equals(otherStar.Child);
         }
 

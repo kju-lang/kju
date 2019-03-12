@@ -5,10 +5,10 @@
     using System.Linq;
     using System.Text;
 
-    public static class DfaMinimizer<TLabel>
+    public static class DfaMinimizer<TLabel, Symbol>
     {
         // Be aware! The minimal dfa for the a given one will reuse some states!
-        public static IDfa<TLabel> Minimize(IDfa<TLabel> dfa)
+        public static IDfa<TLabel, Symbol> Minimize(IDfa<TLabel, Symbol> dfa)
         {
             List<HashSet<IState>> partition = InitialPartition(dfa);
             while (true)
@@ -30,7 +30,7 @@
             return string.Join(",", partition.Select(hs => string.Join(" ", hs.Select(i => Convert.ToString(i)))));
         }
 
-        private static List<HashSet<IState>> InitialPartition(IDfa<TLabel> dfa)
+        private static List<HashSet<IState>> InitialPartition(IDfa<TLabel, Symbol> dfa)
         {
             var partition = new List<HashSet<IState>>();
             var labelId = new Dictionary<TLabel, int>();
@@ -52,7 +52,7 @@
             return partition;
         }
 
-        private static HashSet<IState> ReachableStates(IDfa<TLabel> dfa)
+        private static HashSet<IState> ReachableStates(IDfa<TLabel, Symbol> dfa)
         {
             var reachedStates = new HashSet<IState>();
 
@@ -63,7 +63,7 @@
             while (queue.Count > 0)
             {
                 IState state = queue.Dequeue();
-                foreach (KeyValuePair<char, IState> transition in dfa.Transitions(state))
+                foreach (KeyValuePair<Symbol, IState> transition in dfa.Transitions(state))
                 {
                     if (!reachedStates.Contains(transition.Value))
                     {
@@ -76,7 +76,7 @@
             return reachedStates;
         }
 
-        private static List<HashSet<IState>> MooresStep(IDfa<TLabel> dfa, List<HashSet<IState>> partition)
+        private static List<HashSet<IState>> MooresStep(IDfa<TLabel, Symbol> dfa, List<HashSet<IState>> partition)
         {
             var stateClassId = new Dictionary<IState, int>();
             for (int i = 0; i < partition.Count; ++i)
@@ -115,14 +115,14 @@
             return newPartition;
         }
 
-        private class MinimalDfa : IDfa<TLabel>
+        private class MinimalDfa : IDfa<TLabel, Symbol>
         {
-            private IDfa<TLabel> dfa;
+            private IDfa<TLabel, Symbol> dfa;
             private List<HashSet<IState>> statePartition;
             private Dictionary<IState, IState> stateMapping = new Dictionary<IState, IState>();
             private HashSet<IState> stableStates = new HashSet<IState>();
 
-            public MinimalDfa(IDfa<TLabel> dfa, List<HashSet<IState>> statePartition)
+            public MinimalDfa(IDfa<TLabel, Symbol> dfa, List<HashSet<IState>> statePartition)
             {
                 this.dfa = dfa;
                 this.statePartition = statePartition;
@@ -136,7 +136,7 @@
                 return this.stateMapping[this.dfa.StartingState()];
             }
 
-            public IReadOnlyDictionary<char, IState> Transitions(IState state)
+            public IReadOnlyDictionary<Symbol, IState> Transitions(IState state)
             {
                 return this.dfa.Transitions(state).ToDictionary(kvp => kvp.Key, kvp => this.stateMapping[kvp.Value]);
             }

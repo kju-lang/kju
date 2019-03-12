@@ -6,9 +6,9 @@
     using System.Text;
     using KJU.Core.Automata;
 
-    public static class DfaEquivalence<TLabel>
+    public static class DfaEquivalence<TLabel, Symbol>
     {
-        public static bool AreEquivalent(IDfa<TLabel> firstDfa, IDfa<TLabel> secondDfa)
+        public static bool AreEquivalent(IDfa<TLabel, Symbol> firstDfa, IDfa<TLabel, Symbol> secondDfa)
         {
             var reached = new HashSet<Tuple<IState, IState>>();
             var queue = new Queue<Tuple<IState, IState>>();

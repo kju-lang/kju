@@ -10,7 +10,7 @@ namespace KJU.Tests.Automata
     [TestClass]
     public class DfaMergerTests
     {
-        public static TLabel GetTargetLabel<TLabel>(IDfa<TLabel> dfa, string s, TLabel defaultLabel)
+        public static TLabel GetTargetLabel<TLabel>(IDfa<TLabel, char> dfa, string s, TLabel defaultLabel)
         {
             IState state = dfa.StartingState();
             foreach (char ch in s)
@@ -30,13 +30,13 @@ namespace KJU.Tests.Automata
         [TestMethod]
         public void TestSimple()
         {
-            var a1 = new ConcreteDfa<bool>(); // a+
+            var a1 = new ConcreteDfa<bool, char>(); // a+
             a1.AddEdge(0, 'a', 1);
             a1.AddEdge(1, 'a', 1);
             a1.Labels[0] = false;
             a1.Labels[1] = true;
 
-            var a2 = new ConcreteDfa<bool>(); // b+
+            var a2 = new ConcreteDfa<bool, char>(); // b+
             a2.AddEdge(0, 'b', 1);
             a2.AddEdge(1, 'b', 1);
             a2.Labels[0] = false;
@@ -45,8 +45,8 @@ namespace KJU.Tests.Automata
             Assert.AreEqual(true, GetTargetLabel(a2, "bbb", false));
             Assert.AreEqual(false, GetTargetLabel(a2, string.Empty, false));
 
-            var merged = DfaMerger<int>.Merge(
-                new Dictionary<int, IDfa<bool>> { { 1, a1 }, { 2, a2 } },
+            var merged = DfaMerger<int, char>.Merge(
+                new Dictionary<int, IDfa<bool, char>> { { 1, a1 }, { 2, a2 } },
                 (labels) => labels.Count() == 0 ? 0 : labels.Min());
 
             Assert.AreEqual(1, GetTargetLabel(merged, "a", 0));
@@ -57,7 +57,7 @@ namespace KJU.Tests.Automata
             Assert.AreEqual(0, GetTargetLabel(merged, string.Empty, 0));
             Assert.AreEqual(0, GetTargetLabel(merged, "baa", 0));
 
-            var merged2 = new ConcreteDfa<int>();
+            var merged2 = new ConcreteDfa<int, char>();
             merged2.AddEdge(0, 'a', 1);
             merged2.AddEdge(0, 'b', 2);
 
@@ -75,39 +75,39 @@ namespace KJU.Tests.Automata
             merged2.Labels[2] = 2;
             merged2.Labels[3] = 0;
 
-            Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged, merged2));
+            Assert.IsTrue(Util.DfaEquivalence<int, char>.AreEquivalent(merged, merged2));
         }
 
         [TestMethod]
         public void TestConflict()
         {
-            var a1 = new ConcreteDfa<bool>(); // a+
+            var a1 = new ConcreteDfa<bool, char>(); // a+
             a1.AddEdge(0, 'a', 1);
             a1.AddEdge(1, 'a', 1);
             a1.Labels[0] = false;
             a1.Labels[1] = true;
 
-            var merged1 = DfaMerger<int>.Merge(
-                new Dictionary<int, IDfa<bool>> { { 1, a1 }, { 2, a1 } },
+            var merged1 = DfaMerger<int, char>.Merge(
+                new Dictionary<int, IDfa<bool, char>> { { 1, a1 }, { 2, a1 } },
                 (labels) => labels.Count() == 0 ? 0 : labels.Min());
 
             Assert.AreEqual(0, GetTargetLabel(merged1, string.Empty, 0));
             Assert.AreEqual(1, GetTargetLabel(merged1, "a", 0));
             Assert.AreEqual(0, GetTargetLabel(merged1, "b", 0));
 
-            var a1Numeric = new ConcreteDfa<int>(); // a+
+            var a1Numeric = new ConcreteDfa<int, char>(); // a+
             a1Numeric.AddEdge(0, 'a', 1);
             a1Numeric.AddEdge(1, 'a', 1);
             a1Numeric.Labels[0] = 0;
             a1Numeric.Labels[1] = 1;
 
-            Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged1, a1Numeric));
+            Assert.IsTrue(Util.DfaEquivalence<int, char>.AreEquivalent(merged1, a1Numeric));
         }
 
         [TestMethod]
         public void TestSimple2()
         {
-            var a1 = new ConcreteDfa<bool>(); // ab
+            var a1 = new ConcreteDfa<bool, char>(); // ab
 
             a1.AddEdge(0, 'b', 3);
             a1.AddEdge(0, 'a', 1);
@@ -117,14 +117,14 @@ namespace KJU.Tests.Automata
             a1.Labels[2] = true;
             a1.Labels[3] = false;
 
-            var a2 = new ConcreteDfa<bool>(); // (ab)*
+            var a2 = new ConcreteDfa<bool, char>(); // (ab)*
             a2.AddEdge(0, 'a', 1);
             a2.AddEdge(1, 'b', 0);
             a2.Labels[0] = true;
             a2.Labels[1] = false;
 
-            var merged1 = DfaMerger<int>.Merge(
-                new Dictionary<int, IDfa<bool>> { { 1, a1 }, { 2, a2 } },
+            var merged1 = DfaMerger<int, char>.Merge(
+                new Dictionary<int, IDfa<bool, char>> { { 1, a1 }, { 2, a2 } },
                 (labels) => labels.Count() == 0 ? 0 : labels.Min());
 
             Assert.AreEqual(2, GetTargetLabel(merged1, string.Empty, 0));
@@ -134,9 +134,9 @@ namespace KJU.Tests.Automata
             Assert.AreEqual(2, GetTargetLabel(merged1, "ababab", 0));
             Assert.AreEqual(0, GetTargetLabel(merged1, "ababa", 0));
 
-            Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged1, merged1));
+            Assert.IsTrue(Util.DfaEquivalence<int, char>.AreEquivalent(merged1, merged1));
 
-            var merged2 = new ConcreteDfa<int>();
+            var merged2 = new ConcreteDfa<int, char>();
             merged2.AddEdge(0, 'a', 1);
             merged2.AddEdge(1, 'b', 2);
             merged2.AddEdge(2, 'a', 3);
@@ -159,7 +159,7 @@ namespace KJU.Tests.Automata
             merged2.Labels[4] = 2;
             merged2.Labels[5] = 0;
 
-            Assert.IsTrue(Util.DfaEquivalence<int>.AreEquivalent(merged1, merged2));
+            Assert.IsTrue(Util.DfaEquivalence<int, char>.AreEquivalent(merged1, merged2));
         }
     }
 }

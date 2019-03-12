@@ -9,13 +9,13 @@ namespace KJU.Tests.Util
 
     public class NfaAcceptance
     {
-        public static bool Accepts(INfa nfa, string input)
+        public static bool Accepts(INfa<char> nfa, string input)
         {
             var cache = new Dictionary<Tuple<IState, string>, bool>();
             return Accepts(nfa, input, nfa.StartingState(), cache);
         }
 
-        private static bool Accepts(INfa nfa, string input, IState state, Dictionary<Tuple<IState, string>, bool> cache)
+        private static bool Accepts(INfa<char> nfa, string input, IState state, Dictionary<Tuple<IState, string>, bool> cache)
         {
             if (input == string.Empty && nfa.IsAccepting(state))
             {

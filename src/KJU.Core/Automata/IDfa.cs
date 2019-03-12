@@ -4,11 +4,11 @@
 
     // TODO it should be public class IDfa<TLabel> where TLabel : IEquatable<TLabel>
     // but Enum doesnt work with IEquatable
-    public interface IDfa<TLabel>
+    public interface IDfa<TLabel, Symbol>
     {
         IState StartingState();
 
-        IReadOnlyDictionary<char, IState> Transitions(IState state);
+        IReadOnlyDictionary<Symbol, IState> Transitions(IState state);
 
         TLabel Label(IState state);
 

@@ -6,35 +6,35 @@
     using System.Text;
     using KJU.Core.Automata;
 
-    public static class RegexToNfaConverter
+    public static class RegexToNfaConverter<Symbol>
     {
         public const string InvalidStateMessage = "The given state is invalid";
 
-        public static INfa Convert(Regex regex)
+        public static INfa<Symbol> Convert(Regex<Symbol> regex)
         {
             switch (regex)
             {
-                case AtomicRegex atomic:
+                case AtomicRegex<Symbol> atomic:
                     return new AtomicNfa(atomic.Value);
-                case ConcatRegex concat:
+                case ConcatRegex<Symbol> concat:
                     return new ConcatNfa(Convert(concat.Left), Convert(concat.Right));
-                case EmptyRegex empty:
+                case EmptyRegex<Symbol> empty:
                     return new EmptyNfa();
-                case EpsilonRegex epsilon:
+                case EpsilonRegex<Symbol> epsilon:
                     return new EpsilonNfa();
-                case StarRegex star:
+                case StarRegex<Symbol> star:
                     return new StarNfa(Convert(star.Child));
-                case SumRegex sum:
+                case SumRegex<Symbol> sum:
                     return new SumNfa(Convert(sum.Left), Convert(sum.Right));
             }
 
             throw new NotImplementedException();
         }
 
-        private static IReadOnlyDictionary<char, IReadOnlyCollection<IState>> MapDictionary(
-            IReadOnlyDictionary<char, IReadOnlyCollection<IState>> dictionary, Func<IState, IState> f)
+        private static IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> MapDictionary(
+            IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> dictionary, Func<IState, IState> f)
         {
-            var result = new Dictionary<char, IReadOnlyCollection<IState>>();
+            var result = new Dictionary<Symbol, IReadOnlyCollection<IState>>();
             foreach (var key in dictionary.Keys)
             {
                 result[key] = dictionary[key].Select(f).ToList();
@@ -48,7 +48,7 @@
             return state => new StateWithBit(fromRight, state);
         }
 
-        internal abstract class BaseNfa : INfa
+        internal abstract class BaseNfa : INfa<Symbol>
         {
             public BaseNfa()
             {
@@ -65,17 +65,17 @@
                 return this.Start;
             }
 
-            public virtual IReadOnlyDictionary<char, IReadOnlyCollection<IState>> StartTransitions()
+            public virtual IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> StartTransitions()
             {
-                return new Dictionary<char, IReadOnlyCollection<IState>>();
+                return new Dictionary<Symbol, IReadOnlyCollection<IState>>();
             }
 
-            public virtual IReadOnlyDictionary<char, IReadOnlyCollection<IState>> InnerTransitions(StateWithBit state)
+            public virtual IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> InnerTransitions(StateWithBit state)
             {
-                return new Dictionary<char, IReadOnlyCollection<IState>>();
+                return new Dictionary<Symbol, IReadOnlyCollection<IState>>();
             }
 
-            public IReadOnlyDictionary<char, IReadOnlyCollection<IState>> Transitions(IState state)
+            public IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> Transitions(IState state)
             {
                 if (state.Equals(this.Start))
                 {
@@ -83,7 +83,7 @@
                 }
                 else if (state.Equals(this.Accept))
                 {
-                    return new Dictionary<char, IReadOnlyCollection<IState>>();
+                    return new Dictionary<Symbol, IReadOnlyCollection<IState>>();
                 }
                 else if (state is StateWithBit)
                 {
@@ -133,32 +133,32 @@
 
         internal class AtomicNfa : BaseNfa
         {
-            public AtomicNfa(char value)
+            public AtomicNfa(Symbol value)
             {
                 this.Value = value;
             }
 
-            public char Value { get; }
+            public Symbol Value { get; }
 
-            public override IReadOnlyDictionary<char, IReadOnlyCollection<IState>> StartTransitions()
+            public override IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> StartTransitions()
             {
-                return new Dictionary<char, IReadOnlyCollection<IState>>() { { this.Value, new List<IState>() { this.Accept } } };
+                return new Dictionary<Symbol, IReadOnlyCollection<IState>>() { { this.Value, new List<IState>() { this.Accept } } };
             }
         }
 
         internal class ConcatNfa : BaseNfa
         {
-            public ConcatNfa(INfa left, INfa right)
+            public ConcatNfa(INfa<Symbol> left, INfa<Symbol> right)
             {
                 this.Left = left;
                 this.Right = right;
             }
 
-            public INfa Left { get; }
+            public INfa<Symbol> Left { get; }
 
-            public INfa Right { get; }
+            public INfa<Symbol> Right { get; }
 
-            public override IReadOnlyDictionary<char, IReadOnlyCollection<IState>> InnerTransitions(StateWithBit state)
+            public override IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> InnerTransitions(StateWithBit state)
             {
                 var transitions = state.FromRight ? this.Right.Transitions(state.InternalState) : this.Left.Transitions(state.InternalState);
                 return MapDictionary(transitions, GetStateWrapper(state.FromRight));
@@ -210,14 +210,14 @@
 
         internal class StarNfa : BaseNfa
         {
-            public StarNfa(INfa inner)
+            public StarNfa(INfa<Symbol> inner)
             {
                 this.Inner = inner;
             }
 
-            public INfa Inner { get; }
+            public INfa<Symbol> Inner { get; }
 
-            public override IReadOnlyDictionary<char, IReadOnlyCollection<IState>> InnerTransitions(StateWithBit state)
+            public override IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> InnerTransitions(StateWithBit state)
             {
                 return MapDictionary(this.Inner.Transitions(state.InternalState), GetStateWrapper(false));
             }
@@ -242,17 +242,17 @@
 
         internal class SumNfa : BaseNfa
         {
-            public SumNfa(INfa left, INfa right)
+            public SumNfa(INfa<Symbol> left, INfa<Symbol> right)
             {
                 this.Left = left;
                 this.Right = right;
             }
 
-            public INfa Left { get; }
+            public INfa<Symbol> Left { get; }
 
-            public INfa Right { get; }
+            public INfa<Symbol> Right { get; }
 
-            public override IReadOnlyDictionary<char, IReadOnlyCollection<IState>> InnerTransitions(StateWithBit state)
+            public override IReadOnlyDictionary<Symbol, IReadOnlyCollection<IState>> InnerTransitions(StateWithBit state)
             {
                 var transitions = state.FromRight ? this.Right.Transitions(state.InternalState) : this.Left.Transitions(state.InternalState);
                 return MapDictionary(transitions, GetStateWrapper(state.FromRight));

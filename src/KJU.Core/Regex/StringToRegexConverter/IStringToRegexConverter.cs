@@ -10,6 +10,6 @@ namespace KJU.Core.Regex.StringToRegexConverter
         /// <param name="regexString">string to parse</param>
         /// <returns>Root node of regex tree.</returns>
         /// <exception cref="RegexParseException">When input does not form correct regular expression.</exception>
-        Regex Convert(string regexString);
+        Regex<char> Convert(string regexString);
     }
 }

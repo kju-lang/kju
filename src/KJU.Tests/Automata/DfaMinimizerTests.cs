@@ -145,9 +145,9 @@ namespace KJU.Tests.Automata
             return dfa;
         }
 
-        private void CheckMinimization<TLabel>(IDfa<TLabel> dfa, int expectedNumberOfStates = -1)
+        private void CheckMinimization<TLabel>(IDfa<TLabel, char> dfa, int expectedNumberOfStates = -1)
         {
-            var minimalDfa = DfaMinimizer<TLabel>.Minimize(dfa);
+            var minimalDfa = DfaMinimizer<TLabel, char>.Minimize(dfa);
             int numberOfStates = this.ReachableStates(minimalDfa).Count;
             if (expectedNumberOfStates != -1)
             {
@@ -158,7 +158,7 @@ namespace KJU.Tests.Automata
             this.CheckStateStability(minimalDfa);
         }
 
-        private void CheckAutomatonEquivalence<TLabel>(IDfa<TLabel> firstDfa, IDfa<TLabel> secondDfa)
+        private void CheckAutomatonEquivalence<TLabel>(IDfa<TLabel, char> firstDfa, IDfa<TLabel, char> secondDfa)
         {
             var reached = new HashSet<Tuple<IState, IState>>();
             var queue = new Queue<Tuple<IState, IState>>();
@@ -191,7 +191,7 @@ namespace KJU.Tests.Automata
             }
         }
 
-        private void CheckStateStability<TLabel>(IDfa<TLabel> dfa)
+        private void CheckStateStability<TLabel>(IDfa<TLabel, char> dfa)
         {
             foreach (var state in this.ReachableStates<TLabel>(dfa))
             {
@@ -209,7 +209,7 @@ namespace KJU.Tests.Automata
             }
         }
 
-        private HashSet<IState> ReachableStates<TLabel>(IDfa<TLabel> dfa)
+        private HashSet<IState> ReachableStates<TLabel>(IDfa<TLabel, char> dfa)
         {
             var reachedStates = new HashSet<IState>();
 
@@ -232,7 +232,7 @@ namespace KJU.Tests.Automata
             return reachedStates;
         }
 
-        private class DfaTest<TLabel> : IDfa<TLabel>
+        private class DfaTest<TLabel> : IDfa<TLabel, char>
         {
             private Dictionary<IState, TLabel> label = new Dictionary<IState, TLabel>();
             private List<DfaTestState> state = new List<DfaTestState>();

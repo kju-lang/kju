@@ -4,13 +4,13 @@
     using System.Collections.Generic;
     using System.Text;
 
-    public class Dfa : IDfa<bool>
+    public class Dfa<Symbol> : IDfa<bool, Symbol>
     {
         private readonly IState start;
         private readonly HashSet<IState> accepting;
-        private readonly Dictionary<DfaState, Dictionary<char, IState>> trans;
+        private readonly Dictionary<DfaState, Dictionary<Symbol, IState>> trans;
 
-        public Dfa(DfaState start, HashSet<DfaState> accepting, Dictionary<DfaState, Dictionary<char, IState>> trans)
+        public Dfa(DfaState start, HashSet<DfaState> accepting, Dictionary<DfaState, Dictionary<Symbol, IState>> trans)
         {
             this.accepting = new HashSet<IState>(accepting);
             this.start = start;
@@ -33,7 +33,7 @@
             return this.start;
         }
 
-        public IReadOnlyDictionary<char, IState> Transitions(IState state)
+        public IReadOnlyDictionary<Symbol, IState> Transitions(IState state)
         {
             if (!(state is DfaState) || !this.trans.ContainsKey((DfaState)state))
             {

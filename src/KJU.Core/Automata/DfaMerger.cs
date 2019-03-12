@@ -5,10 +5,10 @@
     using System.Linq;
     using System.Text;
 
-    public static class DfaMerger<TLabel>
+    public static class DfaMerger<TLabel, Symbol>
     {
-        public static IDfa<TLabel> Merge(
-            IReadOnlyDictionary<TLabel, IDfa<bool>> dfas,
+        public static IDfa<TLabel, Symbol> Merge(
+            IReadOnlyDictionary<TLabel, IDfa<bool, Symbol>> dfas,
             Func<IEnumerable<TLabel>, TLabel> conflictSolver)
         {
             return new MergedDfa(
@@ -16,33 +16,33 @@
                 conflictSolver);
         }
 
-        private class MergedDfa : IDfa<TLabel>
+        private class MergedDfa : IDfa<TLabel, Symbol>
         {
-            private List<Tuple<TLabel, IDfa<bool>>> dfas;
+            private List<Tuple<TLabel, IDfa<bool, Symbol>>> dfas;
             private Func<IEnumerable<TLabel>, TLabel> conflictSolver;
-            private ISet<char> allEdges;
+            private ISet<Symbol> allEdges;
 
-            public MergedDfa(List<Tuple<TLabel, IDfa<bool>>> dfas, Func<IEnumerable<TLabel>, TLabel> conflictSolver)
+            public MergedDfa(List<Tuple<TLabel, IDfa<bool, Symbol>>> dfas, Func<IEnumerable<TLabel>, TLabel> conflictSolver)
             {
                 this.dfas = dfas;
                 this.conflictSolver = conflictSolver;
-                this.allEdges = new HashSet<char>(this.dfas
+                this.allEdges = new HashSet<Symbol>(this.dfas
                     .SelectMany(x => x.Item2.Transitions(x.Item2.StartingState()).Keys));
             }
 
-            IState IDfa<TLabel>.StartingState()
+            IState IDfa<TLabel, Symbol>.StartingState()
             {
                 return new ListState<IState>(
                     this.dfas.Select(x => x.Item2.StartingState()).ToList());
             }
 
-            bool IDfa<TLabel>.IsStable(IState state)
+            bool IDfa<TLabel, Symbol>.IsStable(IState state)
             {
                 // this is implemented only for minimal DFAs
                 throw new NotImplementedException();
             }
 
-            TLabel IDfa<TLabel>.Label(IState state)
+            TLabel IDfa<TLabel, Symbol>.Label(IState state)
             {
                 var states = (state as ListState<IState>).Value;
                 return this.conflictSolver(states
@@ -56,10 +56,10 @@
                         .Select((x) => x.label));
             }
 
-            IReadOnlyDictionary<char, IState> IDfa<TLabel>.Transitions(IState state)
+            IReadOnlyDictionary<Symbol, IState> IDfa<TLabel, Symbol>.Transitions(IState state)
             {
                 var states = (state as ListState<IState>).Value;
-                var result = new Dictionary<char, IState>();
+                var result = new Dictionary<Symbol, IState>();
 
                 foreach (var edge in this.allEdges)
                 {
@@ -74,10 +74,10 @@
                     }
 
                     var newStates = this.dfas[i].Item2.Transitions(states[i]);
-                    foreach (KeyValuePair<char, IState> p in newStates)
+                    foreach (KeyValuePair<Symbol, IState> p in newStates)
                     {
                         IState newState = p.Value;
-                        char edge = p.Key;
+                        Symbol edge = p.Key;
                         if (!result.ContainsKey(edge))
                         {
                             // create empty state (only nulls) - null acts as an implicit fail state

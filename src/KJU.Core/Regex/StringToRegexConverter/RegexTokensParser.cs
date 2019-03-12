@@ -4,6 +4,7 @@ namespace KJU.Core.Regex.StringToRegexConverter
     using System.Collections.Generic;
     using System.Linq;
     using Tokens;
+    using Regex = Regex<char>;
 
     public class RegexTokensParser : IRegexTokensParser
     {
@@ -70,7 +71,7 @@ namespace KJU.Core.Regex.StringToRegexConverter
                 while (this.Accept(typeof(SumToken)))
                 {
                     var other = this.ParseWithoutSum();
-                    result = new SumRegex(result, other);
+                    result = new SumRegex<char>(result, other);
                 }
 
                 return result;
@@ -93,12 +94,12 @@ namespace KJU.Core.Regex.StringToRegexConverter
                     while (true)
                     {
                         var other = this.ParseWithoutSumAndCatenation();
-                        if (other is EpsilonRegex)
+                        if (other is EpsilonRegex<char>)
                         {
                             break;
                         }
 
-                        result = new ConcatRegex(result, other);
+                        result = new ConcatRegex<char>(result, other);
                     }
                 }
                 catch (RegexParserInternalException)
@@ -125,7 +126,7 @@ namespace KJU.Core.Regex.StringToRegexConverter
                 var result = this.ParseWithoutSumCatenationAndStar();
                 while (this.Accept(typeof(StarToken)))
                 {
-                    result = new StarRegex(result);
+                    result = new StarRegex<char>(result);
                 }
 
                 return result;
@@ -162,7 +163,7 @@ namespace KJU.Core.Regex.StringToRegexConverter
         {
             if (!this.Accept(typeof(CharacterClassToken)))
             {
-                return new EpsilonRegex();
+                return new EpsilonRegex<char>();
             }
 
             var token = (CharacterClassToken)this.tokens[this.alreadyParsed - 1];
@@ -185,7 +186,7 @@ namespace KJU.Core.Regex.StringToRegexConverter
                             throw new RegexParserInternalException("Character class: escape (\\) at the end of body.");
                         }
 
-                        regexes.Add(new AtomicRegex(chars[index]));
+                        regexes.Add(new AtomicRegex<char>(chars[index]));
                         break;
                     case '-':
                         var previousIndex = index - 1;
@@ -225,25 +226,25 @@ namespace KJU.Core.Regex.StringToRegexConverter
 
                         for (var charToAdd = startCharacter; charToAdd <= endCharacter; charToAdd++)
                         {
-                            regexes.Add(new AtomicRegex(charToAdd));
+                            regexes.Add(new AtomicRegex<char>(charToAdd));
                         }
 
                         index = nextIndex;
                         break;
                     default:
-                        regexes.Add(new AtomicRegex(currentChar));
+                        regexes.Add(new AtomicRegex<char>(currentChar));
                         break;
                 }
             }
 
             if (regexes.Count == 0)
             {
-                return new EmptyRegex();
+                return new EmptyRegex<char>();
             }
 
             var first = regexes[0];
             regexes.RemoveAt(0);
-            return regexes.Aggregate(first, (acc, x) => new SumRegex(acc, x));
+            return regexes.Aggregate(first, (acc, x) => new SumRegex<char>(acc, x));
         }
     }
 }

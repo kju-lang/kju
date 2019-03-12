@@ -20,7 +20,7 @@
         /// <param name="regexString">string to parse</param>
         /// <returns>Root node of regex tree.</returns>
         /// <exception cref="RegexParseException">When input does not form correct regular expression.</exception>
-        public Regex Convert(string regexString)
+        public Regex<char> Convert(string regexString)
         {
             var tokens = this.stringToTokensConverter.Convert(regexString);
             return this.regexTokensParser.Parse(tokens);
