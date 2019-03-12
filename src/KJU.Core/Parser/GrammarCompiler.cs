@@ -7,10 +7,11 @@ namespace KJU.Core.Parser
     using KJU.Core.Lexer;
     using KJU.Core.Regex;
 
-    public class Grammar<TLabel>
+    public class GrammarCompiler<TLabel>
     {
-        public IReadOnlyCollection<Rule<TLabel>> Rules { get; set; }
-
-        public TLabel StartSymbol { get; set; }
+        public static CompiledGrammar<TLabel> CompileGrammar(Grammar<TLabel> grammar)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
