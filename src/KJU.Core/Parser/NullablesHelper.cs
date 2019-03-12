@@ -6,7 +6,7 @@ namespace KJU.Core.Parser
 
     public class NullablesHelper<TLabel>
     {
-        public static IReadOnlyCollection<Tuple<IDfa<TLabel>, IState>> GetNullableSymbols(CompiledGrammar<TLabel> grammar)
+        public static IReadOnlyCollection<DfaState<TLabel>> GetNullableSymbols(CompiledGrammar<TLabel> grammar)
         {
             throw new NotImplementedException();
         }
