@@ -11,6 +11,6 @@ namespace KJU.Core.Parser
     {
         public TLabel Lhs { get; set; }
 
-        public Regex Rhs { get; set; } // TODO: Regex<TLabel>
+        public Regex<TLabel> Rhs { get; set; }
     }
 }

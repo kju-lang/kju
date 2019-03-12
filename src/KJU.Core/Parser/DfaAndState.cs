@@ -9,7 +9,7 @@ namespace KJU.Core.Parser
 
     public struct DfaAndState<TLabel>
     {
-        public IDfa<Rule<TLabel>> Dfa { get; set; } // TODO: IDfa<TLabel, Rule<TLabel>>
+        public IDfa<Rule<TLabel>, TLabel> Dfa { get; set; }
 
         public IState State { get; set; }
     }
