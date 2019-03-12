@@ -6,7 +6,7 @@ namespace KJU.Core.Parser
     using KJU.Core.Input;
     using KJU.Core.Lexer;
 
-    // am am
+    // om nom nom
 
     public class Brunch<TLabel> : ParseTree<TLabel>
     {
