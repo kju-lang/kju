@@ -5,13 +5,9 @@
     using System.Text;
     using KJU.Core.Input;
 
-    public class Token<TLabel>
+    public class Token<TLabel> : ParseTree<TLabel>
     {
-        public TLabel Category { get; set; }
-
         public string Text { get; set; }
-
-        public Range InputRange { get; set; }
 
         public override string ToString()
         {
