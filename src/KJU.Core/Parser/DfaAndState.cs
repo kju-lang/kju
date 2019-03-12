@@ -7,7 +7,7 @@ namespace KJU.Core.Parser
     using KJU.Core.Lexer;
     using KJU.Core.Regex;
 
-    public struct DfaState<TLabel>
+    public struct DfaAndState<TLabel>
     {
         public IDfa<Rule<TLabel>> Dfa { get; set; } // TODO: IDfa<TLabel, Rule<TLabel>>
 

@@ -9,7 +9,7 @@ namespace KJU.Core.Parser
 
     public class Parser<TLabel>
     {
-        public Parser(CompiledGrammar<TLabel> grammar, IReadOnlyDictionary<Tuple<DfaState<TLabel>, TLabel>, ParseAction<TLabel>> table)
+        public Parser(CompiledGrammar<TLabel> grammar, IReadOnlyDictionary<Tuple<DfaAndState<TLabel>, TLabel>, ParseAction<TLabel>> table)
         {
         }
 

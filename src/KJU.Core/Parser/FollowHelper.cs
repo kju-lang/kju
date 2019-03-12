@@ -6,10 +6,10 @@ namespace KJU.Core.Parser
 
     public class FollowHelper<TLabel>
     {
-        public static IReadOnlyDictionary<TLabel, IReadOnlyCollection<DfaState<TLabel>>> GetFollowSymbols(
+        public static IReadOnlyDictionary<TLabel, IReadOnlyCollection<DfaAndState<TLabel>>> GetFollowSymbols(
             CompiledGrammar<TLabel> grammar,
-            IReadOnlyCollection<DfaState<TLabel>> nullables,
-            IReadOnlyDictionary<TLabel, IReadOnlyCollection<DfaState<TLabel>>> first)
+            IReadOnlyCollection<DfaAndState<TLabel>> nullables,
+            IReadOnlyDictionary<TLabel, IReadOnlyCollection<DfaAndState<TLabel>>> first)
         {
             throw new NotImplementedException();
         }

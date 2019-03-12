@@ -6,9 +6,9 @@ namespace KJU.Core.Parser
 
     public class FirstHelper<TLabel>
     {
-        public static IReadOnlyDictionary<TLabel, IReadOnlyCollection<DfaState<TLabel>>> GetFirstSymbols(
+        public static IReadOnlyDictionary<TLabel, IReadOnlyCollection<DfaAndState<TLabel>>> GetFirstSymbols(
             CompiledGrammar<TLabel> grammar,
-            IReadOnlyCollection<DfaState<TLabel>> nullables)
+            IReadOnlyCollection<DfaAndState<TLabel>> nullables)
         {
             throw new NotImplementedException();
         }

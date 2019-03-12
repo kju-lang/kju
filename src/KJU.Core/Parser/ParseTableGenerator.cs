@@ -9,7 +9,7 @@ namespace KJU.Core.Parser
 
     public class ParseTableGenerator<TLabel>
     {
-        public static IReadOnlyDictionary<Tuple<DfaState<TLabel>, TLabel>, ParseAction<TLabel>> Parse(CompiledGrammar<TLabel> grammar)
+        public static IReadOnlyDictionary<Tuple<DfaAndState<TLabel>, TLabel>, ParseAction<TLabel>> Parse(CompiledGrammar<TLabel> grammar)
         {
             throw new NotImplementedException();
         }
