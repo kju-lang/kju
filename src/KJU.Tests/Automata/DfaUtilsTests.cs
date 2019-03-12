@@ -10,7 +10,7 @@ namespace KJU.Tests.Automata
         [TestMethod]
         public void TestGetAllStates()
         {
-            var dfa = new ConcreteDfa<bool>();
+            var dfa = new ConcreteDfa<bool, char>();
             Assert.AreEqual(DfaUtils.GetAllStates(dfa).Count, 1);
 
             dfa.AddEdge(0, 'a', 1);

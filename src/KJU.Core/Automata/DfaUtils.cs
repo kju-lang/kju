@@ -5,7 +5,7 @@ namespace KJU.Core.Automata
 
     public class DfaUtils
     {
-        public static IReadOnlyCollection<IState> GetAllStates<TLabel>(IDfa<TLabel> dfa)
+        public static IReadOnlyCollection<IState> GetAllStates<TLabel, Symbol>(IDfa<TLabel, Symbol> dfa)
         {
             var visited = new HashSet<IState>();
             var queue = new Queue<IState>();
