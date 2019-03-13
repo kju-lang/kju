@@ -179,6 +179,7 @@ namespace KJU.Core.Parser
             {
                 Lhs = ExpressionAtom,
                 Rhs = Sum(
+                    VariableFunctionIdentifier.ToRegex(),
                     VariableDeclaration.ToRegex(),
                     VariableAssigment.ToRegex(),
                     FunctionCall.ToRegex(),
