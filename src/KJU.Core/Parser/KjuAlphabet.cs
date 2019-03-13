@@ -25,16 +25,6 @@ namespace KJU.Core.Parser
         RParen,
 
         /// <summary>
-        /// \/\*
-        /// </summary>
-        LComment,
-
-        /// <summary>
-        /// \*\/
-        /// </summary>
-        RComment,
-
-        /// <summary>
         /// ,
         /// </summary>
         Comma,
@@ -97,12 +87,12 @@ namespace KJU.Core.Parser
         /// <summary>
         /// 0|[1-9][0-9]*
         /// </summary>
-        DecimalValue,
+        DecimalLiteral,
 
         /// <summary>
         /// true|false
         /// </summary>
-        BooleanValue,
+        BooleanLiteral,
 
         /// <summary>
         /// [A-Z][a-zA-Z0-9_]*
@@ -113,11 +103,6 @@ namespace KJU.Core.Parser
         /// [a-z][a-zA-Z0-9_]*
         /// </summary>
         VariableFunctionIdentifier,
-
-        /// <summary>
-        /// =
-        /// </summary>
-        Assign,
 
         /// <summary>
         /// ==
@@ -137,12 +122,12 @@ namespace KJU.Core.Parser
         /// <summary>
         /// &lt;=
         /// </summary>
-        LessEqual,
+        LessOrEqual,
 
         /// <summary>
         /// &gt;=
         /// </summary>
-        GreaterEqual,
+        GreaterOrEqual,
 
         /// <summary>
         /// !
@@ -182,12 +167,17 @@ namespace KJU.Core.Parser
         /// <summary>
         /// &
         /// </summary>
-        And,
+        LogicalAnd,
 
         /// <summary>
         /// |
         /// </summary>
-        Or,
+        LogicalOr,
+
+        /// <summary>
+        /// =
+        /// </summary>
+        Assign,
 
         /// <summary>
         /// +=
@@ -224,7 +214,7 @@ namespace KJU.Core.Parser
         /// <summary>
         /// Whole function
         /// </summary>
-        Function,
+        FunctionDeclaration,
 
         /// <summary>
         /// Block of code delimetered by {}
@@ -241,22 +231,64 @@ namespace KJU.Core.Parser
         /// </summary>
         NotDelimeteredInstruction,
 
+        /// <summary>
+        /// var a:Int = 5 ('= 5' is optional)
+        /// </summary>
         VariableDeclaration,
 
-        VariableDeclarationAndAssigment,
-
+        /// <summary>
+        /// a = 5 or a+=5 or variation
+        /// </summary>
         VariableAssigment,
 
+        /// <summary>
+        /// f(5,7,13)
+        /// </summary>
         FunctionCall,
 
+        /// <summary>
+        /// x:Int
+        /// </summary>
         FunctionParameter,
 
-        Expression,
-
+        /// <summary>
+        /// return 5 ('5' is optional)
+        /// </summary>
         ReturnStatement,
 
+        /// <summary>
+        /// if a == b then
+        /// {
+        ///     3;
+        /// }
+        /// else
+        /// {
+        ///     5;
+        /// }
+        /// </summary>
         IfStatement,
 
+        /// <summary>
+        /// while a == b
+        /// {
+        ///     5;
+        /// }
+        /// </summary>
         WhileStatement,
+
+        Expression,
+        ExpressionOr,
+        ExpressionAnd,
+        ExpressionEqualsNotEquals,
+        ExpressionLessThanGreaterThan,
+        ExpressionPlusMinus,
+        ExpressionTimesDivideModulo,
+        ExpressionLogicalNot,
+        ExpressionAtom,
+
+        /// <summary>
+        /// Decimal or Boolean value
+        /// </summary>
+        Literal
     }
 }
