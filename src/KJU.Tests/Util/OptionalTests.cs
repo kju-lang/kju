@@ -20,6 +20,17 @@ namespace KJU.Tests.Util
             Assert.AreNotEqual(Optional<string>.Some("foo1"), Optional<object>.Some("foo"));
             Assert.AreEqual(Optional<string>.Some("foo").GetHashCode(), Optional<string>.Some("foo").GetHashCode());
             Assert.AreEqual(Optional<string>.None().GetHashCode(), Optional<string>.None().GetHashCode());
+            Assert.AreEqual(Optional<string>.Some("foo").Get(), "foo");
+            Assert.AreEqual(Optional<string>.Some("foo").GetOrNull(), "foo");
+            Assert.AreEqual(Optional<string>.None().GetOrNull(), null);
+            try
+            {
+                Optional<string>.None().Get();
+                Assert.Fail();
+            }
+            catch (ArgumentException)
+            {
+            }
         }
     }
 }

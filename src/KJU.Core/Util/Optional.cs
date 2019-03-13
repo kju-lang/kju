@@ -31,6 +31,31 @@ namespace KJU.Core.Util
             return new Optional<T>(null);
         }
 
+        public bool IsSome()
+        {
+            return this.value != null;
+        }
+
+        public bool IsNone()
+        {
+            return this.value == null;
+        }
+
+        public T Get()
+        {
+            if (this.IsNone())
+            {
+                throw new ArgumentException("attempt to retrieve value from None");
+            }
+
+            return this.value;
+        }
+
+        public T GetOrNull()
+        {
+            return this.value;
+        }
+
         public override bool Equals(object obj)
         {
             switch (obj)
