@@ -95,21 +95,6 @@ namespace KJU.Core.Parser
         Return,
 
         /// <summary>
-        /// Int
-        /// </summary>
-        Int,
-
-        /// <summary>
-        /// Bool
-        /// </summary>
-        Bool,
-
-        /// <summary>
-        /// Unit
-        /// </summary>
-        Unit,
-
-        /// <summary>
         /// 0|[1-9][0-9]*
         /// </summary>
         DecimalValue,
@@ -237,8 +222,41 @@ namespace KJU.Core.Parser
         Kju,
 
         /// <summary>
-        /// Starting symbol
+        /// Whole function
         /// </summary>
-        Function
+        Function,
+
+        /// <summary>
+        /// Block of code delimetered by {}
+        /// </summary>
+        Block,
+
+        /// <summary>
+        /// Instruction ending by ;
+        /// </summary>
+        Instruction,
+
+        /// <summary>
+        /// Instruction not ending by ;
+        /// </summary>
+        NotDelimeteredInstruction,
+
+        VariableDeclaration,
+
+        VariableDeclarationAndAssigment,
+
+        VariableAssigment,
+
+        FunctionCall,
+
+        FunctionParameter,
+
+        Expression,
+
+        ReturnStatement,
+
+        IfStatement,
+
+        WhileStatement,
     }
 }
