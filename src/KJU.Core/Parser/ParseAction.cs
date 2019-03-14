@@ -16,6 +16,11 @@ namespace KJU.Core.Parser
 
         public ActionKind Kind { get; set; }
 
-        public Rule<TLabel> TargetRule { get; set; }
+        public TLabel Label { get; set; }
+
+        public override string ToString()
+        {
+            return $"{this.Kind}:{this.Label}";
+        }
     }
 }
