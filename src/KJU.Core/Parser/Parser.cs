@@ -113,8 +113,8 @@ namespace KJU.Core.Parser
                     brunch.Children = nodesStack.Peek();
                     brunch.Category = brunch.Rule.Lhs;
                     Range range = new Range();
-                    range.Begin = nodesStack.Peek()[0].InputRange.Begin;
-                    range.End = nodesStack.Peek()[nodesStack.Peek().Count - 1].InputRange.End;
+                    // range.Begin = nodesStack.Peek()[0].InputRange.Begin;
+                    // range.End = nodesStack.Peek()[nodesStack.Peek().Count - 1].InputRange.End;
                     brunch.InputRange = range;
 
                     statesStack.Pop();

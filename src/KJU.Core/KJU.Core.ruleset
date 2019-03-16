@@ -71,6 +71,8 @@
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1503" Action="Hidden" /> <!-- Braces must not be omitted -->
     <Rule Id="SA1512" Action="Hidden" /> <!-- Single-line comments must not be followed by blank line -->
+    <Rule Id="SA1512" Action="Hidden" /> <!-- Single-line comments must not be followed by blank line -->
+    <Rule Id="SA1515" Action="Hidden" /> <!-- Single-line comment must be preceded by blank line -->
     <Rule Id="SA1600" Action="Hidden" />
     <Rule Id="SA1633" Action="Hidden" />
     <Rule Id="SA1652" Action="Hidden" />
