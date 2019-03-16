@@ -88,8 +88,8 @@
             IntDfa dfa = new IntDfa();
             rules.Add(Label.A, dfa);
             var grammar = new CompiledGrammar<Label>() { Rules = rules, StartSymbol = Label.A };
-            var parseTable = new Dictionary<Tuple<IState, IDfa<Optional<Rule<Label>>, Label>, Label>, ParseAction<Label>>();
-            parseTable.Add(new Tuple<IState, IDfa<Optional<Rule<Label>>, Label>, Label>(new IntState(0), dfa, Label.B), new ParseAction<Label>() { Kind = ParseAction<Label>.ActionKind.Shift });
+            var parseTable = new Dictionary<Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>, ParseAction<Label>>();
+            parseTable.Add(new Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>(dfa, new IntState(0), Label.B), new ParseAction<Label>() { Kind = ParseAction<Label>.ActionKind.Shift });
             Parser<Label> parser = new Parser<Label>(grammar, parseTable);
 
             List<Token<Label>> tokens = new List<Token<Label>>();

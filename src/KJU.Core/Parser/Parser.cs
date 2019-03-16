@@ -11,9 +11,9 @@ namespace KJU.Core.Parser
     public class Parser<TLabel>
     {
         private CompiledGrammar<TLabel> grammar;
-        private IReadOnlyDictionary<Tuple<IState, IDfa<Optional<Rule<TLabel>>, TLabel>, TLabel>, ParseAction<TLabel>> table;
+        private IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>> table;
 
-        public Parser(CompiledGrammar<TLabel> grammar, IReadOnlyDictionary<Tuple<IState, IDfa<Optional<Rule<TLabel>>, TLabel>, TLabel>, ParseAction<TLabel>> table)
+        public Parser(CompiledGrammar<TLabel> grammar, IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>> table)
         {
             this.grammar = grammar;
             this.table = table;
@@ -40,7 +40,8 @@ namespace KJU.Core.Parser
                 Token<TLabel> token = enumerator.Current;
                 IState state = statesStack.Peek();
                 IDfa<Optional<Rule<TLabel>>, TLabel> dfa = dfaStack.Peek();
-                ParseAction<TLabel> action = this.table[new Tuple<IState, IDfa<Optional<Rule<TLabel>>, TLabel>, TLabel>(state, dfa, token.Category)];
+
+                ParseAction<TLabel> action = this.table[new Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>(dfa, state, token.Category)];
                 if (action.Kind == ParseAction<TLabel>.ActionKind.Shift)
                 {
                     nodesStack.Peek().Add(token);
