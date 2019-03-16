@@ -69,6 +69,7 @@
     <Rule Id="CA2242" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <Rule Id="SA1500" Action="Hidden" /> <!-- Braces for multi-line statements must not share line -->
     <Rule Id="SA1503" Action="Hidden" /> <!-- Braces must not be omitted -->
     <Rule Id="SA1512" Action="Hidden" /> <!-- Single-line comments must not be followed by blank line -->
     <Rule Id="SA1600" Action="Hidden" />

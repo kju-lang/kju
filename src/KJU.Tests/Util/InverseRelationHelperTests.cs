@@ -18,7 +18,7 @@ namespace KJU.Tests.Util
 
             var convertedRelation = relation.ToDictionary(kvp => kvp.Key, kvp => kvp.Value as IReadOnlyCollection<int>);
 
-            var inverseRelation = InverseRelationHelper<int, int>.InverseRelation(convertedRelation);
+            var inverseRelation = convertedRelation.InverseRelation();
             Assert.AreEqual(0, inverseRelation.Count, "Inverse relation must be of size 0!");
         }
 
@@ -32,7 +32,7 @@ namespace KJU.Tests.Util
 
             var convertedRelation = relation.ToDictionary(kvp => kvp.Key, kvp => kvp.Value as IReadOnlyCollection<int>);
 
-            var inverseRelation = InverseRelationHelper<int, int>.InverseRelation(convertedRelation);
+            var inverseRelation = convertedRelation.InverseRelation();
             Assert.AreEqual(6, inverseRelation.Count, "Inverse relation must be of size 0!");
 
             var element = new int[] { 0, 1, 2, 4, 5, 6 };

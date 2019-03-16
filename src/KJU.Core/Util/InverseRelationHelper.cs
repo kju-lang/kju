@@ -8,10 +8,10 @@ namespace KJU.Core.Util
     /// Inverses a relation R \subset A x B
     /// Be aware: it removes duplicates!
     /// </summary>
-    public static class InverseRelationHelper<A, B>
+    public static class InverseRelationHelper
     {
-        public static IReadOnlyDictionary<B, IReadOnlyCollection<A>> InverseRelation(
-            IReadOnlyDictionary<A, IReadOnlyCollection<B>> relation)
+        public static IReadOnlyDictionary<B, IReadOnlyCollection<A>> InverseRelation<A, B>(
+            this IReadOnlyDictionary<A, IReadOnlyCollection<B>> relation)
         {
             var inverseRelation = new Dictionary<B, HashSet<A>>();
 

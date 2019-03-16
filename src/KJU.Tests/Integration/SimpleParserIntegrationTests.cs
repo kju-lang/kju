@@ -16,7 +16,8 @@ namespace KJU.Tests
         {
             L,
             R,
-            S
+            S,
+            EOF
         }
 
         [TestMethod]
@@ -24,7 +25,9 @@ namespace KJU.Tests
         public void TestParensEmptyWord()
         {
             var parser = BuildParenParser();
-            var tree = parser.Parse(new Token<ParenAlphabet>[] { });
+            var tree = parser.Parse(new Token<ParenAlphabet>[] {
+                new Token<ParenAlphabet> { Category = ParenAlphabet.EOF }
+            });
 
             // What happens now?
         }
@@ -36,14 +39,9 @@ namespace KJU.Tests
             var parser = BuildParenParser();
             var tree = parser.Parse(new Token<ParenAlphabet>[]
             {
-                new Token<ParenAlphabet>
-                {
-                    Category = ParenAlphabet.L
-                },
-                new Token<ParenAlphabet>
-                {
-                    Category = ParenAlphabet.R
-                },
+                new Token<ParenAlphabet> { Category = ParenAlphabet.L },
+                new Token<ParenAlphabet> { Category = ParenAlphabet.R },
+                new Token<ParenAlphabet> { Category = ParenAlphabet.EOF }
             });
 
             Assert.IsInstanceOfType(tree, typeof(Brunch<ParenAlphabet>));
@@ -77,10 +75,11 @@ namespace KJU.Tests
             var compiledGrammar = GrammarCompiler<ParenAlphabet>.CompileGrammar(grammar);
             var nullables = NullablesHelper<ParenAlphabet>.GetNullableSymbols(compiledGrammar);
             var first = FirstHelper<ParenAlphabet>.GetFirstSymbols(compiledGrammar, nullables);
-            var firstInversed = InverseRelationHelper<DfaAndState<ParenAlphabet>, ParenAlphabet>.InverseRelation(first);
-            var follow = FollowHelper<ParenAlphabet>.GetFollowSymbols(compiledGrammar, nullables, firstInversed);
-            var firstPlus = FirstPlusHelper<ParenAlphabet>.GetFirstPlusSymbols(firstInversed, follow, nullables);
-            var table = ParseTableGenerator<ParenAlphabet>.Parse(compiledGrammar, follow, firstPlus);
+            var firstInversed = first.InverseRelation();
+            var follow = FollowHelper<ParenAlphabet>.GetFollowSymbols(compiledGrammar, nullables, firstInversed, ParenAlphabet.EOF);
+            var followInversed = follow.InverseRelation();
+            var firstPlus = FirstPlusHelper<ParenAlphabet>.GetFirstPlusSymbols(firstInversed, followInversed, nullables);
+            var table = ParseTableGenerator<ParenAlphabet>.Parse(compiledGrammar, followInversed, firstPlus);
             return new Parser<ParenAlphabet>(compiledGrammar, table);
         }
     }
