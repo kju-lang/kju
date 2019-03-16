@@ -35,13 +35,9 @@ namespace KJU.Core.Parser
                         if (label.IsSome())
                         {
                             var symFollows = GetDefault(resultSymbols, label.Get().Lhs);
-                            Console.WriteLine($"copy from symbol {label.Get().Lhs} values {string.Join(",", symFollows)}");
 
                             foreach (var sym in symFollows)
                                 anythingChanged = stateFollows.Add(sym) || anythingChanged;
-
-                            // foreach (var sym in stateFollows)
-                            //     anythingChanged = symFollows.Add(sym) || anythingChanged;
                         }
 
                         foreach (var transition in dfa.Transitions(state))
@@ -64,7 +60,6 @@ namespace KJU.Core.Parser
                             }
 
                             var edgeFollows = GetDefault(resultSymbols, edgeSymbol);
-                            Console.WriteLine($"edgeSymbol: {edgeSymbol} prestate: {state.GetHashCode()}#{dfa.Label(state)} state: {nextState.GetHashCode()}#{dfa.Label(nextState)} follows: {string.Join(",", GetDefault(resultStates, nextDfaAndState))} prefollows: {string.Join(",", stateFollows)}");
                             foreach (var sym in GetDefault(resultStates, nextDfaAndState))
                                 anythingChanged = edgeFollows.Add(sym) || anythingChanged;
                         }
@@ -74,10 +69,10 @@ namespace KJU.Core.Parser
                 if (!anythingChanged) break;
             }
 
-            foreach (var p in resultSymbols)
-            {
-                Console.WriteLine($"symbol: {p.Key} follow: {string.Join(",", p.Value)}");
-            }
+            // foreach (var p in resultSymbols)
+            // {
+            //     Console.WriteLine($"symbol: {p.Key} follow: {string.Join(",", p.Value)}");
+            // }
 
             return resultStates.ToDictionary(kpv => kpv.Key, kpv => kpv.Value as IReadOnlyCollection<TLabel>);
         }

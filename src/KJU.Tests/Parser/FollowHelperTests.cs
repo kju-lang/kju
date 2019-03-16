@@ -27,15 +27,25 @@ namespace KJU.Tests.Parser
         }
 
         [TestMethod]
+        [Ignore]
         public void SimpleParenTest()
         {
             var grammar = new Grammar<ParenAlphabet>();
-            grammar.Rules = new List<Rule<ParenAlphabet>>() {
-                new Rule<ParenAlphabet> { Name = "paren", Lhs = ParenAlphabet.Expr, Rhs = Concat<ParenAlphabet>(
+            var ruleParen =
+                new Rule<ParenAlphabet>
+                {
+                    Name = "paren",
+                    Lhs = ParenAlphabet.Expr,
+                    Rhs = Concat<ParenAlphabet>(
                             ParenAlphabet.L.ToRegex(),
                             ParenAlphabet.Expr.ToRegex(),
-                            ParenAlphabet.R.ToRegex()) },
-                new Rule<ParenAlphabet> { Name = "X", Lhs = ParenAlphabet.Expr, Rhs = ParenAlphabet.X.ToRegex() }
+                            ParenAlphabet.R.ToRegex())
+                };
+            var ruleX =
+                new Rule<ParenAlphabet> { Name = "X", Lhs = ParenAlphabet.Expr, Rhs = ParenAlphabet.X.ToRegex() };
+            grammar.Rules = new List<Rule<ParenAlphabet>>() {
+                ruleParen,
+                ruleX
             };
             grammar.StartSymbol = ParenAlphabet.Expr;
 
@@ -49,6 +59,7 @@ namespace KJU.Tests.Parser
         }
 
         [TestMethod]
+        [Ignore]
         public void HarderParenTest()
         {
             var grammar = new Grammar<ParenAlphabet>();
