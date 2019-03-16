@@ -21,7 +21,6 @@ namespace KJU.Tests
         }
 
         [TestMethod]
-        [Ignore]
         public void TestParensEmptyWord()
         {
             var parser = BuildParenParser();
@@ -64,6 +63,7 @@ namespace KJU.Tests
                 {
                     new Rule<ParenAlphabet>
                     {
+                        Name = "paren",
                         Lhs = ParenAlphabet.S,
                         Rhs = Concat<ParenAlphabet>(
                             ParenAlphabet.L.ToRegex(),

@@ -74,7 +74,34 @@ namespace KJU.Core.Parser
             //     Console.WriteLine($"symbol: {p.Key} follow: {string.Join(",", p.Value)}");
             // }
 
-            return resultStates.ToDictionary(kpv => kpv.Key, kpv => kpv.Value as IReadOnlyCollection<TLabel>);
+            var resultStatesCorrect = new Dictionary<DfaAndState<TLabel>, HashSet<TLabel>>();
+
+            // Contrary to expectations, resultStates doesn't contain correct follows for accepting states of the automatas,
+            // because they can be reused.
+            // To sum up: 'follow for states' doesn't make sense, only for symbols, but we fake 'follow for states' to conform with the API.
+            foreach (var rule in grammar.Rules)
+            {
+                var dfa = rule.Value;
+
+                foreach (var state in DfaUtils.GetAllStates(dfa))
+                {
+                    var label = dfa.Label(state);
+                    var dfaAndState = new DfaAndState<TLabel> { Dfa = dfa, State = state };
+                    var stateFollows = GetDefault(resultStates, dfaAndState);
+
+                    if (label.IsSome())
+                    {
+                        resultStatesCorrect[dfaAndState] = resultSymbols[label.Get().Lhs];
+                    }
+                }
+            }
+
+            // foreach (var p in resultStatesCorrect)
+            // {
+            //     Console.WriteLine($"state: {p.Key.Dfa.Label(p.Key.State)} follow: {string.Join(",", p.Value)}");
+            // }
+
+            return resultStatesCorrect.ToDictionary(kpv => kpv.Key, kpv => kpv.Value as IReadOnlyCollection<TLabel>);
         }
 
         private static HashSet<V> GetDefault<K, V>(Dictionary<K, HashSet<V>> d, K key)

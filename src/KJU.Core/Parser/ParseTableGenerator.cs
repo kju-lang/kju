@@ -20,8 +20,9 @@ namespace KJU.Core.Parser
             var parseTable = new Dictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>>();
             var allSymbols = (TLabel[])Enum.GetValues(typeof(TLabel));
 
-            foreach (var dfa in grammar.Rules.Values)
+            foreach (var rule in grammar.Rules)
             {
+                var dfa = rule.Value;
                 var allStates = dfa.GetAllStates();
 
                 foreach (var state in allStates)
@@ -33,6 +34,7 @@ namespace KJU.Core.Parser
 
                         if (actions.Count > 1)
                         {
+                            Console.WriteLine($"rule: {rule.Key} state {dfa.Label(state)}");
                             throw new InvalidOperationException(
                                 $"Many possible actions for state {state} and label {firstSymbol}:{string.Join("; ", actions)}");
                         }
