@@ -90,7 +90,7 @@ namespace KJU.Core.Parser
             Lhs = KjuAlphabet.ReturnStatement,
             Rhs = Concat(
                 Return.ToRegex(),
-                KjuAlphabet.Expression.ToRegex().Optional())
+                KjuAlphabet.Expression.ToRegex()) // .Optional()
         };
 
         public static readonly Rule<KjuAlphabet> VariableDeclaration = new Rule<KjuAlphabet>

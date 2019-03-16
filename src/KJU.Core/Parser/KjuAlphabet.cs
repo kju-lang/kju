@@ -289,6 +289,8 @@ namespace KJU.Core.Parser
         /// <summary>
         /// Decimal or Boolean value
         /// </summary>
-        Literal
+        Literal,
+
+        Eof
     }
 }
