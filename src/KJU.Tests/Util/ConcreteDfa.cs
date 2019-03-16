@@ -12,6 +12,8 @@ namespace KJU.Tests.Util
 
         public IDictionary<int, Dictionary<Symbol, int>> Edges { get; } = new Dictionary<int, Dictionary<Symbol, int>>();
 
+        public HashSet<IState> StableStates { get; } = new HashSet<IState>();
+
         public void AddEdge(int source, Symbol edge, int destination)
         {
             if (!this.Edges.ContainsKey(source))
@@ -24,7 +26,7 @@ namespace KJU.Tests.Util
 
         bool IDfa<TLabel, Symbol>.IsStable(IState state)
         {
-            throw new NotImplementedException();
+            return this.StableStates.Contains(state);
         }
 
         TLabel IDfa<TLabel, Symbol>.Label(IState state)
