@@ -12,5 +12,12 @@ namespace KJU.Core.Parser
         public TLabel Lhs { get; set; }
 
         public Regex<TLabel> Rhs { get; set; }
+
+        public string Name { get; set; }
+
+        public override string ToString()
+        {
+            return "Rule(" + (this.Name == null ? "unknown" : this.Name) + ")";
+        }
     }
 }

@@ -78,5 +78,13 @@ namespace KJU.Core.Util
                 return this.value.GetHashCode();
             }
         }
+
+        public override string ToString()
+        {
+            if (this.IsNone())
+                return "none";
+            else
+                return "some(" + this.value.ToString() + ")";
+        }
     }
 }
