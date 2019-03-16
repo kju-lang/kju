@@ -22,7 +22,7 @@ namespace KJU.Core.Parser
 
             foreach (var dfa in grammar.Rules.Values)
             {
-                var allStates = DfaUtils.GetAllStates(dfa);
+                var allStates = dfa.GetAllStates();
 
                 foreach (var state in allStates)
                 {

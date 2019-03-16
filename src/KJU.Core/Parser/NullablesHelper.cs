@@ -20,7 +20,7 @@ namespace KJU.Core.Parser
             foreach (var rule in grammar.Rules)
             {
                 var ruleDfa = rule.Value;
-                foreach (var state in DfaUtils.GetAllStates(ruleDfa))
+                foreach (var state in ruleDfa.GetAllStates())
                 {
                     if (IsAccepting(ruleDfa, state))
                     {
@@ -129,7 +129,7 @@ namespace KJU.Core.Parser
 
         private static Dictionary<IState, Dictionary<TLabel, HashSet<IState>>> GetReverseTransitions(IDfa<Optional<Rule<TLabel>>, TLabel> dfa)
         {
-            var allStates = DfaUtils.GetAllStates(dfa);
+            var allStates = dfa.GetAllStates();
             var reverseTransitions = new Dictionary<IState, Dictionary<TLabel, HashSet<IState>>>();
 
             foreach (IState state in allStates)

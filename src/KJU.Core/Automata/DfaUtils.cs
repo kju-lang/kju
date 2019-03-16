@@ -3,9 +3,9 @@ namespace KJU.Core.Automata
     using System.Collections.Generic;
     using KJU.Core;
 
-    public class DfaUtils
+    public static class DfaUtils
     {
-        public static IReadOnlyCollection<IState> GetAllStates<TLabel, Symbol>(IDfa<TLabel, Symbol> dfa)
+        public static IReadOnlyCollection<IState> GetAllStates<TLabel, Symbol>(this IDfa<TLabel, Symbol> dfa)
         {
             var visited = new HashSet<IState>();
             var queue = new Queue<IState>();
