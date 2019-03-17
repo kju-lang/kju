@@ -10,16 +10,18 @@ namespace KJU.Core.Parser
     using KJU.Core.Util;
 
     public class ParseTableGenerator<TLabel>
-    where TLabel : Enum
+        where TLabel : Enum
     {
-        public static IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>> Parse(
+        public static IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>,
+            ParseAction<TLabel>> Parse(
             CompiledGrammar<TLabel> grammar,
             IReadOnlyDictionary<TLabel, IReadOnlyCollection<DfaAndState<TLabel>>> follow,
             IReadOnlyDictionary<TLabel, IReadOnlyCollection<DfaAndState<TLabel>>> firstPlus)
         {
-            var parseTable = new Dictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>>();
+            var parseTable =
+                new Dictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>>();
             var allSymbols = (TLabel[])Enum.GetValues(typeof(TLabel));
-
+            var error = string.Empty;
             foreach (var rule in grammar.Rules)
             {
                 var dfa = rule.Value;
@@ -35,8 +37,9 @@ namespace KJU.Core.Parser
                         if (actions.Count > 1)
                         {
                             Console.WriteLine($"rule: {rule.Key} state {dfa.Label(state)}");
-                            throw new InvalidOperationException(
-                                $"Many possible actions for state {state} and label {firstSymbol}: {{{string.Join(", ", actions)}}}");
+                            var errorMessage =
+                                $"Many possible actions for label {firstSymbol}: {{{string.Join(", ", actions)}}}\n";
+                            error += errorMessage;
                         }
                         else if (actions.Count == 1)
                         {
@@ -44,6 +47,11 @@ namespace KJU.Core.Parser
                         }
                     }
                 }
+            }
+
+            if (!error.Equals(string.Empty))
+            {
+                throw new InvalidOperationException(error);
             }
 
             return parseTable;
@@ -64,7 +72,8 @@ namespace KJU.Core.Parser
             if (stateLabel.IsSome() && follow.ContainsKey(label) && follow[label].Contains(dfaAndState))
             {
                 actions.Add(
-                    new ParseAction<TLabel>() { Kind = ParseAction<TLabel>.ActionKind.Reduce, Label = stateLabel.Get().Lhs });
+                    new ParseAction<TLabel>()
+                        { Kind = ParseAction<TLabel>.ActionKind.Reduce, Label = stateLabel.Get().Lhs });
             }
 
             var transitions = dfa.Transitions(state);
@@ -87,12 +96,14 @@ namespace KJU.Core.Parser
                     if (!dfa.IsStable(nextState) && grammar.Rules.ContainsKey(transitionLabel))
                     {
                         var subDfa = grammar.Rules[transitionLabel];
-                        var subDfaAndStartState = new DfaAndState<TLabel>() { Dfa = subDfa, State = subDfa.StartingState() };
+                        var subDfaAndStartState = new DfaAndState<TLabel>()
+                            { Dfa = subDfa, State = subDfa.StartingState() };
 
                         if (firstPlusStates.Contains(subDfaAndStartState))
                         {
                             actions.Add(
-                                new ParseAction<TLabel>() { Kind = ParseAction<TLabel>.ActionKind.Call, Label = transitionLabel });
+                                new ParseAction<TLabel>()
+                                    { Kind = ParseAction<TLabel>.ActionKind.Call, Label = transitionLabel });
                         }
                     }
                 }

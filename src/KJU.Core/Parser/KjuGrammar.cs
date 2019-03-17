@@ -3,9 +3,9 @@ namespace KJU.Core.Parser
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
-    using KJU.Core.Regex;
-    using static KJU.Core.Regex.RegexUtils;
+    using Regex;
     using static KjuAlphabet;
+    using static Regex.RegexUtils;
 
     public static class KjuGrammar
     {
@@ -45,7 +45,7 @@ namespace KJU.Core.Parser
         {
             Lhs = KjuAlphabet.NotDelimeteredInstruction,
             Rhs = Sum(
-                KjuAlphabet.Expression.ToRegex())
+                KjuAlphabet.Statement.ToRegex())
         };
 
         public static readonly Rule<KjuAlphabet> FunctionParameter = new Rule<KjuAlphabet>
@@ -59,7 +59,7 @@ namespace KJU.Core.Parser
             Lhs = KjuAlphabet.FunctionCall,
             Rhs = Concat(
                 LParen.ToRegex(),
-                CreateListRegex(KjuAlphabet.Expression.ToRegex(), Comma.ToRegex()),
+                CreateListRegex(KjuAlphabet.ExpressionAtom.ToRegex(), Comma.ToRegex()),
                 RParen.ToRegex())
         };
 
@@ -117,9 +117,26 @@ namespace KJU.Core.Parser
                             StarAssign.ToRegex(),
                             SlashAssign.ToRegex(),
                             PercentAssign.ToRegex()),
-                        KjuAlphabet.Expression.ToRegex())), // Assigment
-                KjuAlphabet.FunctionCall.ToRegex(), // Function call
-                new EpsilonRegex<KjuAlphabet>()) // Value read
+                        KjuAlphabet.ExpressionAtom.ToRegex()), // Assigment
+                    KjuAlphabet.FunctionCall.ToRegex(), // Function call
+                    new EpsilonRegex<KjuAlphabet>())) // Value read
+        };
+
+        public static readonly Rule<KjuAlphabet> Statement = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.Statement,
+
+            Rhs = Sum(
+                KjuAlphabet.VariableDeclaration.ToRegex(),
+                KjuAlphabet.ReturnStatement.ToRegex(),
+                KjuAlphabet.IfStatement.ToRegex(),
+                KjuAlphabet.WhileStatement.ToRegex(),
+                KjuAlphabet.Block.ToRegex(),
+                KjuAlphabet.VariableUse.ToRegex(),
+                Break.ToRegex(),
+                Continue.ToRegex(),
+                FunctionDeclaration.ToRegex(),
+                KjuAlphabet.Expression.ToRegex())
         };
 
         public static readonly Rule<KjuAlphabet> Expression = new Rule<KjuAlphabet>
@@ -188,23 +205,6 @@ namespace KJU.Core.Parser
                     LParen.ToRegex(),
                     KjuAlphabet.Statement.ToRegex(),
                     RParen.ToRegex()))
-        };
-
-        public static readonly Rule<KjuAlphabet> Statement = new Rule<KjuAlphabet>
-        {
-            Lhs = KjuAlphabet.Statement,
-
-            Rhs = Sum(
-                KjuAlphabet.VariableDeclaration.ToRegex(),
-                KjuAlphabet.ReturnStatement.ToRegex(),
-                KjuAlphabet.IfStatement.ToRegex(),
-                KjuAlphabet.WhileStatement.ToRegex(),
-                KjuAlphabet.Block.ToRegex(),
-                Break.ToRegex(),
-                KjuAlphabet.VariableUse.ToRegex(),
-                Continue.ToRegex(),
-                FunctionDeclaration.ToRegex(),
-                KjuAlphabet.Expression.ToRegex())
         };
 
         public static readonly Grammar<KjuAlphabet> Instance = new Grammar<KjuAlphabet>

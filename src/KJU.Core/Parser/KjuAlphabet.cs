@@ -165,12 +165,12 @@ namespace KJU.Core.Parser
         Percent,
 
         /// <summary>
-        /// &
+        /// &&
         /// </summary>
         LogicalAnd,
 
         /// <summary>
-        /// |
+        /// ||
         /// </summary>
         LogicalOr,
 
