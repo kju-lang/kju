@@ -17,7 +17,7 @@ namespace KJU.Core.Parser
 
         public override string ToString()
         {
-            return "Rule(" + (this.Name == null ? "unknown" : this.Name) + ")";
+            return $"Rule({(this.Name == null ? "unknown" : this.Name)} symbol={this.Lhs})";
         }
     }
 }

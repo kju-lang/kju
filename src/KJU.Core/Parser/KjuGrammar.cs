@@ -1,12 +1,11 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using KJU.Core.Regex;
-
 namespace KJU.Core.Parser
 {
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using KJU.Core.Regex;
+    using static KJU.Core.Regex.RegexUtils;
     using static KjuAlphabet;
-    using static RegexUtils;
 
     public static class KjuGrammar
     {
@@ -125,6 +124,7 @@ namespace KJU.Core.Parser
 
         public static readonly Rule<KjuAlphabet> Expression = new Rule<KjuAlphabet>
         {
+            Name = "Expression",
             Lhs = KjuAlphabet.Expression,
             Rhs = ExpressionOr.ToRegex()
         };
@@ -225,6 +225,7 @@ namespace KJU.Core.Parser
         {
             return new Rule<KjuAlphabet>
             {
+                Name = "ExpressionRule_" + currentRule.ToString(),
                 Lhs = currentRule,
                 Rhs = Concat(
                     nextRule.ToRegex(),
