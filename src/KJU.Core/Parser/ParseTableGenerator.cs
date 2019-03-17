@@ -36,7 +36,7 @@ namespace KJU.Core.Parser
                         {
                             Console.WriteLine($"rule: {rule.Key} state {dfa.Label(state)}");
                             throw new InvalidOperationException(
-                                $"Many possible actions for state {state} and label {firstSymbol}:{string.Join("; ", actions)}");
+                                $"Many possible actions for state {state} and label {firstSymbol}: {{{string.Join(", ", actions)}}}");
                         }
                         else if (actions.Count == 1)
                         {

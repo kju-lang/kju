@@ -237,9 +237,12 @@ namespace KJU.Core.Parser
         VariableDeclaration,
 
         /// <summary>
-        /// a = 5 or a+=5 or variation
+        /// One of three:
+        /// Assigment: 'a = 5' or 'a+=5' or variation,
+        /// function call: 'a(1,2,3);',
+        /// or value read: 'a;'
         /// </summary>
-        VariableAssigment,
+        VariableUse,
 
         /// <summary>
         /// f(5,7,13)
@@ -290,7 +293,7 @@ namespace KJU.Core.Parser
         /// Decimal or Boolean value
         /// </summary>
         Literal,
-
+        Statement,
         Eof
     }
 }

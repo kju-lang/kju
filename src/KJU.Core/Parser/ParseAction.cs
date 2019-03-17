@@ -20,7 +20,7 @@ namespace KJU.Core.Parser
 
         public override string ToString()
         {
-            return $"{this.Kind}:{this.Label}";
+            return $"{this.Kind}: {this.Label}";
         }
     }
 }
