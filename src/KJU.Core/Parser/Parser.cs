@@ -98,6 +98,8 @@ namespace KJU.Core.Parser
                             {
                                 return root;
                             }
+
+                            nodesStack.Peek().Add(root);
                         }
                     }
                 }
