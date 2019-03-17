@@ -12,7 +12,9 @@ namespace KJU.Tests.Util
 
         public IDictionary<int, Dictionary<Symbol, int>> Edges { get; } = new Dictionary<int, Dictionary<Symbol, int>>();
 
-        public HashSet<IState> StableStates { get; } = new HashSet<IState>();
+        public HashSet<int> StableStates { get; } = new HashSet<int>();
+
+        public int Magic { get; set; } // magic number for distinguishing automata in tests.
 
         public void AddEdge(int source, Symbol edge, int destination)
         {
@@ -26,7 +28,7 @@ namespace KJU.Tests.Util
 
         bool IDfa<TLabel, Symbol>.IsStable(IState state)
         {
-            return this.StableStates.Contains(state);
+            return this.StableStates.Contains((state as ValueState<int>).Value);
         }
 
         TLabel IDfa<TLabel, Symbol>.Label(IState state)
