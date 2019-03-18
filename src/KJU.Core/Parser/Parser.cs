@@ -49,58 +49,7 @@ namespace KJU.Core.Parser
                     statesStack.Push(dfa.Transitions(state)[token.Category]);
                     if (!enumerator.MoveNext())
                     {
-                        while (true)
-                        {
-                            state = statesStack.Peek();
-                            dfa = dfaStack.Peek();
-
-                            if (dfa.Label(state).IsNone())
-                            {
-                                throw new ParseException("Invalid reduce action");
-                            }
-
-                            Brunch<TLabel> brunch = new Brunch<TLabel>();
-                            brunch.Rule = dfa.Label(state).Get();
-                            brunch.Children = nodesStack.Peek();
-                            brunch.Category = brunch.Rule.Lhs;
-                            Range range = null;
-                            ILocation begin = null;
-                            ILocation end = null;
-                            foreach (ParseTree<TLabel> node in nodesStack.Peek())
-                            {
-                                if (node.InputRange != null)
-                                {
-                                    if (begin == null)
-                                    {
-                                        begin = node.InputRange.Begin;
-                                    }
-
-                                    end = node.InputRange.End;
-                                }
-                            }
-
-                            if (begin != null)
-                            {
-                                range = new Range();
-                                range.Begin = begin;
-                                range.End = end;
-                            }
-
-                            brunch.InputRange = range;
-
-                            statesStack.Pop();
-                            dfaStack.Pop();
-                            nodesStack.Pop();
-
-                            root = brunch;
-
-                            if (nodesStack.Count == 0)
-                            {
-                                return root;
-                            }
-
-                            nodesStack.Peek().Add(root);
-                        }
+                        throw new ParseException("premature EOF");
                     }
                 }
                 else if (action.Kind == ParseAction<TLabel>.ActionKind.Reduce)
