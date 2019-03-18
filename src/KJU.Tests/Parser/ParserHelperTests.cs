@@ -14,27 +14,23 @@ namespace KJU.Tests.Parser
     public class ParserHelperTests
     {
         private static readonly Optional<Rule<char>> REJECT = Optional<Rule<char>>.None();
-        private static readonly Optional<Rule<char>> ACCEPT = Optional<Rule<char>>.Some(new Rule<char>());
 
         [TestMethod]
         public void Test0SimpleParens()
         {
-            // var rules = new List<Rule<char>>();
             var rules = new Dictionary<char, IDfa<Optional<Rule<char>>, char>>();
 
-            // vvar grammar = new Grammar<char> { Rules = rules, StartSymbol = 'S' };
-            // CompiledGrammar<char> compiledGrammar = GrammarCompiler<char>.CompileGrammar(grammar);
             var dfa = new ConcreteDfa<Optional<Rule<char>>, char>();
             dfa.AddEdge(0, '(', 1);
             dfa.AddEdge(1, 'S', 2);
             dfa.AddEdge(2, ')', 3);
-            dfa.Labels.Add(0, ACCEPT);
+            dfa.Labels.Add(0, this.ACCEPT('S'));
             dfa.Labels.Add(1, REJECT);
             dfa.Labels.Add(2, REJECT);
-            dfa.Labels.Add(3, ACCEPT);
+            dfa.Labels.Add(3, this.ACCEPT('S'));
             rules.Add('S', dfa);
             var grammar = new CompiledGrammar<char> { Rules = rules, StartSymbol = 'S' };
-            var nullables = NullablesHelper<char>.GetNullableSymbols(grammar).ToList();
+            var nullables = NullablesHelper<char>.GetNullableSymbols(grammar);
             {
                 Assert.AreEqual(2, nullables.Count);
                 var states = nullables.Select(x => ((ValueState<int>)x.State).Value).ToList();
@@ -70,7 +66,17 @@ namespace KJU.Tests.Parser
             {
                 var output = follow.OrderBy(x => (x.Key.State as ValueState<int>).Value).ToList();
 
-                var symbols = output[0].Value.ToList();
+                var symbols = output[0].Value.ToList(); // state 0
+                symbols.Sort();
+                Assert.AreEqual(2, symbols.Count);
+                Assert.AreEqual(')', symbols[0]);
+                Assert.AreEqual('\uffff', symbols[1]);
+
+                symbols = output[1].Value.ToList(); // state 3
+                symbols.Sort();
+                Assert.AreEqual(2, symbols.Count);
+                Assert.AreEqual(')', symbols[0]);
+                Assert.AreEqual('\uffff', symbols[1]);
             }
         }
 
@@ -92,7 +98,7 @@ namespace KJU.Tests.Parser
             zdfa.Labels.Add(0, REJECT);
             zdfa.Labels.Add(1, REJECT);
             zdfa.Labels.Add(2, REJECT);
-            zdfa.Labels.Add(3, ACCEPT);
+            zdfa.Labels.Add(3, this.ACCEPT('Z'));
             rules.Add('Z', zdfa);
 
             var ydfa = new ConcreteDfa<Optional<Rule<char>>, char>();
@@ -100,14 +106,14 @@ namespace KJU.Tests.Parser
             ydfa.AddEdge(0, 'c', 1);
             ydfa.AddEdge(0, 'a', 1);
             ydfa.Labels.Add(0, REJECT);
-            ydfa.Labels.Add(1, ACCEPT);
+            ydfa.Labels.Add(1, this.ACCEPT('Y'));
             rules.Add('Y', ydfa);
 
             var xdfa = new ConcreteDfa<Optional<Rule<char>>, char>();
             xdfa.Magic = 2;
             xdfa.AddEdge(0, 'Y', 1);
-            xdfa.Labels.Add(0, ACCEPT);
-            xdfa.Labels.Add(1, ACCEPT);
+            xdfa.Labels.Add(0, this.ACCEPT('X'));
+            xdfa.Labels.Add(1, this.ACCEPT('X'));
             rules.Add('X', xdfa);
 
             var grammar = new CompiledGrammar<char> { Rules = rules, StartSymbol = 'Z' };
@@ -178,12 +184,43 @@ namespace KJU.Tests.Parser
                 Assert.AreEqual(0, symbols.Count);
             }
 
-                var follow = FollowHelper<char>.GetFollowSymbols(grammar, nullables, first.InverseRelation(), '\uffff');
-             {
-                 var output = follow.OrderBy(x => (x.Key.State as ValueState<int>).Value).ToList();
+            var follow = FollowHelper<char>.GetFollowSymbols(grammar, nullables, first.InverseRelation(), '\uffff');
+            {
+            var output = follow.OrderBy(x => (x.Key.Dfa as ConcreteDfa<Optional<Rule<char>>, char>).Magic).ThenBy(x => (x.Key.State as ValueState<int>).Value).ToList();
 
-                 var symbols = output[0].Value.ToList();
-             }
+                var symbols = output[0].Value.ToList(); // Z3
+                Assert.AreEqual(1, symbols.Count);
+                Assert.AreEqual('\uffff', symbols[0]);
+
+                symbols = output[1].Value.ToList(); // Y1
+                symbols.Sort();
+                Assert.AreEqual(6, symbols.Count);
+                Assert.AreEqual('X', symbols[0]);
+                Assert.AreEqual('Y', symbols[1]);
+                Assert.AreEqual('Z', symbols[2]);
+                Assert.AreEqual('a', symbols[3]);
+                Assert.AreEqual('c', symbols[4]);
+                Assert.AreEqual('d', symbols[5]);
+
+                symbols = output[2].Value.ToList(); // X0
+                symbols.Sort();
+                Assert.AreEqual(3, symbols.Count);
+                Assert.AreEqual('Y', symbols[0]);
+                Assert.AreEqual('a', symbols[1]);
+                Assert.AreEqual('c', symbols[2]);
+
+                symbols = output[3].Value.ToList(); // X1
+                symbols.Sort();
+                Assert.AreEqual(3, symbols.Count);
+                Assert.AreEqual('Y', symbols[0]);
+                Assert.AreEqual('a', symbols[1]);
+                Assert.AreEqual('c', symbols[2]);
+            }
+        }
+
+        private Optional<Rule<char>> ACCEPT(char lhs)
+        {
+            return Optional<Rule<char>>.Some(new Rule<char> { Lhs = lhs });
         }
     }
 }
