@@ -12,6 +12,12 @@ namespace KJU.Tests.Parser
     [TestClass]
     public class NullablesHelperTest
     {
+        private enum Tag
+        {
+            A,
+            B
+        }
+
         [TestMethod]
         public void SingleDfaTest()
         {
@@ -26,7 +32,7 @@ namespace KJU.Tests.Parser
 
             dfa.Labels.Add(0, Optional<Rule<Tag>>.None());
             dfa.Labels.Add(1, Optional<Rule<Tag>>.None());
-            var r = new Rule<Tag>()
+            var r = new Rule<Tag>
             {
                 Lhs = Tag.A
             };
@@ -46,18 +52,18 @@ namespace KJU.Tests.Parser
             dfa1.AddEdge(0, Tag.B, 0);
             dfa1.AddEdge(0, Tag.A, 1);
 
-            Rule<Tag> r1 = new Rule<Tag>()
+            var rules1 = new Rule<Tag>()
             {
                 Lhs = Tag.A,
                 Rhs = new ConcatRegex<Tag>(new AtomicRegex<Tag>(Tag.B), new AtomicRegex<Tag>(Tag.A))
             };
-            dfa1.Labels.Add(0, Optional<Rule<Tag>>.Some(r1));
-            Rule<Tag> r2 = new Rule<Tag>()
+            dfa1.Labels.Add(0, Optional<Rule<Tag>>.Some(rules1));
+            var rules2 = new Rule<Tag>
             {
                 Lhs = Tag.A,
                 Rhs = new ConcatRegex<Tag>(new AtomicRegex<Tag>(Tag.B), new AtomicRegex<Tag>(Tag.B))
             };
-            dfa1.Labels.Add(1, Optional<Rule<Tag>>.Some(r2));
+            dfa1.Labels.Add(1, Optional<Rule<Tag>>.Some(rules2));
 
             var dfa2 = new ConcreteDfa<Optional<Rule<Tag>>, Tag>();
             dfa2.AddEdge(0, Tag.A, 1);
@@ -67,20 +73,18 @@ namespace KJU.Tests.Parser
             dfa2.AddEdge(2, Tag.A, 2);
             dfa2.AddEdge(2, Tag.B, 2);
 
-            Rule<Tag> r3 = new Rule<Tag>()
+            var rules3 = new Rule<Tag>()
             {
                 Lhs = Tag.B,
                 Rhs = new ConcatRegex<Tag>(new AtomicRegex<Tag>(Tag.A), new AtomicRegex<Tag>(Tag.A))
             };
             dfa2.Labels.Add(0, Optional<Rule<Tag>>.None());
             dfa2.Labels.Add(1, Optional<Rule<Tag>>.None());
-            dfa2.Labels.Add(2, Optional<Rule<Tag>>.Some(r3));
+            dfa2.Labels.Add(2, Optional<Rule<Tag>>.Some(rules3));
             dfa2.Labels.Add(3, Optional<Rule<Tag>>.None());
 
             var grammar = new CompiledGrammar<Tag>();
-            var rules = new Dictionary<Tag, IDfa<Optional<Rule<Tag>>, Tag>>();
-            rules.Add(Tag.A, dfa1);
-            rules.Add(Tag.B, dfa2);
+            var rules = new Dictionary<Tag, IDfa<Optional<Rule<Tag>>, Tag>> { { Tag.A, dfa1 }, { Tag.B, dfa2 } };
             grammar.Rules = rules;
             var nullables = NullablesHelper<Tag>.GetNullableSymbols(grammar);
             Assert.AreEqual(5, nullables.Count);

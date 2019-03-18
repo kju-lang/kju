@@ -33,7 +33,7 @@ namespace KJU.Tests.Util
 
         TLabel IDfa<TLabel, Symbol>.Label(IState state)
         {
-            return this.Labels[(state as ValueState<int>).Value];
+            return this.Labels[((ValueState<int>)state).Value];
         }
 
         IState IDfa<TLabel, Symbol>.StartingState()
@@ -43,7 +43,7 @@ namespace KJU.Tests.Util
 
         IReadOnlyDictionary<Symbol, IState> IDfa<TLabel, Symbol>.Transitions(IState state)
         {
-            var i = (state as ValueState<int>).Value;
+            var i = ((ValueState<int>)state).Value;
             if (!this.Edges.ContainsKey(i))
             {
                 return new Dictionary<Symbol, IState>();

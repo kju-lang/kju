@@ -1,6 +1,6 @@
 namespace KJU.Tests.Input
 {
-    using KJU.Core;
+    using KJU.Core.Input;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -9,15 +9,17 @@ namespace KJU.Tests.Input
         [TestMethod]
         public void TestToString()
         {
-            KJU.Core.Input.ILocation location = new KJU.Core.Input.StringLocation(10);
-            Assert.AreEqual("10", location.ToString());
+            var expected = "10";
+            var actual = new StringLocation(10).ToString();
+            Assert.AreEqual(expected, actual);
         }
 
         [TestMethod]
         public void TestParams()
         {
-            KJU.Core.Input.StringLocation location = new KJU.Core.Input.StringLocation(10);
-            Assert.AreEqual(10, location.Position);
+            var expected = 10;
+            var actual = new StringLocation(10).Position;
+            Assert.AreEqual(expected, actual);
         }
     }
 }

@@ -1,10 +1,7 @@
 namespace KJU.Tests.Input
 {
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using KJU.Core;
-    using KJU.Tests;
+    using KJU.Core.Input;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -13,9 +10,9 @@ namespace KJU.Tests.Input
         [TestMethod]
         public void Simple()
         {
-            string examplePath = "../../../Input/example.kju";
-            KJU.Core.Input.IInputReader inputReader = new KJU.Core.Input.FileInputReader(examplePath);
-            List<KeyValuePair<KJU.Core.Input.ILocation, char>> data = inputReader.Read();
+            var examplePath = "../../../Input/example.kju";
+            var inputReader = new FileInputReader(examplePath);
+            var data = inputReader.Read();
             Assert.AreEqual("fun kju():Unit{\n	var x:Int={\n		5;\n	}\n}\n" + KJU.Core.Constants.EndOfInput, string.Concat(data.Select(kvp => kvp.Value)));
 
             Assert.AreEqual(1, ((KJU.Core.Input.FileLocation)data[0].Key).Line);

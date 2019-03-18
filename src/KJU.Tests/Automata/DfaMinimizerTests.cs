@@ -3,19 +3,16 @@ namespace KJU.Tests.Automata
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using KJU.Core;
     using KJU.Core.Automata;
-
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class DfaMinimizerTests
     {
         [TestMethod]
-        public void SmallExamples()
+        public void AlreadyMinimal()
         {
-            // Already minimal
-            string description1 = @"
+            var description = @"
                 3 6
                 
                 1 0 1
@@ -27,10 +24,13 @@ namespace KJU.Tests.Automata
                 3 3 a
                 3 3 b
             ";
-            this.CheckMinimization(this.DfaFromDescription(description1), 2);
+            CheckMinimization(DfaFromDescription(description), 2);
+        }
 
-            // Can be shrinked to 3 vertices
-            string description2 = @"
+        [TestMethod]
+        public void CanBeShrinkedToThreeVertices()
+        {
+            var description = @"
                 6 6
                 
                 1 2 3 1 2 3
@@ -42,10 +42,13 @@ namespace KJU.Tests.Automata
                 5 6 a
                 6 1 a
             ";
-            this.CheckMinimization(this.DfaFromDescription(description2), 3);
+            CheckMinimization(DfaFromDescription(description), 3);
+        }
 
-            // 1 vertex is enough :)
-            string description3 = @"
+        [TestMethod]
+        public void OneVertexIsEnough()
+        {
+            var description = @"
                 6 12
                 
                 1 1 1 1 1 1
@@ -63,10 +66,13 @@ namespace KJU.Tests.Automata
                 6 1 a
                 6 6 b
             ";
-            this.CheckMinimization(this.DfaFromDescription(description3), 1);
+            CheckMinimization(DfaFromDescription(description), 1);
+        }
 
-            // Wikipedia example
-            string description4 = @"
+        [TestMethod]
+        public void WikipediaExample()
+        {
+            var description = @"
                 6 12
                 
                 0 0 1 1 1 0
@@ -84,81 +90,71 @@ namespace KJU.Tests.Automata
                 6 6 a
                 6 6 b
             ";
-            this.CheckMinimization(this.DfaFromDescription(description4), 3);
+            CheckMinimization(DfaFromDescription(description), 3);
         }
 
         [TestMethod]
-        public void BigTests()
+        [DataRow(1, 1)]
+        [DataRow(2, 2)]
+        [DataRow(3, 3)]
+        public void BigTests(int seed, int numberOfLabels)
         {
-            Random rng = new Random(44747);
-            for (int tests = 0; tests < 3; ++tests)
+            var rng = new Random(seed);
+            var alphabetSize = 5;
+            var n = 100 + rng.Next(100);
+
+            var labels = Enumerable.Range(0, n).Select(x => rng.Next(numberOfLabels)).ToList();
+
+            var dfa = new DfaTest<int>(labels);
+            for (var i = 0; i < n; ++i)
             {
-                int numberOfLabels = tests + 1;
-                int alfabet = 5;
-                int n = 100 + rng.Next(100);
-
-                List<int> labels = new List<int>();
-                for (int i = 0; i < n; ++i)
+                for (var j = 0; j < alphabetSize; ++j)
                 {
-                    labels.Add(rng.Next(numberOfLabels));
+                    var to = rng.Next(n);
+                    dfa.AddTransition(i, to, (char)j);
                 }
-
-                var dfa = new DfaTest<int>(labels);
-                for (int i = 0; i < n; ++i)
-                {
-                    for (int j = 0; j < alfabet; ++j)
-                    {
-                        int to = rng.Next(n);
-                        dfa.AddTransition(i, to, (char)j);
-                    }
-                }
-
-                this.CheckMinimization(dfa);
             }
+
+            CheckMinimization(dfa);
         }
 
-        private DfaTest<int> DfaFromDescription(string graphDescription)
+        private static DfaTest<int> DfaFromDescription(string graphDescription)
         {
-            int iter = 0;
+            var iter = 0;
             var input = graphDescription.Split(null).Where(t => t.Length > 0).ToList();
 
-            int n = int.Parse(input[iter++]);
-            int m = int.Parse(input[iter++]);
+            var n = int.Parse(input[iter++]);
+            var m = int.Parse(input[iter++]);
 
-            var labels = new List<int>();
-            for (int i = 0; i < n; ++i)
-            {
-                int label = int.Parse(input[iter++]);
-                labels.Add(label);
-            }
+            var labels = Enumerable.Range(0, n).Select(x => int.Parse(input[iter++])).ToList();
 
             var dfa = new DfaTest<int>(labels);
 
-            for (int i = 0; i < m; ++i)
+            for (var i = 0; i < m; ++i)
             {
-                int x = int.Parse(input[iter++]) - 1;
-                int y = int.Parse(input[iter++]) - 1;
-                char c = char.Parse(input[iter++]);
-                dfa.AddTransition(x, y, c);
+                var from = int.Parse(input[iter++]) - 1;
+                var to = int.Parse(input[iter++]) - 1;
+                var letter = char.Parse(input[iter++]);
+                dfa.AddTransition(from, to, letter);
             }
 
             return dfa;
         }
 
-        private void CheckMinimization<TLabel>(IDfa<TLabel, char> dfa, int expectedNumberOfStates = -1)
+        private static void CheckMinimization<TLabel>(IDfa<TLabel, char> dfa, int expectedNumberOfStates = -1)
         {
             var minimalDfa = DfaMinimizer<TLabel, char>.Minimize(dfa);
-            int numberOfStates = this.ReachableStates(minimalDfa).Count;
+            var numberOfStates = ReachableStates(minimalDfa).Count;
             if (expectedNumberOfStates != -1)
             {
                 Assert.AreEqual(expectedNumberOfStates, numberOfStates);
             }
 
-            this.CheckAutomatonEquivalence(dfa, minimalDfa);
-            this.CheckStateStability(minimalDfa);
+            CheckAutomatonEquivalence(dfa, minimalDfa);
+            CheckStateStability(minimalDfa);
         }
 
-        private void CheckAutomatonEquivalence<TLabel>(IDfa<TLabel, char> firstDfa, IDfa<TLabel, char> secondDfa)
+        private static void CheckAutomatonEquivalence<TLabel>(IDfa<TLabel, char> firstDfa, IDfa<TLabel, char> secondDfa)
         {
             var reached = new HashSet<Tuple<IState, IState>>();
             var queue = new Queue<Tuple<IState, IState>>();
@@ -173,11 +169,18 @@ namespace KJU.Tests.Automata
                 var firstStateTransitions = firstDfa.Transitions(firstState);
                 var secondStateTransitions = secondDfa.Transitions(secondState);
 
-                Assert.AreEqual(firstStateTransitions.Count, secondStateTransitions.Count, "States have different sets of transitions");
+                var firstTransitionCount = firstStateTransitions.Count;
+                var secondTransitionCount = secondStateTransitions.Count;
+                Assert.AreEqual(
+                    firstTransitionCount,
+                    secondTransitionCount,
+                    $"States {firstState} and {secondState} have different number of transitions: {firstTransitionCount} != {secondTransitionCount}");
 
                 foreach (var(c, firstNextState) in firstStateTransitions)
                 {
-                    Assert.IsTrue(secondStateTransitions.ContainsKey(c), $"States have different sets of transitions, {secondStateTransitions.Count} : {string.Join(",", firstStateTransitions.Select((x, y) => ((int)x.Key).ToString()).ToList())}");
+                    Assert.IsTrue(
+                        secondStateTransitions.ContainsKey(c),
+                        $"States have different sets of transitions, {secondTransitionCount} : {string.Join(",", firstStateTransitions.Select((x, y) => ((int)x.Key).ToString()).ToList())}");
 
                     var secondNextState = secondStateTransitions[c];
 
@@ -191,9 +194,9 @@ namespace KJU.Tests.Automata
             }
         }
 
-        private void CheckStateStability<TLabel>(IDfa<TLabel, char> dfa)
+        private static void CheckStateStability<TLabel>(IDfa<TLabel, char> dfa)
         {
-            foreach (var state in this.ReachableStates<TLabel>(dfa))
+            foreach (var state in ReachableStates(dfa))
             {
                 bool expectedStability = true;
                 foreach (var(_, nextState) in dfa.Transitions(state))
@@ -205,26 +208,25 @@ namespace KJU.Tests.Automata
                     }
                 }
 
-                Assert.AreEqual(dfa.IsStable(state), expectedStability, "Stability of the state is incorrect");
+                Assert.AreEqual(expectedStability, dfa.IsStable(state), "Stability of the state is incorrect");
             }
         }
 
-        private HashSet<IState> ReachableStates<TLabel>(IDfa<TLabel, char> dfa)
+        private static HashSet<IState> ReachableStates<TLabel>(IDfa<TLabel, char> dfa)
         {
             var reachedStates = new HashSet<IState>();
 
-            var queue = new Queue<IState>();
-            queue.Enqueue(dfa.StartingState());
+            var queue = new Queue<IState>(new[] { dfa.StartingState() });
 
             while (queue.Count > 0)
             {
-                IState state = queue.Dequeue();
-                foreach (KeyValuePair<char, IState> transition in dfa.Transitions(state))
+                var state = queue.Dequeue();
+                foreach (var(_, value) in dfa.Transitions(state))
                 {
-                    if (!reachedStates.Contains(transition.Value))
+                    if (!reachedStates.Contains(value))
                     {
-                        reachedStates.Add(transition.Value);
-                        queue.Enqueue(transition.Value);
+                        reachedStates.Add(value);
+                        queue.Enqueue(value);
                     }
                 }
             }
@@ -234,29 +236,31 @@ namespace KJU.Tests.Automata
 
         private class DfaTest<TLabel> : IDfa<TLabel, char>
         {
-            private Dictionary<IState, TLabel> label = new Dictionary<IState, TLabel>();
-            private List<DfaTestState> state = new List<DfaTestState>();
-            private Dictionary<IState, Dictionary<char, IState>> transitions = new Dictionary<IState, Dictionary<char, IState>>();
+            private readonly Dictionary<IState, TLabel> labels = new Dictionary<IState, TLabel>();
+            private readonly List<DfaTestState> states = new List<DfaTestState>();
+
+            private readonly Dictionary<IState, Dictionary<char, IState>> transitions =
+                new Dictionary<IState, Dictionary<char, IState>>();
 
             public DfaTest(List<TLabel> labels)
             {
-                for (int i = 0; i < labels.Count; ++i)
+                for (var i = 0; i < labels.Count; ++i)
                 {
                     var curState = new DfaTestState(i);
-                    this.state.Add(curState);
-                    this.label[curState] = labels[i];
+                    this.states.Add(curState);
+                    this.labels[curState] = labels[i];
                     this.transitions[curState] = new Dictionary<char, IState>();
                 }
             }
 
             public void AddTransition(int x, int y, char c)
             {
-                this.transitions[this.state[x]][c] = this.state[y];
+                this.transitions[this.states[x]][c] = this.states[y];
             }
 
             public IState StartingState()
             {
-                return this.state[0];
+                return this.states[0];
             }
 
             public IReadOnlyDictionary<char, IState> Transitions(IState state)
@@ -266,7 +270,7 @@ namespace KJU.Tests.Automata
 
             public TLabel Label(IState state)
             {
-                return this.label[state];
+                return this.labels[state];
             }
 
             public bool IsStable(IState state)
@@ -285,12 +289,12 @@ namespace KJU.Tests.Automata
 
                 public bool Equals(IState other)
                 {
-                    if (other == null || this.GetType() != other.GetType())
+                    if (other is DfaTestState otherState)
                     {
-                        return false;
+                        return this.Id == otherState.Id;
                     }
 
-                    return this.Id == ((DfaTestState)other).Id;
+                    return false;
                 }
 
                 public override int GetHashCode()

@@ -1,6 +1,6 @@
 namespace KJU.Tests.Input
 {
-    using KJU.Core;
+    using KJU.Core.Input;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -9,14 +9,14 @@ namespace KJU.Tests.Input
         [TestMethod]
         public void TestToString()
         {
-            KJU.Core.Input.ILocation location = new KJU.Core.Input.FileLocation("TestFile.kju", 34, 21);
+            var location = new FileLocation("TestFile.kju", 34, 21);
             Assert.AreEqual("TestFile.kju:34:21", location.ToString());
         }
 
         [TestMethod]
         public void TestParams()
         {
-            KJU.Core.Input.FileLocation location = new KJU.Core.Input.FileLocation("TestFile.kju", 34, 21);
+            var location = new FileLocation("TestFile.kju", 34, 21);
             Assert.AreEqual("TestFile.kju", location.FileName);
             Assert.AreEqual(34, location.Line);
             Assert.AreEqual(21, location.Column);

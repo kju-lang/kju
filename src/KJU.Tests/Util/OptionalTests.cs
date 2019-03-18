@@ -23,14 +23,7 @@ namespace KJU.Tests.Util
             Assert.AreEqual(Optional<string>.Some("foo").Get(), "foo");
             Assert.AreEqual(Optional<string>.Some("foo").GetOrNull(), "foo");
             Assert.AreEqual(Optional<string>.None().GetOrNull(), null);
-            try
-            {
-                Optional<string>.None().Get();
-                Assert.Fail();
-            }
-            catch (ArgumentException)
-            {
-            }
+            Assert.ThrowsException<ArgumentException>(() => Optional<string>.None().Get());
         }
     }
 }

@@ -13,8 +13,9 @@ namespace KJU.Tests
     public class KjuGrammarTests
     {
         [TestMethod]
-        public void TestTable() {
-            var parser = ParserFactory<KjuAlphabet>.MakeParser(KjuGrammar.Instance, KjuAlphabet.Eof);
+        public void TestTable()
+        {
+            ParserFactory<KjuAlphabet>.MakeParser(KjuGrammar.Instance, KjuAlphabet.Eof);
         }
     }
 }

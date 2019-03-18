@@ -111,10 +111,7 @@ namespace KJU.Tests.Input
 
         private static IEnumerable<KeyValuePair<ILocation, char>> ToInput(IEnumerable<char> s)
         {
-            foreach (char c in s)
-            {
-                yield return new KeyValuePair<ILocation, char>(null, c);
-            }
+            return s.Select(c => new KeyValuePair<ILocation, char>(null, c));
         }
 
         private static string FromPreprocessor(IEnumerable<KeyValuePair<ILocation, char>> output)

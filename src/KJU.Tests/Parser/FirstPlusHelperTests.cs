@@ -15,41 +15,41 @@ namespace KJU.Tests.Parser
         [TestMethod]
         public void TestSimple()
         {
-            var state0 = this.GetMockState();
-            var state1 = this.GetMockState();
-            var state2 = this.GetMockState();
-            var state3 = this.GetMockState();
+            var state0 = GetMockState();
+            var state1 = GetMockState();
+            var state2 = GetMockState();
+            var state3 = GetMockState();
 
-            var first = new Dictionary<string, IReadOnlyCollection<DfaAndState<string>>>()
+            var first = new Dictionary<string, IReadOnlyCollection<DfaAndState<string>>>
             {
-                { "A", new List<DfaAndState<string>>() { state0, state1 } },
-                { "B", new List<DfaAndState<string>>() { state1 } }
+                { "A", new List<DfaAndState<string>> { state0, state1 } },
+                { "B", new List<DfaAndState<string>> { state1 } }
             };
 
-            var follow = new Dictionary<string, IReadOnlyCollection<DfaAndState<string>>>()
+            var follow = new Dictionary<string, IReadOnlyCollection<DfaAndState<string>>>
             {
-                { "A", new List<DfaAndState<string>>() { state2 } },
-                { "C", new List<DfaAndState<string>>() { state1 } },
-                { "D", new List<DfaAndState<string>>() { state3 } }
+                { "A", new List<DfaAndState<string>> { state2 } },
+                { "C", new List<DfaAndState<string>> { state1 } },
+                { "D", new List<DfaAndState<string>> { state3 } }
             };
 
-            var nullables = new List<DfaAndState<string>>() { state2, state3 };
+            var nullables = new List<DfaAndState<string>> { state2, state3 };
 
-            var firstPlusExpected = new Dictionary<string, IReadOnlyCollection<DfaAndState<string>>>()
+            var firstPlusExpected = new Dictionary<string, IReadOnlyCollection<DfaAndState<string>>>
             {
-                { "A", new List<DfaAndState<string>>() { state0, state1, state2 } },
-                { "B", new List<DfaAndState<string>>() { state1 } },
-                { "D", new List<DfaAndState<string>>() { state3 } }
+                { "A", new List<DfaAndState<string>> { state0, state1, state2 } },
+                { "B", new List<DfaAndState<string>> { state1 } },
+                { "D", new List<DfaAndState<string>> { state3 } }
             };
 
             var firstPlus = FirstPlusHelper<string>.GetFirstPlusSymbols(first, follow, nullables);
             Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(firstPlus, firstPlusExpected));
         }
 
-        private DfaAndState<string> GetMockState()
+        private static DfaAndState<string> GetMockState()
         {
             IDfa<Optional<Rule<string>>, string> dfa = new ConcreteDfa<Optional<Rule<string>>, string>();
-            return new DfaAndState<string>() { Dfa = dfa, State = dfa.StartingState() };
+            return new DfaAndState<string> { Dfa = dfa, State = dfa.StartingState() };
         }
     }
 }

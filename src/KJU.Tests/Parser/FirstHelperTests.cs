@@ -1,15 +1,12 @@
 namespace KJU.Tests.Parser
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using KJU.Core.Automata;
     using KJU.Core.Parser;
-    using KJU.Core.Regex;
     using KJU.Core.Util;
-    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
+    using Util;
 
     [TestClass]
     public class FirstHelperTests
@@ -36,16 +33,16 @@ namespace KJU.Tests.Parser
 
             var firstSymbols = FirstHelper<string>.GetFirstSymbols(grammar, nullables);
 
-            var expected = new string[]
+            var expected = new[]
             {
                 "A,B",
                 "B",
                 string.Empty
             };
-            for (int i = 0; i < 3; ++i)
+            for (var i = 0; i < 3; ++i)
             {
                 var stateEntity = new DfaAndState<string> { Dfa = dfa, State = new ValueState<int>(i) };
-                string output = string.Join(',', firstSymbols[stateEntity].OrderBy(x => x));
+                var output = string.Join(',', firstSymbols[stateEntity].OrderBy(x => x));
                 Assert.AreEqual(expected[i], output, $"Unexpected output on test {i}: expected is [{expected[i]}], but found [{output}]");
             }
         }
@@ -87,11 +84,11 @@ namespace KJU.Tests.Parser
 
             var firstSymbols = FirstHelper<string>.GetFirstSymbols(grammar, nullables);
 
-            var expected = new string[][]
+            var expected = new[]
             {
-                new string[] { "A,B,C,D,F", string.Empty, "A,B,C,D,F", "A,B,C,D,F", "G", string.Empty, "A,B,C,D,F", string.Empty },
-                new string[] { "A,B,C,D,F", "E", "A,B,C,D,F", string.Empty, string.Empty },
-                new string[] { string.Empty }
+                new[] { "A,B,C,D,F", string.Empty, "A,B,C,D,F", "A,B,C,D,F", "G", string.Empty, "A,B,C,D,F", string.Empty },
+                new[] { "A,B,C,D,F", "E", "A,B,C,D,F", string.Empty, string.Empty },
+                new[] { string.Empty }
             };
             var size = new int[] { 8, 5, 1 };
             var dfas = new ConcreteDfa<Optional<Rule<string>>, string>[] { firstDfa, secondDfa, thirdDfa };
@@ -136,7 +133,7 @@ namespace KJU.Tests.Parser
 
             var firstSymbols = FirstHelper<string>.GetFirstSymbols(grammar, nullables);
 
-            var expected = new string[]
+            var expected = new[]
             {
                 "E",
                 "E",
@@ -153,7 +150,7 @@ namespace KJU.Tests.Parser
 
         private class Dfa<Symbol> : ConcreteDfa<Optional<Rule<string>>, Symbol>, IDfa<Optional<Rule<string>>, Symbol>
         {
-            private HashSet<IState> badStates = new HashSet<IState>();
+            private readonly HashSet<IState> badStates = new HashSet<IState>();
 
             Optional<Rule<string>> IDfa<Optional<Rule<string>>, Symbol>.Label(IState state)
             {

@@ -1,18 +1,21 @@
-﻿namespace KJU.Tests
+﻿namespace KJU.Tests.Integration
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using KJU.Core.Input;
     using KJU.Core.Lexer;
-    using KJU.Tests.Integration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using TC = Integration.SimpleTokenCategory;
 
     [TestClass]
     public class SimpleLexerIntegrationTests
     {
+        private enum SimpleTokenCategory
+        {
+            None,
+            A,
+            B
+        }
+
         /// <summary>
         /// Test Lexer on a simple expression read from string.
         /// </summary>
@@ -21,38 +24,25 @@
         {
             string inputString = "abaabb";
 
-            List<KeyValuePair<TC, string>> tokenCategories = new List<KeyValuePair<TC, string>>
+            var tokenCategories = new List<KeyValuePair<SimpleTokenCategory, string>>
             {
-                new KeyValuePair<TC, string>(SimpleTokenCategory.A, "a"),
-                new KeyValuePair<TC, string>(SimpleTokenCategory.B, "b"),
+                new KeyValuePair<SimpleTokenCategory, string>(SimpleTokenCategory.A, "a"),
+                new KeyValuePair<SimpleTokenCategory, string>(SimpleTokenCategory.B, "b"),
             };
 
-            IInputReader inputReader = new KJU.Core.Input.StringInputReader(inputString);
-            List<KeyValuePair<ILocation, char>> input = inputReader.Read();
-            var conf = new ConflictResolver<TC>(TC.None);
-            Lexer<TC> lexer = new Lexer<TC>(tokenCategories, TC.None, conf.ResolveWithMaxValue);
-            IEnumerable<Token<TC>> outputTokens = lexer.Scan(input);
-
-            StringBuilder result = new StringBuilder();
-
-            foreach (var t in outputTokens)
+            IInputReader inputReader = new StringInputReader(inputString);
+            var input = inputReader.Read();
+            var conf = new ConflictResolver<SimpleTokenCategory>(SimpleTokenCategory.None);
+            var lexer = new Lexer<SimpleTokenCategory>(tokenCategories, SimpleTokenCategory.None, conf.ResolveWithMaxValue);
+            var actual = lexer.Scan(input).Select(x => x.Category).ToList();
+            var expected = new List<SimpleTokenCategory>
             {
-                var letter = t.Category;
-                switch (letter)
-                {
-                    case TC.A:
-                        result.Append('a');
-                        break;
-                    case TC.B:
-                        result.Append('b');
-                        break;
-                    default:
-                        Assert.IsTrue(false);
-                        break;
-                }
-            }
-
-            Assert.AreEqual(inputString, result.ToString());
+                SimpleTokenCategory.A, SimpleTokenCategory.B, SimpleTokenCategory.A, SimpleTokenCategory.A,
+                SimpleTokenCategory.B, SimpleTokenCategory.B
+            };
+            var expectedText = string.Join(", ", expected);
+            var actualText = string.Join(", ", actual);
+            CollectionAssert.AreEqual(expected, actual, $"Expected: {expectedText}, actual: {actualText}");
         }
     }
 }

@@ -17,7 +17,29 @@
     {
         private enum Label
         {
-            A, B
+            A,
+            B
+        }
+
+        [TestMethod]
+        public void TestParseException()
+        {
+            var rules = new Dictionary<Label, IDfa<Optional<Rule<Label>>, Label>>();
+            var dfa = new IntDfa();
+            rules.Add(Label.A, dfa);
+            var grammar = new CompiledGrammar<Label>() { Rules = rules, StartSymbol = Label.A };
+            var parseTable =
+                new Dictionary<Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>, ParseAction<Label>>
+                {
+                    {
+                        new Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>(dfa, new IntState(0), Label.B),
+                        new ParseAction<Label>() { Kind = ParseAction<Label>.ActionKind.Shift }
+                    }
+                };
+            var parser = new Parser<Label>(grammar, parseTable);
+
+            var tokens = new List<Token<Label>> { new Token<Label>() { Category = Label.B } };
+            Assert.ThrowsException<ParseException>(() => parser.Parse(tokens));
         }
 
         private class IntState : IState
@@ -36,12 +58,12 @@
 
             public override bool Equals(object other)
             {
-                if (!(other is IntState))
+                if (other is IntState otherIntState)
                 {
-                    return false;
+                    return this.i == otherIntState.i;
                 }
 
-                return this.i == (other as IntState).i;
+                return false;
             }
 
             public override int GetHashCode()
@@ -64,43 +86,16 @@
 
             public IState StartingState()
             {
-                IntState acc = new IntState(0);
-                return acc;
+                return new IntState(0);
             }
 
             public IReadOnlyDictionary<Label, IState> Transitions(IState state)
             {
-                Dictionary<Label, IState> edges = new Dictionary<Label, IState>();
-                Label l = ParseTests.Label.A;
-                edges.Add(l, new IntState(0));
-                l = ParseTests.Label.B;
-                edges.Add(l, new IntState(0));
+                var edges = new Dictionary<Label, IState>
+                {
+                    { ParseTests.Label.A, new IntState(0) }, { ParseTests.Label.B, new IntState(0) }
+                };
                 return edges;
-            }
-        }
-
-        [TestMethod]
-#pragma warning disable SA1201 // Elements must appear in the correct order
-        public void ParseTest()
-#pragma warning restore SA1201 // Elements must appear in the correct order
-        {
-            var rules = new Dictionary<Label, IDfa<Optional<Rule<Label>>, Label>>();
-            IntDfa dfa = new IntDfa();
-            rules.Add(Label.A, dfa);
-            var grammar = new CompiledGrammar<Label>() { Rules = rules, StartSymbol = Label.A };
-            var parseTable = new Dictionary<Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>, ParseAction<Label>>();
-            parseTable.Add(new Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>(dfa, new IntState(0), Label.B), new ParseAction<Label>() { Kind = ParseAction<Label>.ActionKind.Shift });
-            Parser<Label> parser = new Parser<Label>(grammar, parseTable);
-
-            List<Token<Label>> tokens = new List<Token<Label>>();
-            tokens.Add(new Token<Label>() { Category = Label.B });
-            try
-            {
-                var root = parser.Parse(tokens);
-            }
-            catch (Exception e)
-            {
-                Assert.AreEqual(e.Message, "Invalid reduce action");
             }
         }
     }

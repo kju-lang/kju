@@ -2,14 +2,9 @@ namespace KJU.Tests.Parser
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using KJU.Core.Automata;
     using KJU.Core.Parser;
     using KJU.Core.Regex;
-    using KJU.Core.Util;
-    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
     using static KJU.Core.Regex.RegexUtils;
 
     [TestClass]

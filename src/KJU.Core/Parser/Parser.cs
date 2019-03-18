@@ -56,7 +56,7 @@ namespace KJU.Core.Parser
 
                             if (dfa.Label(state).IsNone())
                             {
-                                throw new Exception("Invalid reduce action");
+                                throw new ParseException("Invalid reduce action");
                             }
 
                             Brunch<TLabel> brunch = new Brunch<TLabel>();
@@ -107,7 +107,7 @@ namespace KJU.Core.Parser
                 {
                     if (dfa.Label(state).IsNone())
                     {
-                        throw new Exception("Invalid reduce action");
+                        throw new ParseException("Invalid reduce action");
                     }
 
                     Brunch<TLabel> brunch = new Brunch<TLabel>();
@@ -143,7 +143,7 @@ namespace KJU.Core.Parser
 
             if (enumerator.MoveNext())
             {
-                throw new Exception("Parsing finished before reading all tokens");
+                throw new ParseException("Parsing finished before reading all tokens");
             }
 
             return root;

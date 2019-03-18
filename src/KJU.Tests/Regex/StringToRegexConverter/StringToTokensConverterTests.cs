@@ -8,7 +8,7 @@ namespace KJU.Tests.Regex
     [TestClass]
     public class StringToTokensConverterTests
     {
-        private IStringToTokensConverter converter = new StringToTokensConverter();
+        private readonly IStringToTokensConverter converter = new StringToTokensConverter();
 
         [TestMethod]
         public void SimpleAtom()

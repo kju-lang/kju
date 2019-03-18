@@ -1,8 +1,8 @@
 namespace KJU.Tests.Automata
 {
     using KJU.Core.Automata;
-    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Util;
 
     [TestClass]
     public class DfaUtilsTests

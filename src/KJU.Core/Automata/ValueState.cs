@@ -7,7 +7,7 @@ namespace KJU.Core.Automata
             this.Value = val;
         }
 
-        public T Value { get; set; }
+        public T Value { get; }
 
         public bool Equals(IState iother)
         {
