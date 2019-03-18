@@ -141,7 +141,12 @@ namespace KJU.Core.Parser
                 }
             }
 
-            throw new Exception("Parsing finished before reading all tokens");
+            if (enumerator.MoveNext())
+            {
+                throw new Exception("Parsing finished before reading all tokens");
+            }
+
+            return root;
         }
     }
 }
