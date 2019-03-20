@@ -5,136 +5,188 @@ namespace KJU.Core.AST
 {
     using System.Collections.Generic;
 
-    public enum DataType
+    public class Expression : Node
     {
-        Unit, Bool, Int
+        public DataType Type { get; set; }
     }
 
-    public enum ArithmeticOperationType
+    public class Program : Node
     {
-        Addition, Subtraction, Multiplication, Division, Remainder
+        public IReadOnlyList<FunctionDeclaration> Functions { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>(this.Functions);
+        }
     }
 
-    public enum ComparisonType
-    {
-        Equal, NotEqual, Less, LessOrEqual, Greater, GreaterOrEqual
-    }
-
-    public interface IExpression
-    {
-    }
-
-    public class Program
-    {
-        public IEnumerable<FunctionDeclaration> Functions { get; set; }
-    }
-
-    public class FunctionDeclaration : IExpression
+    public class FunctionDeclaration : Expression
     {
         public string Identifier { get; set; }
 
         public DataType ReturnType { get; set; }
 
-        public IEnumerable<FunctionParameter> Parameters { get; set; }
+        public IReadOnlyList<VariableDeclaration> Parameters { get; set; }
 
         public InstructionBlock Body { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            var result = new List<Node>();
+            result.AddRange(this.Parameters);
+            result.Add(this.Body);
+            return result;
+        }
     }
 
-    public class FunctionParameter
+    public class InstructionBlock : Expression
     {
-        public DataType Type { get; set; }
+        public IReadOnlyList<Expression> Instructions { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>(this.Instructions);
+        }
+    }
+
+    public class VariableDeclaration : Expression
+    {
+        public DataType VariableType { get; set; }
 
         public string Identifier { get; set; }
+
+        public Expression Value { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            if (this.Value == null)
+                return new List<Node>();
+            else
+                return new List<Node>() { this.Value };
+        }
     }
 
-    public class InstructionBlock : IExpression
+    public class WhileStatement : Expression
     {
-        public IEnumerable<IExpression> Instructions { get; set; }
-    }
-
-    public class VariableDeclaration : IExpression
-    {
-        public DataType Type { get; set; }
-
-        public string Identifier { get; set; }
-
-        public IExpression Value { get; set; }
-    }
-
-    public class WhileStatement : IExpression
-    {
-        public IExpression Condition { get; set; }
+        public Expression Condition { get; set; }
 
         public InstructionBlock Body { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>() { this.Condition, this.Body };
+        }
     }
 
-    public class IfStatement : IExpression
+    public class IfStatement : Expression
     {
-        public IExpression Condition { get; set; }
+        public Expression Condition { get; set; }
 
         public InstructionBlock ThenBody { get; set; }
 
         public InstructionBlock ElseBody { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>() { this.Condition, this.ThenBody, this.ElseBody };
+        }
     }
 
-    public class FunctionCall : IExpression
+    public class FunctionCall : Expression
+    {
+        public string Function { get; set; }
+
+        public IReadOnlyList<Expression> Arguments { get; set; }
+
+        public FunctionDeclaration Declaration { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>(this.Arguments);
+        }
+    }
+
+    public class ReturnStatement : Expression
+    {
+        public Expression Value { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            if (this.Value == null)
+                return new List<Node>();
+            else
+                return new List<Node>() { this.Value };
+        }
+    }
+
+    public class Variable : Expression
     {
         public string Identifier { get; set; }
 
-        public IEnumerable<IExpression> Arguments { get; set; }
+        public VariableDeclaration Declaration { get; set; }
     }
 
-    public class ReturnStatement : IExpression
-    {
-        public IExpression Value { get; set; }
-    }
-
-    public class Variable : IExpression
-    {
-        public string Identifier { get; set; }
-    }
-
-    public class BoolLiteral : IExpression
+    public class BoolLiteral : Expression
     {
         public bool Value { get; set; }
     }
 
-    public class IntegerLiteral : IExpression
+    public class IntegerLiteral : Expression
     {
         public long Value { get; set; }
     }
 
-    public class Assignment : IExpression
+    public class Assignment : Expression
     {
         public string Identifier { get; set; }
 
-        public IExpression Value { get; set; }
+        public Expression Value { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>() { this.Value };
+        }
     }
 
-    public class CompoundAssignment : IExpression
+    public class CompoundAssignment : Expression
     {
         public string Identifier { get; set; }
 
         public ArithmeticOperationType Operation { get; set; }
 
-        public IExpression Value { get; set; }
+        public Expression Value { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>() { this.Value };
+        }
     }
 
-    public class ArithmeticOperation : IExpression
+    public class ArithmeticOperation : Expression
     {
-        public ArithmeticOperationType Type { get; set; }
+        public ArithmeticOperationType OperationType { get; set; }
 
-        public IExpression LeftValue { get; set; }
+        public Expression LeftValue { get; set; }
 
-        public IExpression RightValue { get; set; }
+        public Expression RightValue { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>() { this.LeftValue, this.RightValue };
+        }
     }
 
-    public class Comparison : IExpression
+    public class Comparison : Expression
     {
-        public ComparisonType Type { get; set; }
+        public ComparisonType OperationType { get; set; }
 
-        public IExpression LeftValue { get; set; }
+        public Expression LeftValue { get; set; }
 
-        public IExpression RightValue { get; set; }
+        public Expression RightValue { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>() { this.LeftValue, this.RightValue };
+        }
     }
 }
