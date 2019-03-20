@@ -1,4 +1,4 @@
-namespace KJU.Tests
+namespace KJU.Tests.Integration
 {
     using System;
     using System.Collections.Generic;

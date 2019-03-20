@@ -80,7 +80,7 @@ namespace KJU.Core.Parser
             if (transitions.ContainsKey(label))
             {
                 var nextState = transitions[label];
-                if (!dfa.IsStable(nextState))
+                if (!dfa.IsStable(nextState) || dfa.Label(nextState).IsSome())
                 {
                     actions.Add(
                         new ParseAction<TLabel>() { Kind = ParseAction<TLabel>.ActionKind.Shift, Label = label });
@@ -93,7 +93,7 @@ namespace KJU.Core.Parser
                 foreach (var transitionLabel in transitions.Keys)
                 {
                     var nextState = transitions[transitionLabel];
-                    if (!dfa.IsStable(nextState) && grammar.Rules.ContainsKey(transitionLabel))
+                    if ((!dfa.IsStable(nextState) || dfa.Label(nextState).IsSome()) && grammar.Rules.ContainsKey(transitionLabel))
                     {
                         var subDfa = grammar.Rules[transitionLabel];
                         var subDfaAndStartState = new DfaAndState<TLabel>()
