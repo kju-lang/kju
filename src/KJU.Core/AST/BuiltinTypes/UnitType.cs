@@ -1,4 +1,4 @@
-namespace KJU.Core.AST.BuildinTypes
+namespace KJU.Core.AST.BuiltinTypes
 {
     public class UnitType : DataType
     {
