@@ -138,22 +138,22 @@ namespace KJU.Core.AST
 
     public class Assignment : Expression
     {
-        public string Identifier { get; set; }
+        public Variable Lhs { get; set; }
 
         public Expression Value { get; set; }
 
         public override IEnumerable<Node> Children()
         {
-            if (this.Value == null)
-                return new List<Node>();
-            else
-                return new List<Node>() { this.Value };
+            List<Node> result = new List<Node>() { this.Lhs };
+            if (this.Value != null)
+                result.Add(this.Value);
+            return result;
         }
     }
 
     public class CompoundAssignment : Expression
     {
-        public string Identifier { get; set; }
+        public Variable Lhs { get; set; }
 
         public ArithmeticOperationType Operation { get; set; }
 
@@ -161,10 +161,10 @@ namespace KJU.Core.AST
 
         public override IEnumerable<Node> Children()
         {
-            if (this.Value == null)
-                return new List<Node>();
-            else
-                return new List<Node>() { this.Value };
+            List<Node> result = new List<Node>() { this.Lhs };
+            if (this.Value != null)
+                result.Add(this.Value);
+            return result;
         }
     }
 
