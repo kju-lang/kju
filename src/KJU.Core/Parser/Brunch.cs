@@ -13,5 +13,10 @@ namespace KJU.Core.Parser
         public Rule<TLabel> Rule { get; set; }
 
         public IReadOnlyList<ParseTree<TLabel>> Children { get; set; }
+
+        public override string ToString()
+        {
+            return $"{this.Rule.Lhs} [{string.Join(", ", this.Children)}]";
+        }
     }
 }

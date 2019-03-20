@@ -11,7 +11,7 @@
 
         public override string ToString()
         {
-            return $"Label: {this.Category}, range: {this.InputRange} ,text: {this.Text}";
+            return $"{this.Category}'{this.Text}'";
         }
     }
 }

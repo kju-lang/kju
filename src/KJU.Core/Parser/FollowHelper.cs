@@ -61,7 +61,15 @@ namespace KJU.Core.Parser
 
                             var edgeFollows = GetDefault(resultSymbols, edgeSymbol);
                             foreach (var sym in GetDefault(resultStates, nextDfaAndState))
+                            {
+                                if (sym.ToString() == "LogicalOr" && edgeSymbol.ToString() == "VariableDeclaration")
+                                {
+                                    Console.WriteLine($"edgeSymbol: {edgeSymbol} prestate: {state.GetHashCode()}#{dfa.Label(state)} state: {nextState.GetHashCode()}#{dfa.Label(nextState)} follows: {string.Join(",", GetDefault(resultStates, nextDfaAndState))} prefollows: {string.Join(",", stateFollows)}");
+                                    throw new Exception($"fail ");
+                                }
+
                                 anythingChanged = edgeFollows.Add(sym) || anythingChanged;
+                            }
                         }
                     }
                 }

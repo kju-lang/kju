@@ -3,7 +3,7 @@
     using System;
     using System.IO;
     using KJU.Core;
-    using KJU.Core.Lexer;
+    using KJU.Core.Parser;
 
     public class Program
     {
@@ -13,13 +13,8 @@
             {
                 string data = File.ReadAllText(filename);
                 Console.WriteLine($"compiling {data}...");
-                var tokens = KjuLexer.Scan(data);
-                Console.WriteLine($"tokens: {tokens}");
-
-                foreach (var token in tokens)
-                {
-                    Console.WriteLine($"{token.Category} {token.Text}");
-                }
+                var tree = KjuParser.Parse(data);
+                Console.WriteLine($"tree: {tree}");
             }
         }
     }
