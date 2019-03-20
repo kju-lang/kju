@@ -2,6 +2,7 @@ namespace KJU.Core.Lexer
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class ConflictResolver<TLabel>
     where TLabel : IComparable
@@ -15,17 +16,18 @@ namespace KJU.Core.Lexer
 
         public TLabel ResolveWithMaxValue(IEnumerable<TLabel> tokenCategories)
         {
-            TLabel highestValue = this.noneValue;
+            if (tokenCategories.Count() == 0)
+                return this.noneValue;
+            else
+                return tokenCategories.Max();
+        }
 
-            foreach (TLabel label in tokenCategories)
-            {
-                if (label.CompareTo(highestValue) > 0)
-                {
-                    highestValue = label;
-                }
-            }
-
-            return highestValue;
+        public TLabel ResolveWithMinValue(IEnumerable<TLabel> tokenCategories)
+        {
+            if (tokenCategories.Count() == 0)
+                return this.noneValue;
+            else
+                return tokenCategories.Min();
         }
     }
 }
