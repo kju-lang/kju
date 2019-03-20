@@ -18,7 +18,7 @@ namespace KJU.Tests.Integration
         {
             Console.WriteLine("scanning...");
             Console.WriteLine(KjuLexer.Scan("fun hello() { return 1 + 2; }"));
-            Assert.IsFalse(true);
+            // Assert.IsFalse(true);
         }
     }
 }

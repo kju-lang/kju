@@ -27,7 +27,9 @@
                     Console.WriteLine($"compiling {x.Value}...");
                     Regex<char> regex = converter.Convert(x.Value);
                     Console.WriteLine($"compiling {x.Value}... 2");
-                    INfa<char> nfa = RegexToNfaConverter<char>.Convert(regex);
+                    INfa<char> nfaPre = RegexToNfaConverter<char>.Convert(regex);
+                    Console.WriteLine($"compiling {x.Value}... 3a");
+                    INfa<char> nfa = ConcreteNfa<char>.CreateFromNfa(nfaPre);
                     Console.WriteLine($"compiling {x.Value}... 3");
                     IDfa<bool, char> dfa = NfaToDfaConverter<char>.Convert(nfa);
                     Console.WriteLine($"compiling {x.Value}... 4");
