@@ -3,9 +3,10 @@ namespace KJU.Core.Parser
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
-    using Regex;
-    using static KjuAlphabet;
-    using static Regex.RegexUtils;
+    using KJU.Core.Lexer;
+    using KJU.Core.Regex;
+    using static KJU.Core.Lexer.KjuAlphabet;
+    using static KJU.Core.Regex.RegexUtils;
 
     public static class KjuGrammar
     {

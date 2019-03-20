@@ -1,7 +1,12 @@
-namespace KJU.Core.Parser
+namespace KJU.Core.Lexer
 {
     public enum KjuAlphabet
     {
+        /// <summary>
+        /// Special symbol for lexer
+        /// </summary>
+        None = 0,
+
         // Terminals:
 
         /// <summary>
@@ -110,16 +115,6 @@ namespace KJU.Core.Parser
         Equals,
 
         /// <summary>
-        /// &lt;
-        /// </summary>
-        LessThan,
-
-        /// <summary>
-        /// &gt;
-        /// </summary>
-        GreaterThan,
-
-        /// <summary>
         /// &lt;=
         /// </summary>
         LessOrEqual,
@@ -130,14 +125,24 @@ namespace KJU.Core.Parser
         GreaterOrEqual,
 
         /// <summary>
-        /// !
+        /// &lt;
         /// </summary>
-        LogicNot,
+        LessThan,
+
+        /// <summary>
+        /// &gt;
+        /// </summary>
+        GreaterThan,
 
         /// <summary>
         /// !=
         /// </summary>
         NotEquals,
+
+        /// <summary>
+        /// !
+        /// </summary>
+        LogicNot,
 
         /// <summary>
         /// +
