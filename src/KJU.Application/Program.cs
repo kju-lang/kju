@@ -13,7 +13,7 @@
             {
                 string data = File.ReadAllText(filename);
                 Console.WriteLine($"compiling {data}...");
-                var tree = KjuParser.Parse(data);
+                var tree = KjuParserFactory.Instance.Parse(data);
                 Console.WriteLine($"tree: {tree}");
             }
         }

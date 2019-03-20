@@ -16,18 +16,20 @@ namespace KJU.Core.Lexer
 
         public TLabel ResolveWithMaxValue(IEnumerable<TLabel> tokenCategories)
         {
-            if (tokenCategories.Count() == 0)
+            var tokenCategoriesList = new List<TLabel>(tokenCategories);
+            if (tokenCategoriesList.Count == 0)
                 return this.noneValue;
             else
-                return tokenCategories.Max();
+                return tokenCategoriesList.Max();
         }
 
         public TLabel ResolveWithMinValue(IEnumerable<TLabel> tokenCategories)
         {
-            if (tokenCategories.Count() == 0)
+            var tokenCategoriesList = new List<TLabel>(tokenCategories);
+            if (tokenCategoriesList.Count == 0)
                 return this.noneValue;
             else
-                return tokenCategories.Min();
+                return tokenCategoriesList.Min();
         }
     }
 }

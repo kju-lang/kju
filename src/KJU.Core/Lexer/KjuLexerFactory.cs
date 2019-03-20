@@ -6,21 +6,9 @@ namespace KJU.Core.Lexer
     using System.Text;
     using KJU.Core.Input;
 
-    public class KjuLexer
+    public class KjuLexerFactory
     {
         public static readonly Lexer<KjuAlphabet> Instance = CreateLexer();
-
-        public static IEnumerable<Token<KjuAlphabet>> Scan(List<KeyValuePair<ILocation, char>> input)
-        {
-            var preprocessor = new Preprocessor();
-            var processedInput = preprocessor.PreprocessInput(input);
-            return Instance.Scan(processedInput).Where(token => token.Category != KjuAlphabet.Whitespace);
-        }
-
-        public static IEnumerable<Token<KjuAlphabet>> Scan(string input)
-        {
-            return Scan(new StringInputReader(input).Read());
-        }
 
         private static Lexer<KjuAlphabet> CreateLexer()
         {

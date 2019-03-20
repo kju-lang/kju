@@ -16,7 +16,7 @@ namespace KJU.Tests.Integration
         [TestMethod]
         public void TestSimple()
         {
-            var tokens = KjuLexer.Scan("fun hello() { return\n1 + 2; }").ToList();
+            var tokens = KjuLexerFactory.Instance.ScanPreprocessed("fun hello() { return\n1 + 2; }").ToList();
             Assert.AreEqual(
                 "Fun,VariableFunctionIdentifier,LParen,RParen,LBrace,Return,DecimalLiteral,Plus,DecimalLiteral,Semicolon,RBrace",
                 string.Join(",", tokens.Select(token => token.Category)));

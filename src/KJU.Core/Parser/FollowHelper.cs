@@ -62,12 +62,6 @@ namespace KJU.Core.Parser
                             var edgeFollows = GetDefault(resultSymbols, edgeSymbol);
                             foreach (var sym in GetDefault(resultStates, nextDfaAndState))
                             {
-                                if (sym.ToString() == "LogicalOr" && edgeSymbol.ToString() == "VariableDeclaration")
-                                {
-                                    Console.WriteLine($"edgeSymbol: {edgeSymbol} prestate: {state.GetHashCode()}#{dfa.Label(state)} state: {nextState.GetHashCode()}#{dfa.Label(nextState)} follows: {string.Join(",", GetDefault(resultStates, nextDfaAndState))} prefollows: {string.Join(",", stateFollows)}");
-                                    throw new Exception($"fail ");
-                                }
-
                                 anythingChanged = edgeFollows.Add(sym) || anythingChanged;
                             }
                         }
@@ -76,11 +70,6 @@ namespace KJU.Core.Parser
 
                 if (!anythingChanged) break;
             }
-
-            // foreach (var p in resultSymbols)
-            // {
-            //     Console.WriteLine($"symbol: {p.Key} follow: {string.Join(",", p.Value)}");
-            // }
 
             var resultStatesCorrect = new Dictionary<DfaAndState<TLabel>, HashSet<TLabel>>();
 
@@ -103,11 +92,6 @@ namespace KJU.Core.Parser
                     }
                 }
             }
-
-            // foreach (var p in resultStatesCorrect)
-            // {
-            //     Console.WriteLine($"state: {p.Key.Dfa.Label(p.Key.State)} follow: {string.Join(",", p.Value)}");
-            // }
 
             return resultStatesCorrect.ToDictionary(kpv => kpv.Key, kpv => kpv.Value as IReadOnlyCollection<TLabel>);
         }
