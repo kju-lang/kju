@@ -24,15 +24,10 @@
                 x => x.Key,
                 x =>
                 {
-                    Console.WriteLine($"compiling {x.Value}...");
                     Regex<char> regex = converter.Convert(x.Value);
-                    Console.WriteLine($"compiling {x.Value}... 2");
                     INfa<char> nfaPre = RegexToNfaConverter<char>.Convert(regex);
-                    Console.WriteLine($"compiling {x.Value}... 3a");
                     INfa<char> nfa = ConcreteNfa<char>.CreateFromNfa(nfaPre);
-                    Console.WriteLine($"compiling {x.Value}... 3");
                     IDfa<bool, char> dfa = NfaToDfaConverter<char>.Convert(nfa);
-                    Console.WriteLine($"compiling {x.Value}... 4");
                     return DfaMinimizer<bool, char>.Minimize(dfa);
                 });
             var mergedDfa = DfaMerger<TLabel, char>.Merge(multipleDfa, conflictSolver);
@@ -66,7 +61,7 @@
                         Range rng = new Range { Begin = begin, End = nextChar.Key };
                         if (label.Equals(this.noneValue))
                         {
-                            throw new FormatException($"Non-token at position {rng} with text {tokenText}");
+                            throw new FormatException($"Non-token at position {rng} with text '{tokenText}'");
                         }
 
                         Token<TLabel> ret = new Token<TLabel> { Category = label, InputRange = rng, Text = tokenText.ToString() };

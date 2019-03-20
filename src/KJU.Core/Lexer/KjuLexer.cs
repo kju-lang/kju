@@ -14,7 +14,7 @@ namespace KJU.Core.Lexer
         {
             var preprocessor = new Preprocessor();
             var processedInput = preprocessor.PreprocessInput(input);
-            return Instance.Scan(processedInput);
+            return Instance.Scan(processedInput).Where(token => token.Category != KjuAlphabet.Whitespace);
         }
 
         public static IEnumerable<Token<KjuAlphabet>> Scan(string input)
@@ -28,6 +28,7 @@ namespace KJU.Core.Lexer
 
             var tokenCategories = new Dictionary<KjuAlphabet, string>
             {
+                { KjuAlphabet.Whitespace, "[ \n\r\t][ \n\r\t]*" },
                 { KjuAlphabet.LBrace, "{" },
                 { KjuAlphabet.RBrace, "}" },
                 { KjuAlphabet.LParen, "\\(" },
@@ -70,9 +71,7 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.PercentAssign, "%=" }
             };
 
-            Console.WriteLine("creating lexer...");
             var lexer = new Lexer<KjuAlphabet>(tokenCategories, KjuAlphabet.None, resolver.ResolveWithMaxValue);
-            Console.WriteLine("creating lexer done");
             return lexer;
         }
     }

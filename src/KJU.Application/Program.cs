@@ -15,6 +15,11 @@
                 Console.WriteLine($"compiling {data}...");
                 var tokens = KjuLexer.Scan(data);
                 Console.WriteLine($"tokens: {tokens}");
+
+                foreach (var token in tokens)
+                {
+                    Console.WriteLine($"{token.Category} {token.Text}");
+                }
             }
         }
     }

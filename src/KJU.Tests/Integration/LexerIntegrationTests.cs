@@ -81,7 +81,6 @@ namespace KJU.Tests.Integration
         /// (limits allowed key/string characters, no escapes, simpler numbers).
         /// </summary>
         [TestMethod]
-        [Ignore]
         public void TestWithFileInput()
         {
             string filename = GetFullPathToFile(Path.Combine("Integration", "pseudoJSONSample.txt"));

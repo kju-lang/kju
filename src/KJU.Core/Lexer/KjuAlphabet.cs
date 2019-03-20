@@ -7,6 +7,11 @@ namespace KJU.Core.Lexer
         /// </summary>
         None = 0,
 
+        /// <summary>
+        /// Whitespace (only for lexer)
+        /// </summary>
+        Whitespace,
+
         // Terminals:
 
         /// <summary>
