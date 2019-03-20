@@ -144,7 +144,10 @@ namespace KJU.Core.AST
 
         public override IEnumerable<Node> Children()
         {
-            return new List<Node>() { this.Value };
+            if (this.Value == null)
+                return new List<Node>();
+            else
+                return new List<Node>() { this.Value };
         }
     }
 
@@ -158,7 +161,10 @@ namespace KJU.Core.AST
 
         public override IEnumerable<Node> Children()
         {
-            return new List<Node>() { this.Value };
+            if (this.Value == null)
+                return new List<Node>();
+            else
+                return new List<Node>() { this.Value };
         }
     }
 
