@@ -70,7 +70,7 @@ namespace KJU.Tests.Integration.Parser
             var parser = BuildParenParser();
             string parens = "(()";
 
-            Assert.ThrowsException<KeyNotFoundException>(() => parser.Parse(GetParenTokens(parens)));
+            Assert.ThrowsException<ParseException>(() => parser.Parse(GetParenTokens(parens)));
         }
 
         private static IEnumerable<Token<ParenAlphabet>> GetParenTokens(string s)

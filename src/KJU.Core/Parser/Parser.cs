@@ -41,7 +41,13 @@ namespace KJU.Core.Parser
                 IState state = statesStack.Peek();
                 IDfa<Optional<Rule<TLabel>>, TLabel> dfa = dfaStack.Peek();
 
-                ParseAction<TLabel> action = this.table[new Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>(dfa, state, token.Category)];
+                var key = new Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>(dfa, state, token.Category);
+                if (!this.table.ContainsKey(key))
+                {
+                    throw new ParseException($"unexpected symbol: {token}");
+                }
+
+                ParseAction<TLabel> action = this.table[key];
                 if (action.Kind == ParseAction<TLabel>.ActionKind.Shift)
                 {
                     nodesStack.Peek().Add(token);
