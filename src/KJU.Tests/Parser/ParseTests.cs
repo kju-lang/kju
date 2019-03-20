@@ -42,6 +42,28 @@
             Assert.ThrowsException<ParseException>(() => parser.Parse(tokens));
         }
 
+        [TestMethod]
+        public void TestEmpty()
+        {
+            var rules = new Dictionary<Label, IDfa<Optional<Rule<Label>>, Label>>();
+            var dfa = new EpsDfa();
+            rules.Add(Label.A, dfa);
+            var grammar = new CompiledGrammar<Label>() { Rules = rules, StartSymbol = Label.A };
+            var parseTable =
+                new Dictionary<Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>, ParseAction<Label>>
+                {
+                    {
+                        new Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>(dfa, new IntState(0), Label.B),
+                        new ParseAction<Label>() { Kind = ParseAction<Label>.ActionKind.Reduce }
+                    }
+                };
+            var parser = new Parser<Label>(grammar, parseTable);
+
+            var tokens = new List<Token<Label>> { new Token<Label>() { Category = Label.B } };
+            ParseTree<Label> root = parser.Parse(tokens);
+            Assert.IsNull(root.InputRange);
+        }
+
         private class IntState : IState
         {
             private readonly int i;
@@ -82,6 +104,33 @@
             public Optional<Rule<Label>> Label(IState state)
             {
                 return Optional<Rule<Label>>.None();
+            }
+
+            public IState StartingState()
+            {
+                return new IntState(0);
+            }
+
+            public IReadOnlyDictionary<Label, IState> Transitions(IState state)
+            {
+                var edges = new Dictionary<Label, IState>
+                {
+                    { ParseTests.Label.A, new IntState(0) }, { ParseTests.Label.B, new IntState(0) }
+                };
+                return edges;
+            }
+        }
+
+        private class EpsDfa : IDfa<Optional<Rule<Label>>, Label>
+        {
+            public bool IsStable(IState state)
+            {
+                return false;
+            }
+
+            public Optional<Rule<Label>> Label(IState state)
+            {
+                return Optional<Rule<Label>>.Some(new Rule<Label>());
             }
 
             public IState StartingState()

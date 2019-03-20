@@ -63,9 +63,29 @@ namespace KJU.Core.Parser
                     brunch.Rule = dfa.Label(state).Get();
                     brunch.Children = nodesStack.Peek();
                     brunch.Category = brunch.Rule.Lhs;
-                    Range range = new Range();
-                    // range.Begin = nodesStack.Peek()[0].InputRange.Begin;
-                    // range.End = nodesStack.Peek()[nodesStack.Peek().Count - 1].InputRange.End;
+                    Range range = null;
+                    ILocation begin = null;
+                    ILocation end = null;
+                    foreach (ParseTree<TLabel> node in nodesStack.Peek())
+                    {
+                        if (node.InputRange != null)
+                        {
+                            if (begin == null)
+                            {
+                                begin = node.InputRange.Begin;
+                            }
+
+                            end = node.InputRange.End;
+                        }
+                    }
+
+                    if (begin != null)
+                    {
+                        range = new Range();
+                        range.Begin = begin;
+                        range.End = end;
+                    }
+
                     brunch.InputRange = range;
 
                     statesStack.Pop();
