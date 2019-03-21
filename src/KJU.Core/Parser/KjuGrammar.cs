@@ -60,7 +60,7 @@ namespace KJU.Core.Parser
             Lhs = KjuAlphabet.FunctionCall,
             Rhs = Concat(
                 LParen.ToRegex(),
-                CreateListRegex(KjuAlphabet.ExpressionAtom.ToRegex(), Comma.ToRegex()),
+                CreateListRegex(KjuAlphabet.Expression.ToRegex(), Comma.ToRegex()),
                 RParen.ToRegex())
         };
 
@@ -133,7 +133,6 @@ namespace KJU.Core.Parser
                 KjuAlphabet.IfStatement.ToRegex(),
                 KjuAlphabet.WhileStatement.ToRegex(),
                 KjuAlphabet.Block.ToRegex(),
-                KjuAlphabet.VariableUse.ToRegex(),
                 Break.ToRegex(),
                 Continue.ToRegex(),
                 FunctionDeclaration.ToRegex(),
@@ -201,6 +200,7 @@ namespace KJU.Core.Parser
         {
             Lhs = KjuAlphabet.ExpressionAtom,
             Rhs = Sum(
+                KjuAlphabet.VariableUse.ToRegex(),
                 KjuAlphabet.Literal.ToRegex(),
                 Concat(
                     LParen.ToRegex(),

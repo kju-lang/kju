@@ -1,0 +1,8 @@
+fun kju(): Unit
+{
+	var a: Int=f(x);
+}
+fun f(): Int 
+{ 
+    return 5;
+}
