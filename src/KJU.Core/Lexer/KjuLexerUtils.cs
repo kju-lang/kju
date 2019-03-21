@@ -12,7 +12,10 @@ namespace KJU.Core.Lexer
         {
             var preprocessor = new Preprocessor();
             var processedInput = preprocessor.PreprocessInput(input);
-            return lexer.Scan(processedInput).Where(token => token.Category != KjuAlphabet.Whitespace);
+            var result = new List<Token<KjuAlphabet>>();
+            result.AddRange(lexer.Scan(processedInput).Where(token => token.Category != KjuAlphabet.Whitespace));
+            result.Add(new Token<KjuAlphabet> { Category = KjuAlphabet.Eof });
+            return result;
         }
 
         public static IEnumerable<Token<KjuAlphabet>> ScanPreprocessed(this Lexer<KjuAlphabet> lexer, string input)
