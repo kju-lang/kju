@@ -1,0 +1,143 @@
+﻿{
+  "$id": "1",
+  "$type": "KJU.Tests.AST.TypeCheckerHelper+HelperStruct, KJU.Tests",
+  "UnitType": {
+    "$id": "2",
+    "$type": "KJU.Core.AST.BuiltinTypes.UnitType, KJU.Core"
+  },
+  "IntType": {
+    "$id": "3",
+    "$type": "KJU.Core.AST.BuiltinTypes.IntType, KJU.Core"
+  },
+  "BoolType": {
+    "$id": "4",
+    "$type": "KJU.Core.AST.BuiltinTypes.BoolType, KJU.Core"
+  },
+  "Node": {
+    "$id": "5",
+    "$type": "KJU.Core.AST.Program, KJU.Core",
+    "Functions": {
+      "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.FunctionDeclaration, KJU.Core]], System.Private.CoreLib",
+      "$values": [
+        {
+          "$id": "6",
+          "$type": "KJU.Core.AST.FunctionDeclaration, KJU.Core",
+          "Identifier": "Fun1",
+          "ReturnType": {
+            "$ref": "3"
+          },
+          "Parameters": {
+            "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.VariableDeclaration, KJU.Core]], System.Private.CoreLib",
+            "$values": []
+          },
+          "Body": {
+            "$id": "7",
+            "$type": "KJU.Core.AST.InstructionBlock, KJU.Core",
+            "Instructions": {
+              "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.Expression, KJU.Core]], System.Private.CoreLib",
+              "$values": [
+                {
+                  "$id": "8",
+                  "$type": "KJU.Core.AST.ReturnStatement, KJU.Core",
+                  "Value": {
+                    "$id": "9",
+                    "$type": "KJU.Core.AST.IntegerLiteral, KJU.Core",
+                    "Value": 5,
+                    "Type": {
+                      "$ref": "3"
+                    },
+                    "InputRange": null
+                  },
+                  "Type": {
+                    "$ref": "3"
+                  },
+                  "InputRange": null
+                }
+              ]
+            },
+            "Type": {
+              "$ref": "2"
+            },
+            "InputRange": null
+          },
+          "Type": {
+            "$ref": "2"
+          },
+          "InputRange": null
+        },
+        {
+          "$id": "10",
+          "$type": "KJU.Core.AST.FunctionDeclaration, KJU.Core",
+          "Identifier": "Fun2",
+          "ReturnType": {
+            "$ref": "3"
+          },
+          "Parameters": {
+            "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.VariableDeclaration, KJU.Core]], System.Private.CoreLib",
+            "$values": []
+          },
+          "Body": {
+            "$id": "11",
+            "$type": "KJU.Core.AST.InstructionBlock, KJU.Core",
+            "Instructions": {
+              "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.Expression, KJU.Core]], System.Private.CoreLib",
+              "$values": [
+                {
+                  "$id": "12",
+                  "$type": "KJU.Core.AST.ReturnStatement, KJU.Core",
+                  "Value": {
+                    "$id": "13",
+                    "$type": "KJU.Core.AST.ArithmeticOperation, KJU.Core",
+                    "OperationType": 0,
+                    "LeftValue": {
+                      "$id": "14",
+                      "$type": "KJU.Core.AST.FunctionCall, KJU.Core",
+                      "Function": "Fun1",
+                      "Arguments": {
+                        "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.Expression, KJU.Core]], System.Private.CoreLib",
+                        "$values": []
+                      },
+                      "Declaration": {
+                        "$ref": "6"
+                      },
+                      "Type": {
+                        "$ref": "3"
+                      },
+                      "InputRange": null
+                    },
+                    "RightValue": {
+                      "$id": "15",
+                      "$type": "KJU.Core.AST.IntegerLiteral, KJU.Core",
+                      "Value": 5,
+                      "Type": {
+                        "$ref": "3"
+                      },
+                      "InputRange": null
+                    },
+                    "Type": {
+                      "$ref": "3"
+                    },
+                    "InputRange": null
+                  },
+                  "Type": {
+                    "$ref": "3"
+                  },
+                  "InputRange": null
+                }
+              ]
+            },
+            "Type": {
+              "$ref": "2"
+            },
+            "InputRange": null
+          },
+          "Type": {
+            "$ref": "2"
+          },
+          "InputRange": null
+        }
+      ]
+    },
+    "InputRange": null
+  }
+}
