@@ -10,7 +10,7 @@ namespace KJU.Core.Parser
 
     public static class KjuParserUtils
     {
-        public static ParseTree<KjuAlphabet> Parse(this Parser<KjuAlphabet> parser, IEnumerable<Token<KjuAlphabet>> tokens)
+        public static ParseTree<KjuAlphabet> ParseAddingEof(this Parser<KjuAlphabet> parser, IEnumerable<Token<KjuAlphabet>> tokens)
         {
             var tokensAndEof = new List<Token<KjuAlphabet>>();
             tokensAndEof.AddRange(tokens);
@@ -20,12 +20,12 @@ namespace KJU.Core.Parser
 
         public static ParseTree<KjuAlphabet> Parse(this Parser<KjuAlphabet> parser, List<KeyValuePair<ILocation, char>> input)
         {
-            return parser.Parse(KjuLexerFactory.Instance.ScanPreprocessed(input));
+            return parser.ParseAddingEof(KjuLexerFactory.Instance.ScanPreprocessed(input));
         }
 
         public static ParseTree<KjuAlphabet> Parse(this Parser<KjuAlphabet> parser, string input)
         {
-            return parser.Parse(KjuLexerFactory.Instance.ScanPreprocessed(input));
+            return parser.ParseAddingEof(KjuLexerFactory.Instance.ScanPreprocessed(input));
         }
     }
 }

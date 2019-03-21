@@ -12,8 +12,7 @@ namespace KJU.Tests.Integration.Parser
         [TestMethod]
         public void EmptyProgramTest()
         {
-            var parser = BuildParser();
-            var tree = parser.Parse(new List<Token<KjuAlphabet>> {
+            var tree = KjuParserFactory.Instance.Parse(new List<Token<KjuAlphabet>> {
                 new Token<KjuAlphabet> { Category = KjuAlphabet.Eof },
             });
         }
@@ -21,8 +20,7 @@ namespace KJU.Tests.Integration.Parser
         [TestMethod]
         public void SimpleProgramTest()
         {
-            var parser = BuildParser();
-            var tree = parser.Parse(new List<Token<KjuAlphabet>> {
+            var tree = KjuParserFactory.Instance.Parse(new List<Token<KjuAlphabet>> {
                 new Token<KjuAlphabet> { Category = KjuAlphabet.Fun },
                 new Token<KjuAlphabet> { Category = KjuAlphabet.VariableFunctionIdentifier, Text = "foo" },
                 new Token<KjuAlphabet> { Category = KjuAlphabet.LParen },
@@ -35,9 +33,13 @@ namespace KJU.Tests.Integration.Parser
             });
         }
 
-        private static Parser<KjuAlphabet> BuildParser()
+        [TestMethod]
+        public void EndToEndTest()
         {
-            return ParserFactory<KjuAlphabet>.MakeParser(KjuGrammar.Instance, KjuAlphabet.Eof);
+            var tree = KjuParserFactory.Instance.Parse("fun kju():Unit{var x:Int=2+2;}");
+            Assert.AreEqual(
+                actual: tree.ToString(),
+                expected: "Kju [FunctionDeclaration [Fun'fun', VariableFunctionIdentifier'kju', LParen'(', RParen')', Colon':', TypeIdentifier'Unit', Block [LBrace'{', Instruction [NotDelimeteredInstruction [Statement [VariableDeclaration [Var'var', VariableFunctionIdentifier'x', Colon':', TypeIdentifier'Int', Assign'=', Expression [ExpressionOr [ExpressionAnd [ExpressionEqualsNotEquals [ExpressionLessThanGreaterThan [ExpressionPlusMinus [ExpressionTimesDivideModulo [ExpressionLogicalNot [ExpressionAtom [Literal [DecimalLiteral'2']]]], Plus'+', ExpressionPlusMinus [ExpressionTimesDivideModulo [ExpressionLogicalNot [ExpressionAtom [Literal [DecimalLiteral'2']]]]]]]]]]]]]], Semicolon';'], RBrace'}']]]");
         }
     }
 }

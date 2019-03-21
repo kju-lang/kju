@@ -17,6 +17,12 @@ $ cd src/KJU.Application
 $ dotnet run
 ```
 
+or (Unix only)
+
+```
+./kju
+```
+
 #### Build core
 
 ```
