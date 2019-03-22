@@ -119,6 +119,16 @@ namespace KJU.Core.AST
         }
     }
 
+    public class BreakStatement : Expression
+    {
+        public WhileStatement EnclosingLoop { get; set; }
+    }
+
+    public class ContinueStatement : Expression
+    {
+        public WhileStatement EnclosingLoop { get; set; }
+    }
+
     public class Variable : Expression
     {
         public string Identifier { get; set; }
@@ -185,6 +195,20 @@ namespace KJU.Core.AST
     public class Comparison : Expression
     {
         public ComparisonType OperationType { get; set; }
+
+        public Expression LeftValue { get; set; }
+
+        public Expression RightValue { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>() { this.LeftValue, this.RightValue };
+        }
+    }
+
+    public class LogicalOperation : Expression
+    {
+        public LogicalOperationType OperationType { get; set; }
 
         public Expression LeftValue { get; set; }
 
