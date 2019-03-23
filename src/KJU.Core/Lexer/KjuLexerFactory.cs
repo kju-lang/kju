@@ -59,7 +59,7 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.PercentAssign, "%=" }
             };
 
-            var lexer = new Lexer<KjuAlphabet>(tokenCategories, KjuAlphabet.None, resolver.ResolveWithMinValue);
+            var lexer = new Lexer<KjuAlphabet>(tokenCategories, KjuAlphabet.Eof, KjuAlphabet.None, resolver.ResolveWithMinValue);
             return lexer;
         }
     }

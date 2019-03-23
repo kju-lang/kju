@@ -13,7 +13,8 @@
         {
             None,
             A,
-            B
+            B,
+            Eof
         }
 
         /// <summary>
@@ -32,13 +33,17 @@
 
             IInputReader inputReader = new StringInputReader(inputString);
             var input = inputReader.Read();
-            var conf = new ConflictResolver<SimpleTokenCategory>(SimpleTokenCategory.None);
-            var lexer = new Lexer<SimpleTokenCategory>(tokenCategories, SimpleTokenCategory.None, conf.ResolveWithMaxValue);
+            var conflictResolver = new ConflictResolver<SimpleTokenCategory>(SimpleTokenCategory.None);
+            var lexer = new Lexer<SimpleTokenCategory>(
+                tokenCategories,
+                SimpleTokenCategory.Eof,
+                SimpleTokenCategory.None,
+                conflictResolver.ResolveWithMaxValue);
             var actual = lexer.Scan(input).Select(x => x.Category).ToList();
             var expected = new List<SimpleTokenCategory>
             {
                 SimpleTokenCategory.A, SimpleTokenCategory.B, SimpleTokenCategory.A, SimpleTokenCategory.A,
-                SimpleTokenCategory.B, SimpleTokenCategory.B
+                SimpleTokenCategory.B, SimpleTokenCategory.B, SimpleTokenCategory.Eof
             };
             var expectedText = string.Join(", ", expected);
             var actualText = string.Join(", ", actual);

@@ -13,11 +13,17 @@
     public class Lexer<TLabel>
     {
         private readonly IDfa<TLabel, char> minimalizedDfa;
+        private readonly TLabel eof;
         private readonly TLabel noneValue;
 
         // tokenCategories - List of pair (Token, Regex for thie Token)
-        public Lexer(IEnumerable<KeyValuePair<TLabel, string>> tokenCategories, TLabel noneValue, Func<IEnumerable<TLabel>, TLabel> conflictSolver)
+        public Lexer(
+            IEnumerable<KeyValuePair<TLabel, string>> tokenCategories,
+            TLabel eof,
+            TLabel noneValue,
+            Func<IEnumerable<TLabel>, TLabel> conflictSolver)
         {
+            this.eof = eof;
             this.noneValue = noneValue;
             var converter = new StringToRegexConverterFactory().CreateConverter();
             Dictionary<TLabel, IDfa<bool, char>> multipleDfa = tokenCategories.ToDictionary(
@@ -34,9 +40,10 @@
             this.minimalizedDfa = DfaMinimizer<TLabel, char>.Minimize(mergedDfa);
         }
 
-        public Lexer(IDfa<TLabel, char> dfa)
+        public Lexer(IDfa<TLabel, char> dfa, TLabel eof)
         {
             this.minimalizedDfa = dfa;
+            this.eof = eof;
         }
 
         public IEnumerable<Token<TLabel>> Scan(IEnumerable<KeyValuePair<ILocation, char>> text)
@@ -46,14 +53,18 @@
                 it.MoveNext();
                 var currChar = it.Current;
                 var currState = this.minimalizedDfa.StartingState();
-                currState = currChar.Value == Constants.EndOfInput ? null : this.minimalizedDfa.Transitions(currState)[currChar.Value];
+                currState = currChar.Value == Constants.EndOfInput
+                    ? null
+                    : this.minimalizedDfa.Transitions(currState)[currChar.Value];
                 ILocation begin = currChar.Key;
                 StringBuilder tokenText = new StringBuilder();
                 while (currChar.Value != Constants.EndOfInput)
                 {
                     it.MoveNext();
                     var nextChar = it.Current;
-                    IState nextState = nextChar.Value == Constants.EndOfInput ? null : this.minimalizedDfa.Transitions(currState)[nextChar.Value];
+                    IState nextState = nextChar.Value == Constants.EndOfInput
+                        ? null
+                        : this.minimalizedDfa.Transitions(currState)[nextChar.Value];
                     tokenText.Append(currChar.Value);
                     if (nextState == null || this.minimalizedDfa.IsStable(nextState))
                     {
@@ -64,11 +75,14 @@
                             throw new FormatException($"Non-token at position {rng} with text '{tokenText}'");
                         }
 
-                        Token<TLabel> ret = new Token<TLabel> { Category = label, InputRange = rng, Text = tokenText.ToString() };
+                        Token<TLabel> ret = new Token<TLabel>
+                            { Category = label, InputRange = rng, Text = tokenText.ToString() };
                         tokenText.Clear();
                         begin = nextChar.Key;
                         nextState = this.minimalizedDfa.StartingState();
-                        nextState = nextChar.Value == Constants.EndOfInput ? null : this.minimalizedDfa.Transitions(nextState)[nextChar.Value];
+                        nextState = nextChar.Value == Constants.EndOfInput
+                            ? null
+                            : this.minimalizedDfa.Transitions(nextState)[nextChar.Value];
                         yield return ret;
                     }
 
@@ -81,6 +95,8 @@
                     throw new FormatException("Unexpected EOF");
                 }
             }
+
+            yield return new Token<TLabel> { Category = this.eof };
         }
     }
 }

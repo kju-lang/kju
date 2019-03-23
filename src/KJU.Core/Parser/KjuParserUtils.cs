@@ -6,18 +6,20 @@ namespace KJU.Core.Parser
     using System.Text;
     using KJU.Core.Input;
     using KJU.Core.Lexer;
-    using static KJU.Core.Lexer.KjuLexerUtils;
+    using static KJU.Core.Lexer.LexerUtils;
 
     public static class KjuParserUtils
     {
         public static ParseTree<KjuAlphabet> Parse(this Parser<KjuAlphabet> parser, List<KeyValuePair<ILocation, char>> input)
         {
-            return parser.Parse(KjuLexerFactory.Instance.ScanPreprocessed(input));
+            var tokens = KjuLexerFactory.Instance.ScanPreprocessed(input).Where(token => token.Category != KjuAlphabet.Whitespace);
+            return parser.Parse(tokens);
         }
 
         public static ParseTree<KjuAlphabet> Parse(this Parser<KjuAlphabet> parser, string input)
         {
-            return parser.Parse(KjuLexerFactory.Instance.ScanPreprocessed(input));
+            var tokens = KjuLexerFactory.Instance.ScanPreprocessed(input).Where(token => token.Category != KjuAlphabet.Whitespace);
+            return parser.Parse(tokens);
         }
     }
 }

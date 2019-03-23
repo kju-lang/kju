@@ -15,7 +15,7 @@ namespace KJU.Tests.Integration
     {
         private enum StringTestCategory
         {
-            None = 0, Paren, Operator, Number, Variable, Whitespace
+            None = 0, Paren, Operator, Number, Variable, Whitespace, Eof
         }
 
         /// <summary>
@@ -57,12 +57,13 @@ namespace KJU.Tests.Integration
                 CreateToken(StringTestCategory.Whitespace, " ",   new StringLocation(22), new StringLocation(23)),
                 CreateToken(StringTestCategory.Operator,   "-",   new StringLocation(23), new StringLocation(24)),
                 CreateToken(StringTestCategory.Number,     "45",  new StringLocation(24), new StringLocation(26)),
-                CreateToken(StringTestCategory.Variable,   "x",   new StringLocation(26), new StringLocation(27))
+                CreateToken(StringTestCategory.Variable,   "x",   new StringLocation(26), new StringLocation(27)),
+                CreateToken(StringTestCategory.Eof,        null,  null,                            null)
             };
 
             IInputReader inputReader = new StringInputReader(inputString);
             var resolver = new ConflictResolver<StringTestCategory>(StringTestCategory.None);
-            var lexer = new Lexer<StringTestCategory>(tokenCategories, StringTestCategory.None, resolver.ResolveWithMaxValue);
+            var lexer = new Lexer<StringTestCategory>(tokenCategories, StringTestCategory.Eof, StringTestCategory.None, resolver.ResolveWithMaxValue);
             var outputTokens = lexer.Scan(inputReader.Read());
             Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<StringTestCategory>()));
         }
@@ -73,7 +74,7 @@ namespace KJU.Tests.Integration
             Justification="This enum type should be grouped with the following test method")]
         private enum FileTestCategory
         {
-            None = 0, Brace, Bracket, Colon, Comma, Minus, Number, Boolean, Null, QuotedString, Whitespace
+            None = 0, Brace, Bracket, Colon, Comma, Minus, Number, Boolean, Null, QuotedString, Whitespace, Eof
         }
 
         /// <summary>
@@ -151,12 +152,13 @@ namespace KJU.Tests.Integration
                 CreateToken(FileTestCategory.Brace,        "}",                  new FileLocation(filename, 3, 21), new FileLocation(filename, 3, 22)),
                 CreateToken(FileTestCategory.Whitespace,   "\n  ",               new FileLocation(filename, 3, 22), new FileLocation(filename, 4, 3)),
                 CreateToken(FileTestCategory.Bracket,      "]",                  new FileLocation(filename, 4, 3),  new FileLocation(filename, 4, 4)),
-                CreateToken(FileTestCategory.Whitespace,   "\n",                 new FileLocation(filename, 4, 4),  new FileLocation(filename, 5, 1))
+                CreateToken(FileTestCategory.Whitespace,   "\n",                 new FileLocation(filename, 4, 4),  new FileLocation(filename, 5, 1)),
+                CreateToken(FileTestCategory.Eof,   null,                 null,  null)
             };
 
             IInputReader inputReader = new FileInputReader(filename);
             var resolver = new ConflictResolver<FileTestCategory>(FileTestCategory.None);
-            var lexer = new Lexer<FileTestCategory>(tokenCategories, FileTestCategory.None, resolver.ResolveWithMaxValue);
+            var lexer = new Lexer<FileTestCategory>(tokenCategories, FileTestCategory.Eof, FileTestCategory.None, resolver.ResolveWithMaxValue);
             var outputTokens = lexer.Scan(inputReader.Read());
             var expectedText = string.Join(",\n", expectedTokens);
             var actualText = string.Join(",\n", outputTokens);
@@ -169,7 +171,7 @@ namespace KJU.Tests.Integration
             Justification="This enum type should be grouped with the following test method")]
         private enum CommentsTestCategory
         {
-            None = 0, UppercaseWord, LowercaseWord, Punctuation, Space
+            None = 0, UppercaseWord, LowercaseWord, Punctuation, Space, Eof
         }
 
         /// <summary>
@@ -224,14 +226,15 @@ namespace KJU.Tests.Integration
                 CreateToken(CommentsTestCategory.LowercaseWord, "eu",          new StringLocation(234), new StringLocation(236)),
                 CreateToken(CommentsTestCategory.Space,         " ",           new StringLocation(236), new StringLocation(237)),
                 CreateToken(CommentsTestCategory.LowercaseWord, "occaecat",    new StringLocation(237), new StringLocation(245)),
-                CreateToken(CommentsTestCategory.Punctuation,   ".",           new StringLocation(245), new StringLocation(246))
+                CreateToken(CommentsTestCategory.Punctuation,   ".",           new StringLocation(245), new StringLocation(246)),
+                CreateToken(CommentsTestCategory.Eof,           null,          null,                             null),
             };
 
             StringInputReader inputReader = new StringInputReader(inputString);
             Preprocessor preprocessor = new Preprocessor();
             var input = preprocessor.PreprocessInput(inputReader.ReadGenerator());
             var resolver = new ConflictResolver<CommentsTestCategory>(CommentsTestCategory.None);
-            var lexer = new Lexer<CommentsTestCategory>(tokenCategories, CommentsTestCategory.None, resolver.ResolveWithMaxValue);
+            var lexer = new Lexer<CommentsTestCategory>(tokenCategories, CommentsTestCategory.Eof, CommentsTestCategory.None, resolver.ResolveWithMaxValue);
             var outputTokens = lexer.Scan(input);
             var expectedText = string.Join(",\n", expectedTokens);
             var actualText = string.Join(",\n", outputTokens);
@@ -251,9 +254,15 @@ namespace KJU.Tests.Integration
 
         private static Token<TLabel> CreateToken<TLabel>(TLabel category, string text, ILocation s, ILocation t)
         {
+            Range inputRange = null;
+            if (s != null || t != null)
+            {
+                inputRange = new Range { Begin = s, End = t };
+            }
+
             var token = new Token<TLabel>
             {
-                Category = category, Text = text, InputRange = new Range { Begin = s, End = t }
+                Category = category, Text = text, InputRange = inputRange
             };
             return token;
         }
@@ -264,13 +273,20 @@ namespace KJU.Tests.Integration
             public bool Equals(Token<TLabel> x, Token<TLabel> y)
             {
                 return x.Category.CompareTo(y.Category) == 0
-                    && x.Text == y.Text
-                    && x.InputRange.Begin.ToString() == y.InputRange.Begin.ToString()
-                    && x.InputRange.End.ToString() == y.InputRange.End.ToString();
+                       && x.Text == y.Text && (x.InputRange == null ||
+                                               (x.InputRange.Begin.ToString() == y.InputRange.Begin.ToString()
+                                                && x.InputRange.End.ToString() == y.InputRange.End.ToString()));
             }
 
             public int GetHashCode(Token<TLabel> obj)
             {
+                if (obj.InputRange == null)
+                {
+                    return Tuple.Create(
+                        obj.Category,
+                        obj.Text).GetHashCode();
+                }
+
                 return Tuple.Create(
                     obj.Category,
                     obj.Text,

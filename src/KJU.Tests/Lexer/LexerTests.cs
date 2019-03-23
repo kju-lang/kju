@@ -13,7 +13,8 @@ namespace KJU.Tests.Lexer
     public enum DummyTokens
     {
         A,
-        B
+        B,
+        Eof
     }
 
     [TestClass]
@@ -25,14 +26,14 @@ namespace KJU.Tests.Lexer
         public void Test0Empty()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             var trans0 = new Dictionary<char, IState> { [EndOfInput] = this.states[0] };
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             dfa.Setup(x => x.Transitions(this.states[0])).Returns(trans0);
             dfa.Setup(x => x.IsStable(this.states[0])).Returns(true);
             var input = StringToLetters(string.Empty);
             var ret = lexer.Scan(input).ToList();
-            var expected = 0;
+            var expected = 1;
             var actual = ret.Count;
             Assert.AreEqual(expected, actual);
         }
@@ -41,7 +42,7 @@ namespace KJU.Tests.Lexer
         public void Test1OneToken()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             var trans0 = new Dictionary<char, IState> { ['a'] = this.states[1], [EndOfInput] = this.states[2] };
             var trans1 = new Dictionary<char, IState> { [EndOfInput] = this.states[2] };
@@ -54,7 +55,7 @@ namespace KJU.Tests.Lexer
             var inputRange = result[0].InputRange;
             var beginLocation = (Location)inputRange.Begin;
             var endLocation = (Location)inputRange.End;
-            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(2, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("a", result[0].Text);
             Assert.AreEqual(0, beginLocation.X);
@@ -65,7 +66,7 @@ namespace KJU.Tests.Lexer
         public void Test2NoTokensNonempty()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             var trans0 = new Dictionary<char, IState> { ['a'] = this.states[0], [EndOfInput] = this.states[0] };
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             dfa.Setup(x => x.Transitions(this.states[0])).Returns(trans0);
@@ -77,7 +78,7 @@ namespace KJU.Tests.Lexer
         public void Test3TwoTokens()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             var trans0 = new Dictionary<char, IState> { ['a'] = this.states[1], [EndOfInput] = this.states[2] };
             var trans1 = new Dictionary<char, IState> { ['a'] = this.states[2], [EndOfInput] = this.states[2] };
@@ -87,7 +88,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
             var result = lexer.Scan(StringToLetters("aa")).ToList();
-            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("a", result[0].Text);
             Assert.AreEqual(0, ((Location)result[0].InputRange.Begin).X);
@@ -102,7 +103,7 @@ namespace KJU.Tests.Lexer
         public void Test4TwoDifferentTokens()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             var trans0 = new Dictionary<char, IState>
             {
@@ -120,7 +121,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.B);
             var result = lexer.Scan(StringToLetters("ab")).ToList();
-            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("a", result[0].Text);
             Assert.AreEqual(0, ((Location)result[0].InputRange.Begin).X);
@@ -135,7 +136,7 @@ namespace KJU.Tests.Lexer
         public void Test5TokenNotToken()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             var trans0 = new Dictionary<char, IState>
             {
@@ -158,7 +159,7 @@ namespace KJU.Tests.Lexer
         public void Test6LongToken()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             var trans0 = new Dictionary<char, IState>
             {
@@ -180,7 +181,7 @@ namespace KJU.Tests.Lexer
 
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
             var result = lexer.Scan(StringToLetters("ab")).ToList();
-            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(2, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("ab", result[0].Text);
             Assert.AreEqual(0, ((Location)result[0].InputRange.Begin).X);
@@ -191,7 +192,7 @@ namespace KJU.Tests.Lexer
         public void Test7LongTokenInterrupted()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             var trans0 = new Dictionary<char, IState>
             {
@@ -219,7 +220,7 @@ namespace KJU.Tests.Lexer
         public void Test8Greedy()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             var trans0 = new Dictionary<char, IState> { ['a'] = this.states[1], [EndOfInput] = this.states[2] };
             var trans1 = new Dictionary<char, IState> { ['a'] = this.states[3], [EndOfInput] = this.states[2] };
@@ -232,7 +233,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.B);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
             var result = lexer.Scan(StringToLetters("aa")).ToList();
-            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(2, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("aa", result[0].Text);
             Assert.AreEqual(0, ((Location)result[0].InputRange.Begin).X);
@@ -243,7 +244,7 @@ namespace KJU.Tests.Lexer
         public void Test9GreedySub()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             var trans0 = new Dictionary<char, IState> { ['a'] = this.states[1], [EndOfInput] = this.states[2] };
             var trans1 = new Dictionary<char, IState> { ['a'] = this.states[3], [EndOfInput] = this.states[2] };
@@ -257,7 +258,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
 
             var result = lexer.Scan(StringToLetters("a")).ToList();
-            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(2, result.Count);
             Assert.AreEqual(DummyTokens.B, result[0].Category);
             Assert.AreEqual("a", result[0].Text);
             Assert.AreEqual(0, ((Location)result[0].InputRange.Begin).X);
@@ -268,7 +269,7 @@ namespace KJU.Tests.Lexer
         public void TestAGreedyTwo()
         {
             var dfa = new Mock<IDfa<DummyTokens?, char>>();
-            var lexer = new Lexer<DummyTokens?>(dfa.Object);
+            var lexer = new Lexer<DummyTokens?>(dfa.Object, DummyTokens.Eof);
 
             var trans0 = new Dictionary<char, IState> { ['a'] = this.states[1], [EndOfInput] = this.states[2] };
             var trans1 = new Dictionary<char, IState> { ['a'] = this.states[3], [EndOfInput] = this.states[2] };
@@ -282,7 +283,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.B);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
             var result = lexer.Scan(StringToLetters("aaa")).ToList();
-            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("aa", result[0].Text);
             Assert.AreEqual(0, ((Location)result[0].InputRange.Begin).X);
