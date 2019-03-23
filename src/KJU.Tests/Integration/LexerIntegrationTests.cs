@@ -64,7 +64,7 @@ namespace KJU.Tests.Integration
             IInputReader inputReader = new StringInputReader(inputString);
             var resolver = new ConflictResolver<StringTestCategory>(StringTestCategory.None);
             var lexer = new Lexer<StringTestCategory>(tokenCategories, StringTestCategory.Eof, StringTestCategory.None, resolver.ResolveWithMaxValue);
-            var outputTokens = lexer.Scan(inputReader.Read());
+            var outputTokens = lexer.Scan(inputReader.Read(), null);
             Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<StringTestCategory>()));
         }
 
@@ -159,7 +159,7 @@ namespace KJU.Tests.Integration
             IInputReader inputReader = new FileInputReader(filename);
             var resolver = new ConflictResolver<FileTestCategory>(FileTestCategory.None);
             var lexer = new Lexer<FileTestCategory>(tokenCategories, FileTestCategory.Eof, FileTestCategory.None, resolver.ResolveWithMaxValue);
-            var outputTokens = lexer.Scan(inputReader.Read());
+            var outputTokens = lexer.Scan(inputReader.Read(), null);
             var expectedText = string.Join(",\n", expectedTokens);
             var actualText = string.Join(",\n", outputTokens);
             Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<FileTestCategory>()), $"Expected:\n{expectedText}\nactual:\n{actualText}");
@@ -232,10 +232,10 @@ namespace KJU.Tests.Integration
 
             StringInputReader inputReader = new StringInputReader(inputString);
             Preprocessor preprocessor = new Preprocessor();
-            var input = preprocessor.PreprocessInput(inputReader.ReadGenerator());
+            var input = preprocessor.PreprocessInput(inputReader.ReadGenerator(), null);
             var resolver = new ConflictResolver<CommentsTestCategory>(CommentsTestCategory.None);
             var lexer = new Lexer<CommentsTestCategory>(tokenCategories, CommentsTestCategory.Eof, CommentsTestCategory.None, resolver.ResolveWithMaxValue);
-            var outputTokens = lexer.Scan(input);
+            var outputTokens = lexer.Scan(input, null);
             var expectedText = string.Join(",\n", expectedTokens);
             var actualText = string.Join(",\n", outputTokens);
             Assert.IsTrue(outputTokens.SequenceEqual(expectedTokens, new TokenComparer<CommentsTestCategory>()), $"Expected:\n{expectedText}\nactual:\n{actualText}");

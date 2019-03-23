@@ -3,6 +3,7 @@ namespace KJU.Core.Parser
     using System;
     using System.Collections.Generic;
     using KJU.Core.Automata;
+    using KJU.Core.Diagnostics;
     using KJU.Core.Input;
     using KJU.Core.Lexer;
     using KJU.Core.Regex;
@@ -10,6 +11,11 @@ namespace KJU.Core.Parser
 
     public class Parser<TLabel>
     {
+        public const string UnexpectedSymbolDiagnosticType = "UnexpectedSymbol";
+        public const string PrematureEOFDiagnosticType = "PrematureEOF";
+        public const string InvalidReduceActionDiagnosticType = "InvalidReduceAction";
+        public const string ParsingFinishedBeforeEOFDiagnosticType = "ParsingFinishedBeforeEOF";
+
         private CompiledGrammar<TLabel> grammar;
         private IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>> table;
 
@@ -19,7 +25,7 @@ namespace KJU.Core.Parser
             this.table = table;
         }
 
-        public ParseTree<TLabel> Parse(IEnumerable<Token<TLabel>> tokens)
+        public ParseTree<TLabel> Parse(IEnumerable<Token<TLabel>> tokens, IDiagnostics diagnostics)
         {
             TLabel start = this.grammar.StartSymbol;
             IReadOnlyDictionary<TLabel, IDfa<Optional<Rule<TLabel>>, TLabel>> rules = this.grammar.Rules;
@@ -44,6 +50,11 @@ namespace KJU.Core.Parser
                 var key = new Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>(dfa, state, token.Category);
                 if (!this.table.ContainsKey(key))
                 {
+                    diagnostics.Add(new Diagnostic(
+                        DiagnosticStatus.Error,
+                        UnexpectedSymbolDiagnosticType,
+                        $"Unexpected symbol: {Diagnostic.EscapeForMessage(token.ToString())} at {{0}}",
+                        new List<Range> { token.InputRange }));
                     throw new ParseException($"unexpected symbol: {token}");
                 }
 
@@ -55,6 +66,11 @@ namespace KJU.Core.Parser
                     statesStack.Push(dfa.Transitions(state)[token.Category]);
                     if (!enumerator.MoveNext())
                     {
+                        diagnostics.Add(new Diagnostic(
+                            DiagnosticStatus.Error,
+                            PrematureEOFDiagnosticType,
+                            "Premature end of input after {0}",
+                            new List<Range> { token.InputRange }));
                         throw new ParseException("premature EOF");
                     }
                 }
@@ -62,6 +78,11 @@ namespace KJU.Core.Parser
                 {
                     if (dfa.Label(state).IsNone())
                     {
+                        diagnostics.Add(new Diagnostic(
+                            DiagnosticStatus.Error,
+                            InvalidReduceActionDiagnosticType,
+                            "Invalid reduce action at {0}",
+                            new List<Range> { token.InputRange }));
                         throw new ParseException("Invalid reduce action");
                     }
 
@@ -118,6 +139,11 @@ namespace KJU.Core.Parser
 
             if (enumerator.MoveNext())
             {
+                diagnostics.Add(new Diagnostic(
+                    DiagnosticStatus.Error,
+                    ParsingFinishedBeforeEOFDiagnosticType,
+                    "Parsing finished before reading all tokens",
+                    new List<Range>()));
                 throw new ParseException("Parsing finished before reading all tokens");
             }
 

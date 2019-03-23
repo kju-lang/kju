@@ -39,7 +39,7 @@
                 SimpleTokenCategory.Eof,
                 SimpleTokenCategory.None,
                 conflictResolver.ResolveWithMaxValue);
-            var actual = lexer.Scan(input).Select(x => x.Category).ToList();
+            var actual = lexer.Scan(input, null).Select(x => x.Category).ToList();
             var expected = new List<SimpleTokenCategory>
             {
                 SimpleTokenCategory.A, SimpleTokenCategory.B, SimpleTokenCategory.A, SimpleTokenCategory.A,

@@ -1,6 +1,7 @@
 namespace KJU.Core.Diagnostics
 {
     using System.Collections.Generic;
+    using System.Linq;
     using KJU.Core.Lexer;
 
     public class Diagnostic
@@ -21,10 +22,14 @@ namespace KJU.Core.Diagnostics
 
         public IReadOnlyList<Range> Ranges { get; }
 
+        public static string EscapeForMessage(string s)
+        {
+            return s.Replace("{", "{{").Replace("}", "}}");
+        }
+
         public override string ToString()
         {
-            // TODO message: String < -format "Error is here {0} and here {1} and here {2}"
-            return this.Message;
+            return $"{this.Type}: {string.Format(this.Message, this.Ranges.ToArray())}";
         }
     }
 }

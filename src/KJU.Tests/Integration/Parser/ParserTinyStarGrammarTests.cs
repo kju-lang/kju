@@ -28,7 +28,7 @@ namespace KJU.Tests.Integration.Parser
                 new Token<Alphabet> { Category = Alphabet.EOF },
             };
 
-            var tree = parser.Parse(tokens);
+            var tree = parser.Parse(tokens, null);
         }
 
         private static Grammar<Alphabet> GetGrammar()

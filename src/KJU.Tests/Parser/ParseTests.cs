@@ -6,9 +6,11 @@
     using KJU.Core;
     using KJU.Core.Automata;
     using KJU.Core.Automata.NfaToDfa;
+    using KJU.Core.Diagnostics;
     using KJU.Core.Lexer;
     using KJU.Core.Parser;
     using KJU.Core.Util;
+    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
 
@@ -39,7 +41,10 @@
             var parser = new Parser<Label>(grammar, parseTable);
 
             var tokens = new List<Token<Label>> { new Token<Label>() { Category = Label.B } };
-            Assert.ThrowsException<ParseException>(() => parser.Parse(tokens));
+            var diag = new Mock<IDiagnostics>();
+
+            Assert.ThrowsException<ParseException>(() => parser.Parse(tokens, diag.Object));
+            MockDiagnostics.Verify(diag, Parser<Label>.PrematureEOFDiagnosticType);
         }
 
         [TestMethod]
@@ -60,7 +65,7 @@
             var parser = new Parser<Label>(grammar, parseTable);
 
             var tokens = new List<Token<Label>> { new Token<Label>() { Category = Label.B } };
-            ParseTree<Label> root = parser.Parse(tokens);
+            ParseTree<Label> root = parser.Parse(tokens, null);
             Assert.IsNull(root.InputRange);
         }
 

@@ -6,12 +6,16 @@
     using System.Text;
     using KJU.Core.Automata;
     using KJU.Core.Automata.NfaToDfa;
+    using KJU.Core.Diagnostics;
     using KJU.Core.Input;
     using KJU.Core.Regex;
     using KJU.Core.Regex.StringToRegexConverter;
 
     public class Lexer<TLabel>
     {
+        public const string NonTokenDiagnosticType = "NonToken";
+        public const string UnexpectedEOFDiagnosticType = "UnexpecetdEOF";
+
         private readonly IDfa<TLabel, char> minimalizedDfa;
         private readonly TLabel eof;
         private readonly TLabel noneValue;
@@ -46,7 +50,7 @@
             this.eof = eof;
         }
 
-        public IEnumerable<Token<TLabel>> Scan(IEnumerable<KeyValuePair<ILocation, char>> text)
+        public IEnumerable<Token<TLabel>> Scan(IEnumerable<KeyValuePair<ILocation, char>> text, IDiagnostics diagnostics)
         {
             using (var it = text.GetEnumerator())
             {
@@ -72,6 +76,11 @@
                         Range rng = new Range { Begin = begin, End = nextChar.Key };
                         if (label.Equals(this.noneValue))
                         {
+                            diagnostics.Add(new Diagnostic(
+                                DiagnosticStatus.Error,
+                                NonTokenDiagnosticType,
+                                $"Non-token at position {{0}} with text '{Diagnostic.EscapeForMessage(tokenText.ToString())}'",
+                                new List<Range> { rng }));
                             throw new FormatException($"Non-token at position {rng} with text '{tokenText}'");
                         }
 
@@ -92,6 +101,11 @@
 
                 if (begin != currChar.Key)
                 {
+                    diagnostics.Add(new Diagnostic(
+                        DiagnosticStatus.Error,
+                        UnexpectedEOFDiagnosticType,
+                        "Unexpected end of input",
+                        new List<Range> { }));
                     throw new FormatException("Unexpected EOF");
                 }
             }

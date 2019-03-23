@@ -3,10 +3,13 @@ namespace KJU.Tests.Integration.Parser
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using KJU.Core.Diagnostics;
     using KJU.Core.Lexer;
     using KJU.Core.Parser;
     using KJU.Core.Util;
+    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Moq;
     using static KJU.Core.Regex.RegexUtils;
 
     [TestClass]
@@ -26,7 +29,7 @@ namespace KJU.Tests.Integration.Parser
             var parser = BuildParenParser();
             string parens = string.Empty;
 
-            var tree = parser.Parse(GetParenTokens(parens));
+            var tree = parser.Parse(GetParenTokens(parens), null);
 
             VerifyParenParseTree(parens, tree);
         }
@@ -37,7 +40,7 @@ namespace KJU.Tests.Integration.Parser
             var parser = BuildParenParser();
             string parens = "()";
 
-            var tree = parser.Parse(GetParenTokens(parens));
+            var tree = parser.Parse(GetParenTokens(parens), null);
 
             VerifyParenParseTree(parens, tree);
         }
@@ -48,7 +51,7 @@ namespace KJU.Tests.Integration.Parser
             var parser = BuildParenParser();
             string parens = "(())()";
 
-            var tree = parser.Parse(GetParenTokens(parens));
+            var tree = parser.Parse(GetParenTokens(parens), null);
 
             VerifyParenParseTree(parens, tree);
         }
@@ -59,7 +62,7 @@ namespace KJU.Tests.Integration.Parser
             var parser = BuildParenParser();
             string parens = "((((((()))()(()))(())(()(()))()(())()()(()))(()(())((()))(()(()))(())(()))(())()()((())(())()()(()))(())()(()(()))()()(()))((()(()(()))(())((())()()()(()))(())((()))()(())(()))(((()))()(())()(()))((()))((()))(())(()(()))()()(()))((((()))()()(()))(()(()))(()(()))()(())(()))(((())((())()(()))((())()(()))()(())()(()))((())(()))(()((()))()()(()))()((())()()(()))((()))(())()(()))(((())()(()))((()))(()(())(()))(())()()(()))((()()()(()))(())(())(())(()))(())((())()()()(()))((())(()))(())()((()))()(()))";
 
-            var tree = parser.Parse(GetParenTokens(parens));
+            var tree = parser.Parse(GetParenTokens(parens), null);
 
             VerifyParenParseTree(parens, tree);
         }
@@ -70,7 +73,9 @@ namespace KJU.Tests.Integration.Parser
             var parser = BuildParenParser();
             string parens = "(()";
 
-            Assert.ThrowsException<ParseException>(() => parser.Parse(GetParenTokens(parens)));
+            var diag = new Mock<IDiagnostics>();
+            Assert.ThrowsException<ParseException>(() => parser.Parse(GetParenTokens(parens), diag.Object));
+            MockDiagnostics.Verify(diag, "UnexpectedSymbol");
         }
 
         private static IEnumerable<Token<ParenAlphabet>> GetParenTokens(string s)

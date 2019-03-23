@@ -3,9 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using KJU.Core.Diagnostics;
 
     public class Preprocessor
     {
+        public const string CommentEndDiagnosticType = "CommentEnd";
+        public const string UnterminatedCommentDiagnosticType = "UnterminatedComment";
+
         /// <summary>
         /// Perform necessary operations on input before passing it to lexer.
         /// Currently its only responsibility is removing comments, replacing
@@ -16,13 +20,13 @@
         /// <param name="input">Input data in form of pairs (location, character).</param>
         /// <returns>Input with comments filtered out.</returns>
         public IEnumerable<KeyValuePair<ILocation, char>>
-            PreprocessInput(IEnumerable<KeyValuePair<ILocation, char>> input)
+            PreprocessInput(IEnumerable<KeyValuePair<ILocation, char>> input, IDiagnostics diagnostics)
         {
-            return this.RemoveComments(input);
+            return this.RemoveComments(input, diagnostics);
         }
 
         private IEnumerable<KeyValuePair<ILocation, char>>
-            RemoveComments(IEnumerable<KeyValuePair<ILocation, char>> input)
+            RemoveComments(IEnumerable<KeyValuePair<ILocation, char>> input, IDiagnostics diagnostics)
         {
             KeyValuePair<ILocation, char>? prev = null;
             int depth = 0;
@@ -43,6 +47,11 @@
                 {
                     if (depth == 0)
                     {
+                        diagnostics.Add(new Diagnostic(
+                            DiagnosticStatus.Error,
+                            CommentEndDiagnosticType,
+                            "Unexpected comment end delimiter at {0}",
+                            new List<Lexer.Range> { new Lexer.Range { Begin = c.Key, End = c.Key } }));
                         throw new PreprocessorException("Unexpected comment end", c.Key);
                     }
 
@@ -61,6 +70,11 @@
 
             if (depth != 0)
             {
+                diagnostics.Add(new Diagnostic(
+                    DiagnosticStatus.Error,
+                    UnterminatedCommentDiagnosticType,
+                    "Unterminated comment at the end of input",
+                    new List<Lexer.Range> { }));
                 throw new PreprocessorException("Non-terminated comment at the end of file", prev?.Key);
             }
 

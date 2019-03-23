@@ -3,6 +3,8 @@
     using System;
     using System.IO;
     using KJU.Core;
+    using KJU.Core.Diagnostics;
+    using KJU.Core.Input;
     using KJU.Core.Parser;
 
     public class Program
@@ -11,10 +13,22 @@
         {
             foreach (string filename in args)
             {
-                string data = File.ReadAllText(filename);
-                Console.WriteLine($"compiling {data}...");
-                var tree = KjuParserFactory.Instance.Parse(data);
-                Console.WriteLine($"tree: {tree}");
+                IDiagnostics diag = new TextWriterDiagnostics(Console.Error);
+
+                try
+                {
+                    string data = File.ReadAllText(filename);
+                    Console.WriteLine($"compiling {data}...");
+                    var tree = KjuParserFactory.Instance.Parse(data, diag);
+                    Console.WriteLine($"tree: {tree}");
+                }
+                catch (Exception ex) when (
+                       ex is ParseException
+                    || ex is FormatException
+                    || ex is PreprocessorException)
+                {
+                    diag.Report();
+                }
             }
         }
     }

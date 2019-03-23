@@ -4,8 +4,10 @@ namespace KJU.Tests.Lexer
     using System.Collections.Generic;
     using System.Linq;
     using KJU.Core.Automata;
+    using KJU.Core.Diagnostics;
     using KJU.Core.Input;
     using KJU.Core.Lexer;
+    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using static Core.Constants;
@@ -32,7 +34,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[0])).Returns(trans0);
             dfa.Setup(x => x.IsStable(this.states[0])).Returns(true);
             var input = StringToLetters(string.Empty);
-            var ret = lexer.Scan(input).ToList();
+            var ret = lexer.Scan(input, null).ToList();
             var expected = 1;
             var actual = ret.Count;
             Assert.AreEqual(expected, actual);
@@ -51,7 +53,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[1])).Returns(trans1);
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
-            var result = lexer.Scan(StringToLetters("a")).ToList();
+            var result = lexer.Scan(StringToLetters("a"), null).ToList();
             var inputRange = result[0].InputRange;
             var beginLocation = (Location)inputRange.Begin;
             var endLocation = (Location)inputRange.End;
@@ -71,7 +73,9 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             dfa.Setup(x => x.Transitions(this.states[0])).Returns(trans0);
             dfa.Setup(x => x.IsStable(this.states[0])).Returns(true);
-            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("a")).ToList());
+            var diag = new Mock<IDiagnostics>();
+            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("a"), diag.Object).ToList());
+            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnosticType);
         }
 
         [TestMethod]
@@ -87,7 +91,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[1])).Returns(trans1);
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
-            var result = lexer.Scan(StringToLetters("aa")).ToList();
+            var result = lexer.Scan(StringToLetters("aa"), null).ToList();
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("a", result[0].Text);
@@ -120,7 +124,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans1);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.B);
-            var result = lexer.Scan(StringToLetters("ab")).ToList();
+            var result = lexer.Scan(StringToLetters("ab"), null).ToList();
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("a", result[0].Text);
@@ -152,7 +156,10 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[2])).Returns(trans1);
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
-            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("ab")).ToList());
+
+            var diag = new Mock<IDiagnostics>();
+            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("ab"), diag.Object).ToList());
+            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnosticType);
         }
 
         [TestMethod]
@@ -180,7 +187,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
 
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
-            var result = lexer.Scan(StringToLetters("ab")).ToList();
+            var result = lexer.Scan(StringToLetters("ab"), null).ToList();
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("ab", result[0].Text);
@@ -213,7 +220,10 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
 
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
-            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("aa")).ToList());
+
+            var diag = new Mock<IDiagnostics>();
+            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("aa"), diag.Object).ToList());
+            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnosticType);
         }
 
         [TestMethod]
@@ -232,7 +242,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.B);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
-            var result = lexer.Scan(StringToLetters("aa")).ToList();
+            var result = lexer.Scan(StringToLetters("aa"), null).ToList();
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("aa", result[0].Text);
@@ -257,7 +267,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.B);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
 
-            var result = lexer.Scan(StringToLetters("a")).ToList();
+            var result = lexer.Scan(StringToLetters("a"), null).ToList();
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual(DummyTokens.B, result[0].Category);
             Assert.AreEqual("a", result[0].Text);
@@ -282,7 +292,7 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.B);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
-            var result = lexer.Scan(StringToLetters("aaa")).ToList();
+            var result = lexer.Scan(StringToLetters("aaa"), null).ToList();
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
             Assert.AreEqual("aa", result[0].Text);

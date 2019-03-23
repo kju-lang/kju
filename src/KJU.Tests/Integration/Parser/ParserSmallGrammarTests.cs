@@ -34,7 +34,7 @@ namespace KJU.Tests.Integration.Parser
                 new Token<Alphabet> { Category = Alphabet.EOF },
             };
 
-            var tree = parser.Parse(tokens);
+            var tree = parser.Parse(tokens, null);
 
             Assert.IsInstanceOfType(tree, typeof(Brunch<Alphabet>));
             var root = tree as Brunch<Alphabet>;
@@ -64,7 +64,7 @@ namespace KJU.Tests.Integration.Parser
                 new Token<Alphabet> { Category = Alphabet.EOF },
             };
 
-            var tree = parser.Parse(tokens);
+            var tree = parser.Parse(tokens, null);
 
             Assert.IsInstanceOfType(tree, typeof(Brunch<Alphabet>));
             var root = tree as Brunch<Alphabet>;
