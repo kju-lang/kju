@@ -140,7 +140,7 @@
             var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f } };
 
-            resolver.LinkNames(root, diagnostics);
+            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
             Assert.AreEqual(diagnostics.Diag.Count, 1);
             Assert.AreEqual(diagnostics.Diag[0].Message, "Multiple declarations of name x");
         }
@@ -175,7 +175,7 @@
             var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f, f2 } };
 
-            resolver.LinkNames(root, diagnostics);
+            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
             Assert.AreEqual(diagnostics.Diag[0].Message, "Multiple declarations of name f");
         }
 
@@ -219,7 +219,7 @@
             var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f } };
 
-            resolver.LinkNames(root, diagnostics);
+            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
             Assert.AreEqual(diagnostics.Diag.Count, 1);
             Assert.AreEqual(diagnostics.Diag[0].Message, "Multiple declarations of name g");
         }
@@ -253,7 +253,7 @@
             var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f } };
 
-            resolver.LinkNames(root, diagnostics);
+            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
             Assert.AreEqual(diagnostics.Diag.Count, 2);
             Assert.AreEqual(diagnostics.Diag[0].Message, "No identifier of name x");
             Assert.AreEqual(diagnostics.Diag[1].Message, "No identifier of name g");
@@ -288,7 +288,7 @@
             var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f } };
 
-            resolver.LinkNames(root, diagnostics);
+            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
             Assert.AreEqual(diagnostics.Diag.Count, 2);
             Assert.AreEqual(diagnostics.Diag[0].Message, "f is not a variable");
             Assert.AreEqual(diagnostics.Diag[1].Message, "f is not a function");
