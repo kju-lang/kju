@@ -51,7 +51,7 @@
                             DiagnosticStatus.Error,
                             CommentEndDiagnosticType,
                             "Unexpected comment end delimiter at {0}",
-                            new List<Lexer.Range> { new Lexer.Range { Begin = c.Key, End = c.Key } }));
+                            new List<Lexer.Range> { new Lexer.Range(c.Key, c.Key) }));
                         throw new PreprocessorException("Unexpected comment end", c.Key);
                     }
 

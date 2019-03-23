@@ -1,25 +1,30 @@
 namespace KJU.Core.Parser
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
-    using KJU.Core.Automata;
-    using KJU.Core.Diagnostics;
-    using KJU.Core.Input;
-    using KJU.Core.Lexer;
-    using KJU.Core.Regex;
-    using KJU.Core.Util;
+    using System.Linq;
+    using Automata;
+    using Diagnostics;
+    using Lexer;
+    using Util;
 
     public class Parser<TLabel>
     {
         public const string UnexpectedSymbolDiagnosticType = "UnexpectedSymbol";
-        public const string PrematureEOFDiagnosticType = "PrematureEOF";
+        public const string PrematureEofDiagnosticType = "PrematureEof";
         public const string InvalidReduceActionDiagnosticType = "InvalidReduceAction";
-        public const string ParsingFinishedBeforeEOFDiagnosticType = "ParsingFinishedBeforeEOF";
+        public const string ParsingFinishedBeforeEofDiagnosticType = "ParsingFinishedBeforeEof";
 
-        private CompiledGrammar<TLabel> grammar;
-        private IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>> table;
+        private readonly CompiledGrammar<TLabel> grammar;
 
-        public Parser(CompiledGrammar<TLabel> grammar, IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>, ParseAction<TLabel>> table)
+        private readonly IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>,
+            ParseAction<TLabel>> table;
+
+        public Parser(
+            CompiledGrammar<TLabel> grammar,
+            IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>,
+                ParseAction<TLabel>> table)
         {
             this.grammar = grammar;
             this.table = table;
@@ -27,127 +32,171 @@ namespace KJU.Core.Parser
 
         public ParseTree<TLabel> Parse(IEnumerable<Token<TLabel>> tokens, IDiagnostics diagnostics)
         {
-            TLabel start = this.grammar.StartSymbol;
-            IReadOnlyDictionary<TLabel, IDfa<Optional<Rule<TLabel>>, TLabel>> rules = this.grammar.Rules;
-            Stack<IState> statesStack = new Stack<IState>();
-            Stack<IDfa<Optional<Rule<TLabel>>, TLabel>> dfaStack = new Stack<IDfa<Optional<Rule<TLabel>>, TLabel>>();
-            Stack<List<ParseTree<TLabel>>> nodesStack = new Stack<List<ParseTree<TLabel>>>();
+            return new ParseProcess(this.grammar, this.table, diagnostics).Parse(tokens);
+        }
 
-            statesStack.Push(rules[start].StartingState());
-            dfaStack.Push(rules[start]);
-            nodesStack.Push(new List<ParseTree<TLabel>>());
+        private class ParseProcess
+        {
+            private readonly IReadOnlyDictionary<TLabel, IDfa<Optional<Rule<TLabel>>, TLabel>> rules;
 
-            ParseTree<TLabel> root = null;
+            private readonly IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>,
+                ParseAction<TLabel>> table;
 
-            IEnumerator<Token<TLabel>> enumerator = tokens.GetEnumerator();
-            enumerator.MoveNext();
-            while (statesStack.Count != 0)
+            private readonly IDiagnostics diagnostics;
+
+            private readonly Stack<IState> statesStack;
+            private readonly Stack<IDfa<Optional<Rule<TLabel>>, TLabel>> dfaStack;
+            private readonly Stack<List<ParseTree<TLabel>>> nodesStack;
+
+            public ParseProcess(
+                CompiledGrammar<TLabel> grammar,
+                IReadOnlyDictionary<Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>,
+                    ParseAction<TLabel>> table, IDiagnostics diagnostics)
             {
-                Token<TLabel> token = enumerator.Current;
-                IState state = statesStack.Peek();
-                IDfa<Optional<Rule<TLabel>>, TLabel> dfa = dfaStack.Peek();
+                this.rules = grammar.Rules;
+                this.table = table;
+                this.diagnostics = diagnostics;
+                var startSymbol = grammar.StartSymbol;
+                this.statesStack = new Stack<IState>(new[] { this.rules[startSymbol].StartingState() });
+                this.dfaStack = new Stack<IDfa<Optional<Rule<TLabel>>, TLabel>>(new[] { this.rules[startSymbol] });
+                this.nodesStack = new Stack<List<ParseTree<TLabel>>>(new[] { new List<ParseTree<TLabel>>() });
+            }
 
-                var key = new Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>(dfa, state, token.Category);
-                if (!this.table.ContainsKey(key))
-                {
-                    diagnostics.Add(new Diagnostic(
-                        DiagnosticStatus.Error,
-                        UnexpectedSymbolDiagnosticType,
-                        $"Unexpected symbol: {Diagnostic.EscapeForMessage(token.ToString())} at {{0}}",
-                        new List<Range> { token.InputRange }));
-                    throw new ParseException($"unexpected symbol: {token}");
-                }
+            public ParseTree<TLabel> Parse(IEnumerable<Token<TLabel>> tokens)
+            {
+                ParseTree<TLabel> root = null;
 
-                ParseAction<TLabel> action = this.table[key];
-                if (action.Kind == ParseAction<TLabel>.ActionKind.Shift)
+                using (var enumerator = tokens.GetEnumerator())
                 {
-                    nodesStack.Peek().Add(token);
-                    statesStack.Pop();
-                    statesStack.Push(dfa.Transitions(state)[token.Category]);
-                    if (!enumerator.MoveNext())
+                    enumerator.MoveNext();
+                    while (this.statesStack.Count != 0)
                     {
-                        diagnostics.Add(new Diagnostic(
-                            DiagnosticStatus.Error,
-                            PrematureEOFDiagnosticType,
-                            "Premature end of input after {0}",
-                            new List<Range> { token.InputRange }));
-                        throw new ParseException("premature EOF");
-                    }
-                }
-                else if (action.Kind == ParseAction<TLabel>.ActionKind.Reduce)
-                {
-                    if (dfa.Label(state).IsNone())
-                    {
-                        diagnostics.Add(new Diagnostic(
-                            DiagnosticStatus.Error,
-                            InvalidReduceActionDiagnosticType,
-                            "Invalid reduce action at {0}",
-                            new List<Range> { token.InputRange }));
-                        throw new ParseException("Invalid reduce action");
-                    }
-
-                    Brunch<TLabel> brunch = new Brunch<TLabel>();
-                    brunch.Rule = dfa.Label(state).Get();
-                    brunch.Children = nodesStack.Peek();
-                    brunch.Category = brunch.Rule.Lhs;
-                    Range range = null;
-                    ILocation begin = null;
-                    ILocation end = null;
-                    foreach (ParseTree<TLabel> node in nodesStack.Peek())
-                    {
-                        if (node.InputRange != null)
+                        var currentToken = enumerator.Current;
+                        var state = this.statesStack.Peek();
+                        var dfa = this.dfaStack.Peek();
+                        var currentCategory = currentToken.Category;
+                        var key = new Tuple<IDfa<Optional<Rule<TLabel>>, TLabel>, IState, TLabel>(
+                            dfa,
+                            state,
+                            currentCategory);
+                        if (!this.table.ContainsKey(key))
                         {
-                            if (begin == null)
+                            this.diagnostics.Add(new Diagnostic(
+                                DiagnosticStatus.Error,
+                                UnexpectedSymbolDiagnosticType,
+                                $"Unexpected symbol: {Diagnostic.EscapeForMessage(currentToken.ToString())} at {{0}}",
+                                new List<Range> { currentToken.InputRange }));
+                            throw new ParseException($"Unexpected symbol: {currentToken}");
+                        }
+
+                        var action = this.table[key];
+                        switch (action.Kind)
+                        {
+                            case ParseAction<TLabel>.ActionKind.Shift:
                             {
-                                begin = node.InputRange.Begin;
+                                this.Shift(currentToken, dfa, state, currentCategory, enumerator);
+                                break;
                             }
 
-                            end = node.InputRange.End;
+                            case ParseAction<TLabel>.ActionKind.Reduce:
+                            {
+                                root = this.Reduce(dfa, state, currentToken);
+                                break;
+                            }
+
+                            case ParseAction<TLabel>.ActionKind.Call:
+                            {
+                                this.Call(dfa, state, action.Label);
+                                break;
+                            }
                         }
                     }
 
-                    if (begin != null)
+                    if (enumerator.MoveNext())
                     {
-                        range = new Range();
-                        range.Begin = begin;
-                        range.End = end;
-                    }
-
-                    brunch.InputRange = range;
-
-                    statesStack.Pop();
-                    dfaStack.Pop();
-                    nodesStack.Pop();
-
-                    root = brunch;
-
-                    if (nodesStack.Count != 0)
-                    {
-                        nodesStack.Peek().Add(root);
+                        this.diagnostics.Add(new Diagnostic(
+                            DiagnosticStatus.Error,
+                            ParsingFinishedBeforeEofDiagnosticType,
+                            "Parsing finished before reading all tokens",
+                            new List<Range>()));
+                        throw new ParseException("Parsing finished before reading all tokens");
                     }
                 }
-                else if (action.Kind == ParseAction<TLabel>.ActionKind.Call)
-                {
-                    TLabel symbol = action.Label;
-                    statesStack.Pop();
-                    statesStack.Push(dfa.Transitions(state)[symbol]);
-                    dfaStack.Push(rules[symbol]);
-                    statesStack.Push(rules[symbol].StartingState());
-                    nodesStack.Push(new List<ParseTree<TLabel>>());
-                }
+
+                return root;
             }
 
-            if (enumerator.MoveNext())
+            private static Range GetRange(IEnumerable<ParseTree<TLabel>> nodes)
             {
-                diagnostics.Add(new Diagnostic(
-                    DiagnosticStatus.Error,
-                    ParsingFinishedBeforeEOFDiagnosticType,
-                    "Parsing finished before reading all tokens",
-                    new List<Range>()));
-                throw new ParseException("Parsing finished before reading all tokens");
+                var ranges = nodes.Select(x => x.InputRange).Where(x => x != null).ToList();
+                var begin = ranges.FirstOrDefault()?.Begin;
+                var end = ranges.LastOrDefault()?.End;
+                return begin != null ? new Range(begin, end) : null;
             }
 
-            return root;
+            private void Call(IDfa<Optional<Rule<TLabel>>, TLabel> dfa, IState state, TLabel actionLabel)
+            {
+                this.statesStack.Pop();
+                this.statesStack.Push(dfa.Transitions(state)[actionLabel]);
+                this.dfaStack.Push(this.rules[actionLabel]);
+                this.statesStack.Push(this.rules[actionLabel].StartingState());
+                this.nodesStack.Push(new List<ParseTree<TLabel>>());
+            }
+
+            private ParseTree<TLabel> Reduce(
+                IDfa<Optional<Rule<TLabel>>, TLabel> dfa,
+                IState state,
+                ParseTree<TLabel> currentToken)
+            {
+                if (dfa.Label(state).IsNone())
+                {
+                    this.diagnostics.Add(new Diagnostic(
+                        DiagnosticStatus.Error,
+                        InvalidReduceActionDiagnosticType,
+                        "Invalid reduce action at {0}",
+                        new List<Range> { currentToken.InputRange }));
+                    throw new ParseException("Invalid reduce action");
+                }
+
+                var rule = dfa.Label(state).Get();
+                var topNodes = this.nodesStack.Peek();
+                var newCategory = rule.Lhs;
+                var range = GetRange(topNodes);
+                ParseTree<TLabel> root = new Brunch<TLabel>
+                {
+                    Rule = rule, Children = topNodes, Category = newCategory, InputRange = range
+                };
+                this.statesStack.Pop();
+                this.dfaStack.Pop();
+                this.nodesStack.Pop();
+                if (this.nodesStack.Count != 0)
+                {
+                    this.nodesStack.Peek().Add(root);
+                }
+
+                return root;
+            }
+
+            private void Shift(
+                ParseTree<TLabel> currentToken,
+                IDfa<Optional<Rule<TLabel>>, TLabel> dfa,
+                IState state,
+                TLabel currentCategory,
+                IEnumerator enumerator)
+            {
+                this.nodesStack.Peek().Add(currentToken);
+                this.statesStack.Pop();
+                this.statesStack.Push(dfa.Transitions(state)[currentCategory]);
+                if (!enumerator.MoveNext())
+                {
+                    this.diagnostics.Add(new Diagnostic(
+                        DiagnosticStatus.Error,
+                        PrematureEofDiagnosticType,
+                        "Parsing finished before reading all tokens",
+                        new List<Range>()));
+                    throw new ParseException("Premature EOF");
+                }
+            }
         }
     }
 }

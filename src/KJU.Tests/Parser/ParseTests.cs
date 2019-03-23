@@ -2,17 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using KJU.Core;
     using KJU.Core.Automata;
-    using KJU.Core.Automata.NfaToDfa;
     using KJU.Core.Diagnostics;
+    using KJU.Core.Input;
     using KJU.Core.Lexer;
     using KJU.Core.Parser;
+    using KJU.Core.Regex;
     using KJU.Core.Util;
-    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
+    using Util;
 
     [TestClass]
     public class ParseTests
@@ -20,7 +18,8 @@
         private enum Label
         {
             A,
-            B
+            B,
+            Eof
         }
 
         [TestMethod]
@@ -41,18 +40,17 @@
             var parser = new Parser<Label>(grammar, parseTable);
 
             var tokens = new List<Token<Label>> { new Token<Label>() { Category = Label.B } };
-            var diag = new Mock<IDiagnostics>();
+            var diag = new Moq.Mock<IDiagnostics>();
 
             Assert.ThrowsException<ParseException>(() => parser.Parse(tokens, diag.Object));
-            MockDiagnostics.Verify(diag, Parser<Label>.PrematureEOFDiagnosticType);
+            MockDiagnostics.Verify(diag, Parser<Label>.PrematureEofDiagnosticType);
         }
 
         [TestMethod]
-        public void TestEmpty()
+        public void TestInputRangeEmpty()
         {
-            var rules = new Dictionary<Label, IDfa<Optional<Rule<Label>>, Label>>();
             var dfa = new EpsDfa();
-            rules.Add(Label.A, dfa);
+            var rules = new Dictionary<Label, IDfa<Optional<Rule<Label>>, Label>> { { Label.A, dfa } };
             var grammar = new CompiledGrammar<Label>() { Rules = rules, StartSymbol = Label.A };
             var parseTable =
                 new Dictionary<Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>, ParseAction<Label>>
@@ -65,8 +63,46 @@
             var parser = new Parser<Label>(grammar, parseTable);
 
             var tokens = new List<Token<Label>> { new Token<Label>() { Category = Label.B } };
-            ParseTree<Label> root = parser.Parse(tokens, null);
+            var root = parser.Parse(tokens, null);
             Assert.IsNull(root.InputRange);
+        }
+
+        [TestMethod]
+        public void TestInputRange()
+        {
+            var rules = new Dictionary<Label, IDfa<Optional<Rule<Label>>, Label>>();
+            var dfa = new IntDfa();
+            rules.Add(Label.A, dfa);
+            var grammar = new CompiledGrammar<Label>() { Rules = rules, StartSymbol = Label.A };
+            var parseTable =
+                new Dictionary<Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>, ParseAction<Label>>
+                {
+                    {
+                        new Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>(dfa, new IntState(0), Label.B),
+                        new ParseAction<Label> { Kind = ParseAction<Label>.ActionKind.Shift }
+                    },
+                    {
+                        new Tuple<IDfa<Optional<Rule<Label>>, Label>, IState, Label>(dfa, new IntState(0), Label.Eof),
+                        new ParseAction<Label> { Kind = ParseAction<Label>.ActionKind.Reduce }
+                    }
+                };
+            var parser = new Parser<Label>(grammar, parseTable);
+
+            var tokenRange = new Range(new StringLocation(0), new StringLocation(1));
+            var tokens = new List<Token<Label>>
+            {
+                new Token<Label>
+                {
+                    Category = Label.B,
+                    InputRange = tokenRange
+                },
+                new Token<Label>
+                {
+                    Category = Label.Eof
+                }
+            };
+            var root = parser.Parse(tokens, null);
+            Assert.AreEqual(tokenRange, root.InputRange);
         }
 
         private class IntState : IState
@@ -108,7 +144,8 @@
 
             public Optional<Rule<Label>> Label(IState state)
             {
-                return Optional<Rule<Label>>.None();
+                return Optional<Rule<Label>>.Some(new Rule<Label>
+                    { Lhs = ParseTests.Label.A, Rhs = ParseTests.Label.B.ToRegex() });
             }
 
             public IState StartingState()

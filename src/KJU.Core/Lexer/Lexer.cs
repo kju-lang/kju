@@ -73,7 +73,7 @@
                     if (nextState == null || this.minimalizedDfa.IsStable(nextState))
                     {
                         TLabel label = this.minimalizedDfa.Label(currState);
-                        Range rng = new Range { Begin = begin, End = nextChar.Key };
+                        Range rng = new Range(begin, nextChar.Key);
                         if (label.Equals(this.noneValue))
                         {
                             diagnostics.Add(new Diagnostic(

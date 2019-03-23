@@ -7,9 +7,31 @@
 
     public class Range
     {
-        public ILocation Begin { get; set; }
+        public Range(ILocation begin, ILocation end)
+        {
+            this.Begin = begin;
+            this.End = end;
+        }
 
-        public ILocation End { get; set; }
+        public ILocation Begin { get; }
+
+        public ILocation End { get; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Range other)
+            {
+                return Equals(this.Begin, other.Begin) && Equals(this.End, other.End);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return ((this.Begin != null ? this.Begin.GetHashCode() : 0) * 397) ^
+                   (this.End != null ? this.End.GetHashCode() : 0);
+        }
 
         public override string ToString()
         {

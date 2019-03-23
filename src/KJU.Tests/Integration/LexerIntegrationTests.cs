@@ -257,7 +257,7 @@ namespace KJU.Tests.Integration
             Range inputRange = null;
             if (s != null || t != null)
             {
-                inputRange = new Range { Begin = s, End = t };
+                inputRange = new Range(s, t);
             }
 
             var token = new Token<TLabel>
