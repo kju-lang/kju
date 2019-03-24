@@ -8,7 +8,10 @@
 
     public class NameResolver : INameResolver
     {
-        private const string ErrorString = "LinkFail";
+        public const string MultipleDeclarationsDiagnostic = "NameResolverMultipleDeclarations";
+        public const string IdentifierNotFoundDiagnostic = "NameResolverIdentifierNotFound";
+        public const string IsNoVariableDiagnostic = "NameResolverIsNoVariable";
+        public const string IsNoFunctionDiagnostic = "NameResolverIsNoFunction";
 
         public void LinkNames(Node root, IDiagnostics diagnostics)
         {
@@ -35,7 +38,7 @@
                 switch (node)
                 {
                     case Program program:
-                        this.ProcessProgram(program, diagnostics);
+                        this.ProcessProgram(program);
                         break;
                     case FunctionDeclaration fun:
                         this.ProcessFunctionDeclaration(fun, diagnostics);
@@ -43,8 +46,8 @@
                     case VariableDeclaration var:
                         this.ProcessVariableDeclaration(var, diagnostics);
                         break;
-                    case InstructionBlock block:
-                        this.ProcessInstructionBlock(block, diagnostics);
+                    case InstructionBlock _:
+                        this.ProcessInstructionBlock();
                         break;
                     case Variable var:
                         this.ProcessVariable(var, diagnostics);
@@ -61,35 +64,25 @@
 
                 switch (node)
                 {
-                    case Program program:
+                    case Program _:
                         this.PopBlock();
                         this.PopBlock();
                         break;
-                    case FunctionDeclaration fun:
+                    case FunctionDeclaration _:
                         this.PopBlock();
                         break;
-                    case InstructionBlock block:
+                    case InstructionBlock _:
                         this.PopBlock();
                         break;
                 }
             }
 
-            private void ProcessProgram(Program program, IDiagnostics diagnostics)
+            private void ProcessProgram(Program program)
             {
                 this.blocks.Push(new HashSet<string>());
                 foreach (var fun in program.Functions)
                 {
-                    string id = fun.Identifier;
-                    if (this.blocks.Peek().Contains(id))
-                    {
-                        Diagnostic diagnostic = new Diagnostic(
-                            DiagnosticStatus.Error,
-                            ErrorString,
-                            $"Multiple declarations of name {id}",
-                            new List<Range> { fun.InputRange });
-                        diagnostics.Add(diagnostic);
-                        this.exceptions.Add(new NameResolverInternalException($"Multiple declarations of name {id}"));
-                    }
+                    var id = fun.Identifier;
 
                     if (!this.declarations.ContainsKey(id))
                     {
@@ -105,12 +98,12 @@
 
             private void ProcessFunctionDeclaration(FunctionDeclaration fun, IDiagnostics diagnostics)
             {
-                string id = fun.Identifier;
+                var id = fun.Identifier;
                 if (this.blocks.Peek().Contains(id))
                 {
-                    Diagnostic diagnostic = new Diagnostic(
+                    var diagnostic = new Diagnostic(
                         DiagnosticStatus.Error,
-                        ErrorString,
+                        MultipleDeclarationsDiagnostic,
                         $"Multiple declarations of name {id}",
                         new List<Range> { fun.InputRange });
                     diagnostics.Add(diagnostic);
@@ -132,9 +125,9 @@
                 string id = var.Identifier;
                 if (this.blocks.Peek().Contains(id))
                 {
-                    Diagnostic diagnostic = new Diagnostic(
+                    var diagnostic = new Diagnostic(
                         DiagnosticStatus.Error,
-                        ErrorString,
+                        MultipleDeclarationsDiagnostic,
                         $"Multiple declarations of name {id}",
                         new List<Range> { var.InputRange });
                     diagnostics.Add(diagnostic);
@@ -150,7 +143,7 @@
                 this.blocks.Peek().Add(id);
             }
 
-            private void ProcessInstructionBlock(InstructionBlock block, IDiagnostics diagnostics)
+            private void ProcessInstructionBlock()
             {
                 this.blocks.Push(new HashSet<string>());
             }
@@ -162,7 +155,7 @@
                 {
                     Diagnostic diagnostic = new Diagnostic(
                         DiagnosticStatus.Error,
-                        ErrorString,
+                        IdentifierNotFoundDiagnostic,
                         $"No identifier of name {id}",
                         new List<Range> { var.InputRange });
                     diagnostics.Add(diagnostic);
@@ -176,9 +169,9 @@
                     }
                     else
                     {
-                        Diagnostic diagnostic = new Diagnostic(
+                        var diagnostic = new Diagnostic(
                             DiagnosticStatus.Error,
-                            ErrorString,
+                            IsNoVariableDiagnostic,
                             $"{id} is not a variable",
                             new List<Range> { var.InputRange });
                         diagnostics.Add(diagnostic);
@@ -189,12 +182,12 @@
 
             private void ProcessFunctionCall(FunctionCall fun, IDiagnostics diagnostics)
             {
-                string id = fun.Function;
+                var id = fun.Function;
                 if (!this.declarations.ContainsKey(id))
                 {
-                    Diagnostic diagnostic = new Diagnostic(
+                    var diagnostic = new Diagnostic(
                         DiagnosticStatus.Error,
-                        ErrorString,
+                        IdentifierNotFoundDiagnostic,
                         $"No identifier of name {id}",
                         new List<Range> { fun.InputRange });
                     diagnostics.Add(diagnostic);
@@ -208,9 +201,9 @@
                     }
                     else
                     {
-                        Diagnostic diagnostic = new Diagnostic(
+                        var diagnostic = new Diagnostic(
                             DiagnosticStatus.Error,
-                            ErrorString,
+                            IsNoFunctionDiagnostic,
                             $"{id} is not a function",
                             new List<Range> { fun.InputRange });
                         diagnostics.Add(diagnostic);
@@ -221,8 +214,8 @@
 
             private void PopBlock()
             {
-                HashSet<string> ids = this.blocks.Pop();
-                foreach (string id in ids)
+                var ids = this.blocks.Pop();
+                foreach (var id in ids)
                 {
                     this.declarations[id].Pop();
                 }

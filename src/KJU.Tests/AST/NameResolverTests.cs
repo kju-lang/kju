@@ -5,11 +5,14 @@
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
     using KJU.Core.Diagnostics;
+    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class NameResolverTests
     {
+        private INameResolver nameResolver = new NameResolver();
+
         /*
          * fun a()
          * {
@@ -108,9 +111,7 @@
             };
 
             var root = new Program { Functions = new List<FunctionDeclaration> { h, f, g } };
-
-            var resolver = new NameResolver();
-            resolver.LinkNames(root, null);
+            this.nameResolver.LinkNames(root, null);
             var expected = new List<Node> { x, h2, x2, f };
             var actual = new List<Node> { v.Declaration, v3.Declaration, v2.Declaration, fc.Declaration };
             CollectionAssert.AreEqual(expected, actual);
@@ -135,14 +136,13 @@
                 Body = new InstructionBlock { Instructions = new List<Expression> { x, x2 } }
             };
 
-            var diagnostics = new Diagnostics();
+            var diagnosticsMock = new Moq.Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
 
-            var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f } };
 
-            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
-            Assert.AreEqual(diagnostics.Diag.Count, 1);
-            Assert.AreEqual(diagnostics.Diag[0].Message, "Multiple declarations of name x");
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
         /*
@@ -170,13 +170,13 @@
                 Body = new InstructionBlock { Instructions = new List<Expression>() }
             };
 
-            var diagnostics = new Diagnostics();
+            var diagnosticsMock = new Moq.Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
 
-            var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f, f2 } };
 
-            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
-            Assert.AreEqual(diagnostics.Diag[0].Message, "Multiple declarations of name f");
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
         /*
@@ -214,14 +214,13 @@
                 Body = new InstructionBlock { Instructions = new List<Expression> { g, g2 } }
             };
 
-            var diagnostics = new Diagnostics();
+            var diagnosticsMock = new Moq.Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
 
-            var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f } };
 
-            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
-            Assert.AreEqual(diagnostics.Diag.Count, 1);
-            Assert.AreEqual(diagnostics.Diag[0].Message, "Multiple declarations of name g");
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
         /*
@@ -248,15 +247,16 @@
                 Body = new InstructionBlock { Instructions = new List<Expression> { v, x, fc } }
             };
 
-            var diagnostics = new Diagnostics();
+            var mockDiagnostics = new Moq.Mock<IDiagnostics>();
+            var diagnostics = mockDiagnostics.Object;
 
-            var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f } };
 
-            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
-            Assert.AreEqual(diagnostics.Diag.Count, 2);
-            Assert.AreEqual(diagnostics.Diag[0].Message, "No identifier of name x");
-            Assert.AreEqual(diagnostics.Diag[1].Message, "No identifier of name g");
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            MockDiagnostics.Verify(
+                mockDiagnostics,
+                NameResolver.IdentifierNotFoundDiagnostic,
+                NameResolver.IdentifierNotFoundDiagnostic);
         }
 
         /*
@@ -283,34 +283,16 @@
                 Body = new InstructionBlock { Instructions = new List<Expression> { v, x, fc } }
             };
 
-            var diagnostics = new Diagnostics();
+            var diagnosticsMock = new Moq.Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
 
-            var resolver = new NameResolver();
             var root = new Program { Functions = new List<FunctionDeclaration> { f } };
 
-            Assert.ThrowsException<NameResolverException>(() => resolver.LinkNames(root, diagnostics));
-            Assert.AreEqual(diagnostics.Diag.Count, 2);
-            Assert.AreEqual(diagnostics.Diag[0].Message, "f is not a variable");
-            Assert.AreEqual(diagnostics.Diag[1].Message, "f is not a function");
-        }
-
-        private class Diagnostics : IDiagnostics
-        {
-            public Diagnostics()
-            {
-                this.Diag = new List<Diagnostic>();
-            }
-
-            public List<Diagnostic> Diag { get; }
-
-            public void Add(params Diagnostic[] diagnostics)
-            {
-                this.Diag.AddRange(diagnostics);
-            }
-
-            public void Report()
-            {
-            }
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            MockDiagnostics.Verify(
+                diagnosticsMock,
+                NameResolver.IsNoVariableDiagnostic,
+                NameResolver.IsNoFunctionDiagnostic);
         }
     }
 }
