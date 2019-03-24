@@ -6,6 +6,6 @@ fun kju():Unit{
 
 	fun f():Bool{
 		return true;
-	}
+	};
 	var x:Int=f();
 }

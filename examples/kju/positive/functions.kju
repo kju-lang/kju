@@ -1,4 +1,4 @@
-fun f (a: Bool): Int
+fun f (a: Int): Int
 {
 	var b: Int;
 	b=1;
@@ -18,7 +18,7 @@ fun r(n: Int): Int
 	else
 	{
 		return f(n-1);
-	}
+	};
 }
 fun kju(): Unit
 {

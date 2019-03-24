@@ -1,4 +1,4 @@
-fun f(x:Int,y:Int){
+fun f(x:Int,y:Int):Int{
 	return 5;
 }
 

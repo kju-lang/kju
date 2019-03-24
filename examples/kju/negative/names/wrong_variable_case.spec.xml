@@ -1,0 +1,6 @@
+<Spec>
+    <IsPositive>false</IsPositive>
+    <ExpectedMagicStrings>
+        <MagicString>UnexpectedSymbol</MagicString>
+    </ExpectedMagicStrings>
+</Spec>

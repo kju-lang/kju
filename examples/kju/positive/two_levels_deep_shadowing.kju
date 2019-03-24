@@ -6,8 +6,8 @@ fun f(): Unit {
 
 		fun h(): Unit {
 			var a: Int = 3;
-		}
-	}
+		};
+	};
 }
 
 fun kju(): Unit {}

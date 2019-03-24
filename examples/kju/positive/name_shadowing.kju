@@ -1,7 +1,7 @@
 fun f(){
 	var f:Int=5;
 	fun f(){
-	}
+	};
 	f=3;
 	f();
 }

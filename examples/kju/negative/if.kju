@@ -8,7 +8,7 @@ fun f(a: Int): Unit
 	else
 	{
 		a=2;
-	}
+	};
 }
 fun kju(): Unit
 {

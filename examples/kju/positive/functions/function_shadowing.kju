@@ -5,6 +5,6 @@ fun f():Int{
 fun kju():Unit{
 	fun f():Int{
 		return 3;
-	}
+	};
 	var x:Int=f();
 }

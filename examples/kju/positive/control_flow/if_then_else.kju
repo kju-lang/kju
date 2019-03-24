@@ -5,5 +5,5 @@ fun kju():Unit{
 	}
 	else{
 		x=2;
-	}
+	};
 }

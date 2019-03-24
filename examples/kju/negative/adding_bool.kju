@@ -2,5 +2,5 @@ fun kju():Unit{
 	var a:Bool=true;
 	var x:Int = 5 + a;
 	var y:Int = 5 + false;
-	var y:Int = 5 + true;
+	var z:Int = 5 + true;
 }

@@ -1,6 +1,6 @@
 fun kju(): Unit
 {
-	var a: Int=f(x);
+	var a: Int=f();
 }
 fun f(): Int 
 { 

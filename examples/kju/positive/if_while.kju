@@ -16,6 +16,6 @@ fun kju(): Unit
 		while (c!=1)
 		{
 			c=c+1;
-		}
-	}
+		};
+	};
 }

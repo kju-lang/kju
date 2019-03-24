@@ -1,0 +1,8 @@
+<Spec>
+    <IsPositive>false</IsPositive>
+    <ExpectedMagicStrings>
+        <MagicString>IncorrectOperandType</MagicString>
+        <MagicString>IncorrectOperandType</MagicString>
+        <MagicString>IncorrectOperandType</MagicString>
+    </ExpectedMagicStrings>
+</Spec>

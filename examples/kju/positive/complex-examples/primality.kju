@@ -9,21 +9,21 @@ fun isPrimeFast(n : Int) : Bool
     then
     {
         return true;
-    };
+    }
     else {};
 
     if (n <= 1)
     then
     {
         return false;
-    };
+    }
     else {};
 
     if (n % 2 == 0)
     then
     {
         return false;
-    };
+    }
     else {};
 
     var a : Int = 0;
@@ -36,13 +36,13 @@ fun isPrimeFast(n : Int) : Bool
     then
     {
         return false;
-    };
+    }
     else
     {
         /* huh, probably true */
         return true;
     };
-};
+}
 
 fun checkCompositeWitness(a : Int, n : Int) : Int
 {
@@ -60,14 +60,14 @@ fun checkCompositeWitness(a : Int, n : Int) : Int
     then
     {
         return 0;
-    };
+    }
     else {};
 
     if (x == n - 1)
     then
     {
         return 0;
-    };
+    }
     else {};
 
     while (r > 1)
@@ -77,11 +77,11 @@ fun checkCompositeWitness(a : Int, n : Int) : Int
         then
         {
             return 0;
-        };
+        }
         else {};
     };
     return 1;
-};
+}
 
 fun fastPower(a : Int, n : Int, mod : Int) : Int
 {
@@ -92,14 +92,14 @@ fun fastPower(a : Int, n : Int, mod : Int) : Int
         then
         {
             result = fastMultiply(result, a, mod);
-        };
+        }
         else {};
 
         a = fastMultiply(a, a, mod);
         n /= 2;
     };
     return result;
-};
+}
 
 /* We don't want to have integer overflow during multiplication */
 fun fastMultiply(a : Int, b : Int, mod : Int) : Int
@@ -111,14 +111,14 @@ fun fastMultiply(a : Int, b : Int, mod : Int) : Int
         then
         {
             result = (result + a) % mod;
-        };
+        }
         else {};
 
         a = (a + a) % mod;
         b /= 2;
     };
     return result;
-};
+}
 
 /* Check if n is prime in O(sqrt n) */
 fun isPrimeSlow(n : Int) : Bool
@@ -127,7 +127,7 @@ fun isPrimeSlow(n : Int) : Bool
     then
     {
         return false;
-    };
+    }
     else
     {
         var i : Int = 2;
@@ -137,7 +137,7 @@ fun isPrimeSlow(n : Int) : Bool
             then
             {
                 return false;
-            };
+            }
             else
             {
                 i = i + 1;
@@ -145,7 +145,7 @@ fun isPrimeSlow(n : Int) : Bool
         };
         return true;
     };
-};
+}
 
 fun kju() : Unit
 {
@@ -153,12 +153,13 @@ fun kju() : Unit
     while (i <= 1000)
     {
         if (isPrimeSlow(i) != isPrimeFast(i))
+        then
         {
             /* Something very-very bad have just happened */
-        };
-        then
+        }
+        else
         {
             i = i + 1;
         };
     };
-};
+}

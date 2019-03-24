@@ -1,5 +1,5 @@
 fun kju():Unit{
 	f();
 	fun f():Unit{
-	}
+	};
 }
