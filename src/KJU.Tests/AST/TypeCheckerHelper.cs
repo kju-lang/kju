@@ -45,7 +45,8 @@
 
             if (expected.Type != result.Type)
             {
-                Console.WriteLine($"Expected type \"{expected.Type}\", result: \"{result.Type}\" in Expression {expected}");
+                Console.WriteLine(
+                    $"Expected type \"{expected.Type}\", result: \"{result.Type}\" in Expression {expected}");
                 return false;
             }
 

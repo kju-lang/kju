@@ -12,7 +12,12 @@ namespace KJU.Core.AST
 
     public class Program : Node
     {
-        public IReadOnlyList<FunctionDeclaration> Functions { get; set; }
+        public Program(IReadOnlyList<FunctionDeclaration> functions)
+        {
+            this.Functions = functions;
+        }
+
+        public IReadOnlyList<FunctionDeclaration> Functions { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -22,13 +27,25 @@ namespace KJU.Core.AST
 
     public class FunctionDeclaration : Expression
     {
-        public string Identifier { get; set; }
+        public FunctionDeclaration(
+            string identifier,
+            DataType returnType,
+            IReadOnlyList<VariableDeclaration> parameters,
+            InstructionBlock body)
+        {
+            this.Identifier = identifier;
+            this.ReturnType = returnType;
+            this.Parameters = parameters;
+            this.Body = body;
+        }
+
+        public string Identifier { get; }
 
         public DataType ReturnType { get; set; }
 
-        public IReadOnlyList<VariableDeclaration> Parameters { get; set; }
+        public IReadOnlyList<VariableDeclaration> Parameters { get; }
 
-        public InstructionBlock Body { get; set; }
+        public InstructionBlock Body { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -41,7 +58,12 @@ namespace KJU.Core.AST
 
     public class InstructionBlock : Expression
     {
-        public IReadOnlyList<Expression> Instructions { get; set; }
+        public InstructionBlock(IReadOnlyList<Expression> instructions)
+        {
+            this.Instructions = instructions;
+        }
+
+        public IReadOnlyList<Expression> Instructions { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -51,11 +73,18 @@ namespace KJU.Core.AST
 
     public class VariableDeclaration : Expression
     {
+        public VariableDeclaration(DataType variableType, string identifier, Expression value)
+        {
+            this.VariableType = variableType;
+            this.Identifier = identifier;
+            this.Value = value;
+        }
+
         public DataType VariableType { get; set; }
 
-        public string Identifier { get; set; }
+        public string Identifier { get; }
 
-        public Expression Value { get; set; }
+        public Expression Value { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -68,9 +97,15 @@ namespace KJU.Core.AST
 
     public class WhileStatement : Expression
     {
-        public Expression Condition { get; set; }
+        public WhileStatement(Expression condition, InstructionBlock body)
+        {
+            this.Condition = condition;
+            this.Body = body;
+        }
 
-        public InstructionBlock Body { get; set; }
+        public Expression Condition { get; }
+
+        public InstructionBlock Body { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -80,23 +115,36 @@ namespace KJU.Core.AST
 
     public class IfStatement : Expression
     {
-        public Expression Condition { get; set; }
+        public IfStatement(Expression condition, InstructionBlock thenBody, InstructionBlock elseBody)
+        {
+            this.Condition = condition;
+            this.ThenBody = thenBody;
+            this.ElseBody = elseBody;
+        }
 
-        public InstructionBlock ThenBody { get; set; }
+        public Expression Condition { get; }
 
-        public InstructionBlock ElseBody { get; set; }
+        public InstructionBlock ThenBody { get; }
+
+        public InstructionBlock ElseBody { get; }
 
         public override IEnumerable<Node> Children()
         {
-            return new List<Node>() { this.Condition, this.ThenBody, this.ElseBody };
+            return new List<Node> { this.Condition, this.ThenBody, this.ElseBody };
         }
     }
 
     public class FunctionCall : Expression
     {
-        public string Function { get; set; }
+        public FunctionCall(string function, IReadOnlyList<Expression> arguments)
+        {
+            this.Function = function;
+            this.Arguments = arguments;
+        }
 
-        public IReadOnlyList<Expression> Arguments { get; set; }
+        public string Function { get; }
+
+        public IReadOnlyList<Expression> Arguments { get; }
 
         public FunctionDeclaration Declaration { get; set; }
 
@@ -108,7 +156,12 @@ namespace KJU.Core.AST
 
     public class ReturnStatement : Expression
     {
-        public Expression Value { get; set; }
+        public ReturnStatement(Expression value)
+        {
+            this.Value = value;
+        }
+
+        public Expression Value { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -131,30 +184,51 @@ namespace KJU.Core.AST
 
     public class Variable : Expression
     {
-        public string Identifier { get; set; }
+        public Variable(string identifier)
+        {
+            this.Identifier = identifier;
+        }
+
+        public string Identifier { get; }
 
         public VariableDeclaration Declaration { get; set; }
     }
 
     public class BoolLiteral : Expression
     {
-        public bool Value { get; set; }
+        public BoolLiteral(bool value)
+        {
+            this.Value = value;
+        }
+
+        public bool Value { get; }
     }
 
     public class IntegerLiteral : Expression
     {
-        public long Value { get; set; }
+        public IntegerLiteral(long value)
+        {
+            this.Value = value;
+        }
+
+        public long Value { get; }
     }
 
     public class Assignment : Expression
     {
-        public Variable Lhs { get; set; }
+        public Assignment(Variable lhs, Expression value)
+        {
+            this.Lhs = lhs;
+            this.Value = value;
+        }
 
-        public Expression Value { get; set; }
+        public Variable Lhs { get; }
+
+        public Expression Value { get; }
 
         public override IEnumerable<Node> Children()
         {
-            List<Node> result = new List<Node>() { this.Lhs };
+            var result = new List<Node> { this.Lhs };
             if (this.Value != null)
                 result.Add(this.Value);
             return result;
@@ -163,11 +237,18 @@ namespace KJU.Core.AST
 
     public class CompoundAssignment : Expression
     {
-        public Variable Lhs { get; set; }
+        public CompoundAssignment(Variable lhs, ArithmeticOperationType operation, Expression value)
+        {
+            this.Lhs = lhs;
+            this.Operation = operation;
+            this.Value = value;
+        }
 
-        public ArithmeticOperationType Operation { get; set; }
+        public Variable Lhs { get; }
 
-        public Expression Value { get; set; }
+        public ArithmeticOperationType Operation { get; }
+
+        public Expression Value { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -178,45 +259,69 @@ namespace KJU.Core.AST
         }
     }
 
-    public class ArithmeticOperation : Expression
+    public abstract class BinaryOperation : Expression
     {
+        public Expression LeftValue { get; set; }
+
+        public Expression RightValue { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node> { this.LeftValue, this.RightValue };
+        }
+    }
+
+    public class ArithmeticOperation : BinaryOperation
+    {
+        public ArithmeticOperation(ArithmeticOperationType operationType, Expression leftValue, Expression rightValue)
+        {
+            this.OperationType = operationType;
+            this.LeftValue = leftValue;
+            this.RightValue = rightValue;
+        }
+
         public ArithmeticOperationType OperationType { get; set; }
-
-        public Expression LeftValue { get; set; }
-
-        public Expression RightValue { get; set; }
-
-        public override IEnumerable<Node> Children()
-        {
-            return new List<Node>() { this.LeftValue, this.RightValue };
-        }
     }
 
-    public class Comparison : Expression
+    public class Comparison : BinaryOperation
     {
+        public Comparison(ComparisonType operationType, Expression leftValue, Expression rightValue)
+        {
+            this.OperationType = operationType;
+            this.LeftValue = leftValue;
+            this.RightValue = rightValue;
+        }
+
         public ComparisonType OperationType { get; set; }
-
-        public Expression LeftValue { get; set; }
-
-        public Expression RightValue { get; set; }
-
-        public override IEnumerable<Node> Children()
-        {
-            return new List<Node>() { this.LeftValue, this.RightValue };
-        }
     }
 
-    public class LogicalOperation : Expression
+    public class LogicalBinaryOperation : BinaryOperation
     {
-        public LogicalOperationType OperationType { get; set; }
+        public LogicalBinaryOperation(LogicalBinaryOperationType binaryOperationType, Expression leftValue, Expression rightValue)
+        {
+            this.BinaryOperationType = binaryOperationType;
+            this.LeftValue = leftValue;
+            this.RightValue = rightValue;
+        }
 
-        public Expression LeftValue { get; set; }
+        public LogicalBinaryOperationType BinaryOperationType { get; set; }
+    }
 
-        public Expression RightValue { get; set; }
+    public class LogicalUnaryOperation : Expression
+    {
+        public LogicalUnaryOperation(LogicalUnaryOperationType unaryOperationType, Expression value)
+        {
+            this.UnaryOperationType = unaryOperationType;
+            this.Value = value;
+        }
+
+        public LogicalUnaryOperationType UnaryOperationType { get; }
+
+        public Expression Value { get; }
 
         public override IEnumerable<Node> Children()
         {
-            return new List<Node>() { this.LeftValue, this.RightValue };
+            return new List<Node> { this.Value };
         }
     }
 }

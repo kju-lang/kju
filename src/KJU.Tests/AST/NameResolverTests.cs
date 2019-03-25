@@ -35,23 +35,21 @@
             var calls = new List<FunctionCall>();
             foreach (var id in names)
             {
-                var functionCall = new FunctionCall { Function = "b", Arguments = new List<Expression>() };
+                var functionName = "b";
+                var arguments = new List<Expression>();
+                var functionCall = new FunctionCall(functionName, arguments);
                 var expressions = new List<Expression> { functionCall };
-                var fun = new FunctionDeclaration
-                {
-                    Identifier = id,
-                    Type = UnitType.Instance,
-                    Body = new InstructionBlock
-                    {
-                        Instructions = expressions
-                    },
-                    Parameters = new List<VariableDeclaration>()
-                };
+                var body = new InstructionBlock(expressions);
+                var fun = new FunctionDeclaration(
+                    id,
+                    UnitType.Instance,
+                    new List<VariableDeclaration>(),
+                    body);
                 calls.Add(functionCall);
                 functions.Add(fun);
             }
 
-            var root = new Program { Functions = functions };
+            var root = new Program(functions);
             var resolver = new NameResolver();
             resolver.LinkNames(root, null);
             var bDeclaration = functions[1];
@@ -79,113 +77,115 @@
         [TestMethod]
         public void TestNameResolverBigger()
         {
-            var h = new FunctionDeclaration
-            {
-                Identifier = "h",
-                Type = UnitType.Instance,
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression>() }
-            };
-            var x = new VariableDeclaration { Identifier = "x", Type = IntType.Instance };
-            var v = new Variable { Identifier = "x" };
-            var h2 = new VariableDeclaration { Identifier = "h", Type = IntType.Instance };
-            var v3 = new Variable { Identifier = "h" };
-            var f = new FunctionDeclaration
-            {
-                Identifier = "f",
-                Type = UnitType.Instance,
-                Parameters = new List<VariableDeclaration> { x },
-                Body = new InstructionBlock { Instructions = new List<Expression> { v, h2, v3 } }
-            };
+            var hInstructionBlock = new InstructionBlock(new List<Expression>());
+            var h = new FunctionDeclaration(
+                "h",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                hInstructionBlock);
+            var x = new VariableDeclaration(IntType.Instance, "x", null);
+            var v = new Variable("x");
+            var h2 = new VariableDeclaration(IntType.Instance, "h", null);
+            var v3 = new Variable("h");
+            var fInstructionBlock = new InstructionBlock(new List<Expression> { v, h2, v3 });
+            var f = new FunctionDeclaration(
+                "f",
+                UnitType.Instance,
+                new List<VariableDeclaration> { x },
+                fInstructionBlock);
 
-            var x2 = new VariableDeclaration { Identifier = "x", Type = IntType.Instance };
-            var v2 = new Variable { Identifier = "x" };
-            var fc = new FunctionCall { Function = "f", Arguments = new List<Expression> { v2 } };
+            var x2 = new VariableDeclaration(IntType.Instance, "x", null);
+            var v2 = new Variable("x");
+            var fc = new FunctionCall("f", new List<Expression> { v2 });
 
-            var g = new FunctionDeclaration
-            {
-                Identifier = "g",
-                Type = UnitType.Instance,
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression> { x2, fc } }
-            };
+            var gInstructionBlock = new InstructionBlock(new List<Expression> { x2, fc });
+            var g = new FunctionDeclaration(
+                "g",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                gInstructionBlock);
 
-            var root = new Program { Functions = new List<FunctionDeclaration> { h, f, g } };
-            this.nameResolver.LinkNames(root, null);
+            var functions = new List<FunctionDeclaration> { h, f, g };
+            var root = new Program(functions);
+
+            var resolver = new NameResolver();
+            resolver.LinkNames(root, null);
             var expected = new List<Node> { x, h2, x2, f };
             var actual = new List<Node> { v.Declaration, v3.Declaration, v2.Declaration, fc.Declaration };
             CollectionAssert.AreEqual(expected, actual);
         }
 
         /*
-         * fun f()
+         * fun f():Unit
          * {
-         *   var x;
-         *   var x;
+         *   var x:Int;
+         *   var x:Int;
          * }
          */
         [TestMethod]
         public void TestVariableRedeclaration()
         {
-            var x = new VariableDeclaration { Identifier = "x" };
-            var x2 = new VariableDeclaration { Identifier = "x" };
-            var f = new FunctionDeclaration
-            {
-                Identifier = "f",
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression> { x, x2 } }
-            };
+            var x = new VariableDeclaration(IntType.Instance, "x", null);
+            var x2 = new VariableDeclaration(IntType.Instance, "x", null);
+            var fInstructionBlock = new InstructionBlock(new List<Expression> { x, x2 });
+            var f = new FunctionDeclaration(
+                "f",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                fInstructionBlock);
 
             var diagnosticsMock = new Moq.Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
 
-            var root = new Program { Functions = new List<FunctionDeclaration> { f } };
+            var resolver = new NameResolver();
+            var functions = new List<FunctionDeclaration> { f };
+            var root = new Program(functions);
 
             Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
             MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
         /*
-         * fun f()
+         * fun f():Unit
          * {
          * }
-         * fun f()
+         * fun f():Unit
          * {
          * }
          */
         [TestMethod]
         public void TestFunctionRedeclaration()
         {
-            var f = new FunctionDeclaration
-            {
-                Identifier = "f",
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression>() }
-            };
+            var f = new FunctionDeclaration(
+                "f",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(new List<Expression>()));
 
-            var f2 = new FunctionDeclaration
-            {
-                Identifier = "f",
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression>() }
-            };
+            var f2 = new FunctionDeclaration(
+                "f",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(new List<Expression>()));
 
             var diagnosticsMock = new Moq.Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
 
-            var root = new Program { Functions = new List<FunctionDeclaration> { f, f2 } };
+            var resolver = new NameResolver();
+            var functions = new List<FunctionDeclaration> { f, f2 };
+            var root = new Program(functions);
 
             Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
             MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
         /*
-         * fun f()
+         * fun f():Unit
          * {
-         *   fun g()
+         *   fun g():Unit
          *   {
          *   };
-         *   fun g()
+         *   fun g():Unit
          *   {
          *   };
          * }
@@ -193,64 +193,64 @@
         [TestMethod]
         public void TestInnerFunctionRedeclaration()
         {
-            var g = new FunctionDeclaration
-            {
-                Identifier = "g",
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression>() }
-            };
+            var gInstructionBlock = new InstructionBlock(new List<Expression>());
+            var g = new FunctionDeclaration(
+                "g",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                gInstructionBlock);
 
-            var g2 = new FunctionDeclaration
-            {
-                Identifier = "g",
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression>() }
-            };
+            var g2 = new FunctionDeclaration(
+                "g",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                gInstructionBlock);
 
-            var f = new FunctionDeclaration
-            {
-                Identifier = "f",
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression> { g, g2 } }
-            };
+            var f = new FunctionDeclaration(
+                "f",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(new List<Expression> { g, g2 }));
 
             var diagnosticsMock = new Moq.Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
 
-            var root = new Program { Functions = new List<FunctionDeclaration> { f } };
+            var resolver = new NameResolver();
+            var functions = new List<FunctionDeclaration> { f };
+            var root = new Program(functions);
 
             Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
             MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
         /*
-         * fun f()
+         * fun f():Unit
          * {
          *   x;
-         *   var x;
+         *   var x:Unit;
          *   g();
          * }
          */
         [TestMethod]
         public void TestNoDeclaration()
         {
-            var x = new VariableDeclaration { Identifier = "x" };
+            var v = new Variable("x");
+            var x = new VariableDeclaration(UnitType.Instance, "x", null);
 
-            var v = new Variable { Identifier = "x" };
+            var fc = new FunctionCall("g", new List<Expression>());
 
-            var fc = new FunctionCall { Function = "g", Arguments = new List<Expression>() };
-
-            var f = new FunctionDeclaration
-            {
-                Identifier = "f",
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression> { v, x, fc } }
-            };
+            var f = new FunctionDeclaration(
+                "f",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(new List<Expression> { v, x, fc }));
 
             var mockDiagnostics = new Moq.Mock<IDiagnostics>();
             var diagnostics = mockDiagnostics.Object;
 
-            var root = new Program { Functions = new List<FunctionDeclaration> { f } };
+            var resolver = new NameResolver();
+            var functions = new List<FunctionDeclaration> { f };
+            var root = new Program(functions);
 
             Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
             MockDiagnostics.Verify(
@@ -260,33 +260,34 @@
         }
 
         /*
-         * fun f()
+         * fun f():Unit
          * {
          *   f;
-         *   var f;
+         *   var f:Int;
          *   f();
          * }
          */
         [TestMethod]
         public void TestWrongDeclaration()
         {
-            var x = new VariableDeclaration { Identifier = "f" };
+            var v = new Variable("f");
 
-            var v = new Variable { Identifier = "f" };
+            var x = new VariableDeclaration(IntType.Instance, "f", null);
 
-            var fc = new FunctionCall { Function = "f", Arguments = new List<Expression>() };
+            var fc = new FunctionCall("f", new List<Expression>());
 
-            var f = new FunctionDeclaration
-            {
-                Identifier = "f",
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock { Instructions = new List<Expression> { v, x, fc } }
-            };
+            var f = new FunctionDeclaration(
+                "f",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(new List<Expression> { v, x, fc }));
 
             var diagnosticsMock = new Moq.Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
 
-            var root = new Program { Functions = new List<FunctionDeclaration> { f } };
+            var resolver = new NameResolver();
+            var functions = new List<FunctionDeclaration> { f };
+            var root = new Program(functions);
 
             Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
             MockDiagnostics.Verify(

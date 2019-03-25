@@ -11,61 +11,46 @@
     using Moq;
     using Newtonsoft.Json;
 
+#pragma warning disable SA1118  // Parameter must not span multiple lines
     [TestClass]
     public class TypeCheckerTests
     {
-        private TypeCheckerHelper helper = new TypeCheckerHelper();
+        private readonly TypeCheckerHelper helper = new TypeCheckerHelper();
 
         [TestMethod]
         public void IncorrectNumberOfArguments()
         {
-            var arg1 = new VariableDeclaration()
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Arg1",
-            };
+            var arg1 = new VariableDeclaration(IntType.Instance, "Arg1", null);
 
-            var var1 = new VariableDeclaration
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Var1",
-                Value = new IntegerLiteral() { Value = 5 }
-            };
+            var var1 = new VariableDeclaration(IntType.Instance, "Var1", new IntegerLiteral(5));
 
-            FunctionDeclaration fun1 = new FunctionDeclaration
-            {
-                Identifier = "Fun1",
-                ReturnType = UnitType.Instance,
-                Parameters = new List<VariableDeclaration>() { arg1 },
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression>
-                    {
-                        new ReturnStatement()
-                    }
-                }
-            };
+            var fun1 = new FunctionDeclaration(
+                "Fun1",
+                UnitType.Instance,
+                new List<VariableDeclaration>() { arg1 },
+                new InstructionBlock(new List<Expression> { new ReturnStatement(null) }));
 
-            FunctionDeclaration fun2 = new FunctionDeclaration
-            {
-                Identifier = "Fun2",
-                ReturnType = UnitType.Instance,
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression>
+            var fun2 = new FunctionDeclaration(
+                "Fun2",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
                     {
                         var1,
-                        new Assignment()
-                        {
-                            Lhs = new Variable { Declaration = var1 },
-                            Value = new FunctionCall { Declaration = fun1, Arguments = new List<Expression>() }
-                        }
-                    }
-                }
-            };
+                        new Assignment(
+                            new Variable(null)
+                            {
+                                Declaration = var1
+                            },
+                            new FunctionCall(null, new List<Expression>())
+                            {
+                                Declaration = fun1
+                            })
+                    }));
 
-            Node root = new Program { Functions = new List<FunctionDeclaration> { fun1, fun2 } };
+            var functions = new List<FunctionDeclaration> { fun1, fun2 };
+            Node root = new Program(functions);
             Diagnostics diags = new Diagnostics();
             TypeChecker tc = new TypeChecker();
             tc.LinkTypes(root, diags);
@@ -80,58 +65,44 @@
         [TestMethod]
         public void IncorrectTypeOperation()
         {
-            var var1 = new VariableDeclaration()
-            {
-                VariableType = BoolType.Instance,
-                Identifier = "Var1",
-            };
+            var var1 = new VariableDeclaration(BoolType.Instance, "Var1", null);
 
-            var var2 = new VariableDeclaration
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Var2",
-                Value = new IntegerLiteral() { Value = 5 }
-            };
+            var var2 = new VariableDeclaration(
+                IntType.Instance,
+                "Var2",
+                new IntegerLiteral(5));
 
-            FunctionDeclaration fun1 = new FunctionDeclaration
-            {
-                Identifier = "Fun1",
-                ReturnType = BoolType.Instance,
-                Parameters = new List<VariableDeclaration>() { },
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression>
+            FunctionDeclaration fun1 = new FunctionDeclaration(
+                "Fun1",
+                BoolType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
                     {
                         var1,
                         var2,
-                        new CompoundAssignment
-                        {
-                            Lhs = new Variable { Declaration = var1 },
-                            Operation = ArithmeticOperationType.Addition,
-                            Value = new BoolLiteral { }
-                        },
-                        new ReturnStatement
-                        {
-                            Value = new Comparison {
-                                LeftValue = new Variable { Declaration = var1 },
-                                RightValue = new Variable { Declaration = var2 }
-                            }
-                        }
-                    }
-                }
-            };
+                        new CompoundAssignment(
+                            new Variable(null) { Declaration = var1 },
+                            ArithmeticOperationType.Addition,
+                            new BoolLiteral(false)),
+                        new ReturnStatement(
+                            new Comparison(
+                                ComparisonType.Equal,
+                                new Variable(null) { Declaration = var1 },
+                                new Variable(null) { Declaration = var2 }))
+                    }));
 
-            Node root = new Program { Functions = new List<FunctionDeclaration> { fun1 } };
+            var functions = new List<FunctionDeclaration> { fun1 };
+            Node root = new Program(functions);
             Diagnostics diags = new Diagnostics();
             TypeChecker tc = new TypeChecker();
             tc.LinkTypes(root, diags);
-
             Assert.IsTrue(diags.Diags.Any(diag => diag.Message.Contains("Type mismatch")
-                                                 && diag.Type == TypeChecker.IncorrectTypeDiagnostic));
+                                                  && diag.Type == TypeChecker.IncorrectTypeDiagnostic));
             Assert.IsTrue(diags.Diags.Any(diag => diag.Message.Contains("Incorrect right hand size type")
-                                                 && diag.Type == TypeChecker.IncorrectTypeDiagnostic));
+                                                  && diag.Type == TypeChecker.IncorrectTypeDiagnostic));
             Assert.IsTrue(diags.Diags.Any(diag => diag.Message.Contains("Incorrect left hand size type")
-                                                 && diag.Type == TypeChecker.IncorrectTypeDiagnostic));
+                                                  && diag.Type == TypeChecker.IncorrectTypeDiagnostic));
             Assert.AreEqual(3, diags.Diags.Count());
         }
 
@@ -140,11 +111,9 @@
         {
             Node root = this.helper.JsonToAst(File.ReadAllText("../../../AST/SimpleAst.json"));
             Node expextedRoot = this.helper.JsonToAst(File.ReadAllText("../../../AST/SimpleAstTyped.json"));
-
             Diagnostics diags = new Diagnostics();
             TypeChecker tc = new TypeChecker();
             tc.LinkTypes(root, diags);
-
             Assert.IsTrue(this.helper.TypeCompareAst(expextedRoot, root));
             Assert.IsTrue(diags.Diags.Count == 0);
         }
@@ -154,11 +123,9 @@
         {
             Node root = this.GenUntypedAst();
             Node expected = this.GenCorrectlyTypedAst();
-
             Diagnostics diags = new Diagnostics();
             TypeChecker tc = new TypeChecker();
             tc.LinkTypes(root, diags);
-
             Assert.IsTrue(this.helper.TypeCompareAst(expected, root));
             Assert.IsTrue(diags.Diags.Count == 0);
         }
@@ -167,11 +134,9 @@
         public void DetectErrors()
         {
             Node root = this.GenWrongAst();
-
             Diagnostics diags = new Diagnostics();
             TypeChecker tc = new TypeChecker();
             tc.LinkTypes(root, diags);
-
             Assert.IsTrue(diags.Diags.Count == 3);
             foreach (var diag in diags.Diags)
             {
@@ -194,89 +159,68 @@
             //     Var2 += 3;
             //     return Var2;
             // }
+            var arg1 = new VariableDeclaration(IntType.Instance, "Arg1", null);
 
-            Program root = new Program();
+            var var1 = new VariableDeclaration(
+                IntType.Instance,
+                "Var1",
+                new IntegerLiteral(5));
 
-            var arg1 = new VariableDeclaration()
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Arg1",
-            };
-
-            var var1 = new VariableDeclaration
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Var1",
-                Value = new IntegerLiteral() { Value = 5 }
-            };
-
-            FunctionDeclaration fun1 = new FunctionDeclaration
-            {
-                Identifier = "Fun1",
-                ReturnType = IntType.Instance,
-                Parameters = new List<VariableDeclaration> { arg1 },
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression> {
+            var fun1 = new FunctionDeclaration(
+                "Fun1",
+                IntType.Instance,
+                new List<VariableDeclaration> { arg1 },
+                new InstructionBlock(
+                    new List<Expression>
+                    {
                         var1,
-                        new ReturnStatement
-                            {
-                                Value = new ArithmeticOperation
+                        new ReturnStatement(
+                            new ArithmeticOperation(
+                                ArithmeticOperationType.Addition,
+                                new Variable("Arg1")
                                 {
-                                    OperationType = ArithmeticOperationType.Addition,
-                                    LeftValue = new Variable
-                                    {
-                                        Identifier = "Arg1",
-                                        Declaration = arg1
-                                    },
-                                    RightValue = new Variable
-                                    {
-                                        Identifier = "Var1",
-                                        Declaration = var1
-                                    }
-                                }
-                            }
-                        }
-                }
-            };
+                                    Declaration = arg1
+                                },
+                                new Variable("Var1")
+                                {
+                                    Declaration = var1
+                                }))
+                    }));
 
-            var var2 = new VariableDeclaration
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Var2",
-                Value = new FunctionCall
+            var var2 = new VariableDeclaration(
+                IntType.Instance,
+                "Var2",
+                new FunctionCall(
+                    "Fun1",
+                    new List<Expression> { new IntegerLiteral(5) })
                 {
-                    Function = "Fun1",
-                    Arguments = new List<Expression> { new IntegerLiteral() { Value = 5 } },
                     Declaration = fun1
-                }
-            };
+                });
 
-            FunctionDeclaration fun2 = new FunctionDeclaration
-            {
-                Identifier = "Fun2",
-                ReturnType = IntType.Instance,
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression> {
+            var fun2 = new FunctionDeclaration(
+                "Fun2",
+                IntType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
+                    {
                         var2,
-                        new CompoundAssignment
-                        {
-                            Lhs = new Variable { Declaration = var2, Identifier = "var2" },
-                            Operation = ArithmeticOperationType.Addition,
-                            Value = new IntegerLiteral() { Value = 3 }
-                        },
-                        new ReturnStatement
+                        new CompoundAssignment(
+                            new Variable("var2")
                             {
-                                Value = new Variable { Declaration = var2, Identifier = "var2" }
-                            }
-                        }
-                }
-            };
-            root.Functions = new List<FunctionDeclaration> { fun1, fun2 };
+                                Declaration = var2
+                            },
+                            ArithmeticOperationType.Addition,
+                            new IntegerLiteral(3)),
+                        new ReturnStatement(
+                            new Variable("var2")
+                            {
+                                Declaration = var2
+                            })
+                    }));
 
-            return root;
+            var functions = new List<FunctionDeclaration> { fun1, fun2 };
+            return new Program(functions);
         }
 
         private Node GenCorrectlyTypedAst()
@@ -293,103 +237,98 @@
             //     Var2 += 3;
             //     return Var2;
             // }
-
-            Program root = new Program();
-
-            var arg1 = new VariableDeclaration()
+            var arg1 = new VariableDeclaration(
+                IntType.Instance,
+                "Arg1",
+                null)
             {
-                VariableType = IntType.Instance,
-                Identifier = "Arg1",
                 Type = UnitType.Instance
             };
 
-            var var1 = new VariableDeclaration
+            var var1 = new VariableDeclaration(
+                IntType.Instance,
+                "Var1",
+                new IntegerLiteral(5) { Type = IntType.Instance })
             {
-                VariableType = IntType.Instance,
-                Identifier = "Var1",
-                Value = new IntegerLiteral() { Value = 5, Type = IntType.Instance },
                 Type = UnitType.Instance
             };
 
-            FunctionDeclaration fun1 = new FunctionDeclaration
-            {
-                Identifier = "Fun1",
-                ReturnType = IntType.Instance,
-                Parameters = new List<VariableDeclaration> { arg1 },
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression> {
+            FunctionDeclaration fun1 = new FunctionDeclaration(
+                "Fun1",
+                IntType.Instance,
+                new List<VariableDeclaration> { arg1 },
+                new InstructionBlock(
+                    new List<Expression>
+                    {
                         var1,
-                        new ReturnStatement
-                            {
-                                Value = new ArithmeticOperation
+                        new ReturnStatement(
+                            new ArithmeticOperation(
+                                ArithmeticOperationType.Addition,
+                                new Variable("Arg1")
                                 {
-                                    OperationType = ArithmeticOperationType.Addition,
-                                    LeftValue = new Variable
-                                    {
-                                        Identifier = "Arg1",
-                                        Declaration = arg1,
-                                        Type = IntType.Instance
-                                    },
-                                    RightValue = new Variable
-                                    {
-                                        Identifier = "Var1",
-                                        Declaration = var1,
-                                        Type = IntType.Instance
-                                    },
+                                    Declaration = arg1,
                                     Type = IntType.Instance
                                 },
-                                Type = IntType.Instance
-                            }
-                        },
+                                new Variable("Var1")
+                                {
+                                    Declaration = var1,
+                                    Type = IntType.Instance
+                                }) { Type = IntType.Instance })
+                        {
+                            Type = IntType.Instance
+                        }
+                    })
+                {
                     Type = UnitType.Instance
-                },
+                })
+            {
                 Type = UnitType.Instance
             };
 
-            var var2 = new VariableDeclaration
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Var2",
-                Value = new FunctionCall
+            var var2 = new VariableDeclaration(
+                IntType.Instance,
+                "Var2",
+                new FunctionCall(
+                    "Fun1",
+                    new List<Expression> { new IntegerLiteral(5) { Type = IntType.Instance } })
                 {
-                    Function = "Fun1",
-                    Arguments = new List<Expression> { new IntegerLiteral() { Value = 5, Type = IntType.Instance } },
                     Declaration = fun1,
                     Type = IntType.Instance
-                },
+                })
+            {
                 Type = UnitType.Instance
             };
 
-            FunctionDeclaration fun2 = new FunctionDeclaration
-            {
-                Identifier = "Fun2",
-                ReturnType = IntType.Instance,
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression> {
+            FunctionDeclaration fun2 = new FunctionDeclaration(
+                "Fun2",
+                IntType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
+                    {
                         var2,
-                        new CompoundAssignment
+                        new CompoundAssignment(
+                            new Variable("var2") { Declaration = var2, Type = IntType.Instance },
+                            ArithmeticOperationType.Addition,
+                            new IntegerLiteral(3) { Type = IntType.Instance })
                         {
-                            Lhs = new Variable { Declaration = var2, Identifier = "var2", Type = IntType.Instance },
-                            Operation = ArithmeticOperationType.Addition,
-                            Value = new IntegerLiteral() { Value = 3, Type = IntType.Instance },
                             Type = IntType.Instance
                         },
-                        new ReturnStatement
-                            {
-                                Value = new Variable { Declaration = var2, Identifier = "var2", Type = IntType.Instance },
-                                Type = IntType.Instance
-                            }
-                        },
+                        new ReturnStatement(
+                            new Variable("var2") { Declaration = var2, Type = IntType.Instance })
+                        {
+                            Type = IntType.Instance
+                        }
+                    })
+                {
                     Type = UnitType.Instance
-                },
+                })
+            {
                 Type = UnitType.Instance
             };
-            root.Functions = new List<FunctionDeclaration> { fun1, fun2 };
 
-            return root;
+            var functions = new List<FunctionDeclaration> { fun1, fun2 };
+            return new Program(functions);
         }
 
         private Node GenWrongAst()
@@ -406,142 +345,98 @@
             //     Var2 += 3;
             //     return Var2;
             // }
+            var arg1 = new VariableDeclaration(BoolType.Instance, "Arg1", null);
 
-            Program root = new Program();
+            var var1 = new VariableDeclaration(
+                IntType.Instance,
+                "Var1",
+                new IntegerLiteral(5));
 
-            var arg1 = new VariableDeclaration()
-            {
-                VariableType = BoolType.Instance,
-                Identifier = "Arg1",
-            };
-
-            var var1 = new VariableDeclaration
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Var1",
-                Value = new IntegerLiteral() { Value = 5 }
-            };
-
-            FunctionDeclaration fun1 = new FunctionDeclaration
-            {
-                Identifier = "Fun1",
-                ReturnType = IntType.Instance,
-                Parameters = new List<VariableDeclaration> { arg1 },
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression> {
+            var fun1 = new FunctionDeclaration(
+                "Fun1",
+                IntType.Instance,
+                new List<VariableDeclaration> { arg1 },
+                new InstructionBlock(
+                    new List<Expression>
+                    {
                         var1,
-                        new ReturnStatement
-                            {
-                                Value = new ArithmeticOperation
+                        new ReturnStatement(
+                            new ArithmeticOperation(
+                                ArithmeticOperationType.Addition,
+                                new Variable("Arg1")
                                 {
-                                    OperationType = ArithmeticOperationType.Addition,
-                                    LeftValue = new Variable
-                                    {
-                                        Identifier = "Arg1",
-                                        Declaration = arg1
-                                    },
-                                    RightValue = new Variable
-                                    {
-                                        Identifier = "Var1",
-                                        Declaration = var1
-                                    }
-                                }
-                            }
-                        }
-                }
-            };
+                                    Declaration = arg1
+                                },
+                                new Variable("Var1")
+                                {
+                                    Declaration = var1
+                                }))
+                    }));
 
-            var var2 = new VariableDeclaration
-            {
-                VariableType = IntType.Instance,
-                Identifier = "Var2",
-                Value = new FunctionCall
+            var var2 = new VariableDeclaration(
+                IntType.Instance,
+                "Var2",
+                new FunctionCall(
+                    "Fun1",
+                    new List<Expression> { new IntegerLiteral(5) })
                 {
-                    Function = "Fun1",
-                    Arguments = new List<Expression> { new IntegerLiteral() { Value = 5 } },
                     Declaration = fun1
-                }
-            };
+                });
 
-            FunctionDeclaration fun2 = new FunctionDeclaration
-            {
-                Identifier = "Fun2",
-                ReturnType = UnitType.Instance,
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression> {
+            FunctionDeclaration fun2 = new FunctionDeclaration(
+                "Fun2",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
+                    {
                         var2,
-                        new CompoundAssignment
-                        {
-                            Lhs = new Variable { Declaration = var2, Identifier = "var2" },
-                            Operation = ArithmeticOperationType.Addition,
-                            Value = new IntegerLiteral() { Value = 3 }
-                        },
-                        new ReturnStatement
-                            {
-                                Value = new Variable { Declaration = var2, Identifier = "var2" }
-                            }
-                        }
-                }
-            };
-            root.Functions = new List<FunctionDeclaration> { fun1, fun2 };
+                        new CompoundAssignment(
+                            new Variable("var2") { Declaration = var2 },
+                            ArithmeticOperationType.Addition,
+                            new IntegerLiteral(3)),
+                        new ReturnStatement(
+                            new Variable("var2") { Declaration = var2 })
+                    }));
 
-            return root;
+            var functions = new List<FunctionDeclaration> { fun1, fun2 };
+            return new Program(functions);
         }
 
         private Node SimpleAst()
         {
             // aka SimpleAst.json && SimpleAstTyped.json
-            Program root = new Program();
-
-            FunctionDeclaration fun1 = new FunctionDeclaration
-            {
-                Identifier = "Fun1",
-                ReturnType = IntType.Instance,
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression>
-                        { new ReturnStatement
-                            {
-                                Value = new IntegerLiteral { Value = 5 }
-                            }
-                        }
-                }
-            };
-
-            FunctionDeclaration fun2 = new FunctionDeclaration
-            {
-                Identifier = "Fun2",
-                ReturnType = IntType.Instance,
-                Parameters = new List<VariableDeclaration>(),
-                Body = new InstructionBlock
-                {
-                    Instructions = new List<Expression>
+            var fun1 = new FunctionDeclaration(
+                "Fun1",
+                IntType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
                     {
-                        new ReturnStatement()
-                        {
-                            Value = new ArithmeticOperation
-                            {
-                                OperationType = ArithmeticOperationType.Addition,
-                                LeftValue = new FunctionCall
-                                    {
-                                        Function = "Fun1",
-                                        Declaration = fun1,
-                                        Arguments = new List<Expression>()
-                                    },
-                                RightValue = new IntegerLiteral { Value = 5 }
-                            }
-                        }
-                    }
-                }
-            };
+                        new ReturnStatement(new IntegerLiteral(5))
+                    }));
 
-            root.Functions = new List<FunctionDeclaration> { fun1, fun2 };
+            var fun2 = new FunctionDeclaration(
+                "Fun2",
+                IntType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
+                    {
+                        new ReturnStatement(
+                            new ArithmeticOperation(
+                                ArithmeticOperationType.Addition,
+                                new FunctionCall(
+                                    "Fun1",
+                                    new List<Expression>())
+                                {
+                                    Declaration = fun1
+                                },
+                                new IntegerLiteral(5)))
+                    }));
 
-            return root;
+            var functions = new List<FunctionDeclaration> { fun1, fun2 };
+            return new Program(functions);
         }
     }
 }
