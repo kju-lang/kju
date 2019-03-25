@@ -23,7 +23,7 @@ namespace KJU.Core.Parser
                 Fun.ToRegex(),
                 VariableFunctionIdentifier.ToRegex(),
                 LParen.ToRegex(),
-                CreateListRegex(KjuAlphabet.FunctionParameter.ToRegex(), Colon.ToRegex()),
+                CreateListRegex(KjuAlphabet.FunctionParameter.ToRegex(), Comma.ToRegex()),
                 RParen.ToRegex(),
                 Colon.ToRegex(),
                 TypeIdentifier.ToRegex(),
@@ -39,7 +39,7 @@ namespace KJU.Core.Parser
         public static readonly Rule<KjuAlphabet> Instruction = new Rule<KjuAlphabet>
         {
             Lhs = KjuAlphabet.Instruction,
-            Rhs = Concat(KjuAlphabet.NotDelimeteredInstruction.ToRegex(), Semicolon.ToRegex())
+            Rhs = Concat(KjuAlphabet.NotDelimeteredInstruction.ToRegex().Optional(), Semicolon.ToRegex())
         };
 
         public static readonly Rule<KjuAlphabet> NotDelimeteredInstruction = new Rule<KjuAlphabet>
