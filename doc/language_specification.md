@@ -180,6 +180,8 @@
 
 - entry function: `kju`
 
+    - must exist
+
     - can return Unit or Int
 
     ```
