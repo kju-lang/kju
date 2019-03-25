@@ -1,4 +1,4 @@
-namespace KJU.Application
+namespace KJU.Core.Diagnostics
 {
     using System;
     using System.Collections.Generic;
