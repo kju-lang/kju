@@ -21,8 +21,8 @@
             if (expected == null || result == null)
                 return false;
 
-            List<Node> childrenLeft = expected.Children().ToList();
-            List<Node> childrenRight = expected.Children().ToList();
+            var childrenLeft = expected.Children().ToList();
+            var childrenRight = result.Children().ToList();
 
             if (childrenLeft.Count() != childrenRight.Count())
                 return false;
@@ -67,13 +67,13 @@
 
         public Node JsonToAst(string json)
         {
-            Node result = (JsonConvert.DeserializeObject(
+            Node result = ((HelperStruct)JsonConvert.DeserializeObject(
                 json,
                 new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects,
                     TypeNameHandling = TypeNameHandling.All
-                }) as HelperStruct).Node;
+                })).Node;
 
             this.ConvertTypes(result);
             return result;

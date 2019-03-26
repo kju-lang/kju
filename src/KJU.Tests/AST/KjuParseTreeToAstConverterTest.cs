@@ -16,17 +16,15 @@ namespace KJU.Tests.AST
     public class KjuParseTreeToAstConverterTest
     {
         private readonly Diagnostics diagnostics;
-        private readonly Parser<KjuAlphabet> parser;
         private readonly Dictionary<DataType, string> dataTypeToString;
         private readonly Dictionary<ComparisonType, string> comparisionTypeToString;
         private readonly Dictionary<ArithmeticOperationType, string> arithmeticOperationTypeToString;
         private readonly Dictionary<LogicalBinaryOperationType, string> logicalBinaryOperationTypeToString;
-        private readonly Dictionary<LogicalUnaryOperationType, string> logicalUnaryOperationTypeToString;
+        private readonly Dictionary<UnaryOperationType, string> logicalUnaryOperationTypeToString;
 
         public KjuParseTreeToAstConverterTest()
         {
             this.diagnostics = new Mock<Diagnostics>().Object;
-            this.parser = ParserFactory<KjuAlphabet>.MakeParser(KjuGrammar.Instance, KjuAlphabet.Eof);
 
             this.dataTypeToString = new Dictionary<DataType, string>()
             {
@@ -59,9 +57,11 @@ namespace KJU.Tests.AST
                 [LogicalBinaryOperationType.Or] = "or",
                 [LogicalBinaryOperationType.And] = "and",
             };
-            this.logicalUnaryOperationTypeToString = new Dictionary<LogicalUnaryOperationType, string>()
+            this.logicalUnaryOperationTypeToString = new Dictionary<UnaryOperationType, string>()
             {
-                [LogicalUnaryOperationType.Not] = "!",
+                [UnaryOperationType.Not] = "!",
+                [UnaryOperationType.Plus] = "+",
+                [UnaryOperationType.Minus] = "-",
             };
         }
 
@@ -294,7 +294,7 @@ namespace KJU.Tests.AST
                 fun kju ( ) : Unit {
                     ! true ;
                 }";
-            string expected = "P<fun kju Unit<block<logic !<bool True>>>>";
+            string expected = "P<fun kju Unit<block<unary !<bool True>>>>";
             this.TestTemplate(code, expected);
         }
 
@@ -305,7 +305,18 @@ namespace KJU.Tests.AST
                 fun kju ( ) : Unit {
                    ! ! true ;
                 }";
-            string expected = "P<fun kju Unit<block<logic !<logic !<bool True>>>>>";
+            string expected = "P<fun kju Unit<block<unary !<unary !<bool True>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void UnaryArithmeticOperationsNot()
+        {
+            var code = @"
+                fun kju ( ) : Unit {
+                   -x;
+                }";
+            var expected = "P<fun kju Unit<block<unary -<var x>>>>";
             this.TestTemplate(code, expected);
         }
 
@@ -411,9 +422,9 @@ namespace KJU.Tests.AST
                     op = this.logicalBinaryOperationTypeToString[logicalOperation.BinaryOperationType];
                     builder.Append($"logic {op}");
                     break;
-                case LogicalUnaryOperation logicalOperation:
-                    op = this.logicalUnaryOperationTypeToString[logicalOperation.UnaryOperationType];
-                    builder.Append($"logic {op}");
+                case UnaryOperation unaryOperation:
+                    op = this.logicalUnaryOperationTypeToString[unaryOperation.UnaryOperationType];
+                    builder.Append($"unary {op}");
                     break;
 
                 default:

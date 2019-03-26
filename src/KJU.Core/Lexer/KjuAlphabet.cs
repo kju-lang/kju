@@ -296,7 +296,7 @@ namespace KJU.Core.Lexer
         ExpressionLessThanGreaterThan,
         ExpressionPlusMinus,
         ExpressionTimesDivideModulo,
-        ExpressionLogicalNot,
+        ExpressionUnaryOperator,
         ExpressionAtom,
 
         /// <summary>

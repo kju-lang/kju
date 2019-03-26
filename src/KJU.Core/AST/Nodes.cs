@@ -307,15 +307,15 @@ namespace KJU.Core.AST
         public LogicalBinaryOperationType BinaryOperationType { get; set; }
     }
 
-    public class LogicalUnaryOperation : Expression
+    public class UnaryOperation : Expression
     {
-        public LogicalUnaryOperation(LogicalUnaryOperationType unaryOperationType, Expression value)
+        public UnaryOperation(UnaryOperationType unaryOperationType, Expression value)
         {
             this.UnaryOperationType = unaryOperationType;
             this.Value = value;
         }
 
-        public LogicalUnaryOperationType UnaryOperationType { get; }
+        public UnaryOperationType UnaryOperationType { get; }
 
         public Expression Value { get; }
 

@@ -1,11 +1,17 @@
 namespace KJU.Core.AST
 {
     using System;
+    using System.Collections.Generic;
 
-    public class TypeCheckerException : Exception
+    public class TypeCheckerException : AggregateException
     {
-        public TypeCheckerException(string message)
-            : base(message)
+        public TypeCheckerException(string message, IEnumerable<Exception> innerExceptions)
+            : base(message, innerExceptions)
+        {
+        }
+
+        public TypeCheckerException(string message, params Exception[] innerExceptions)
+            : base(message, innerExceptions)
         {
         }
     }

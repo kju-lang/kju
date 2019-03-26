@@ -175,19 +175,22 @@ namespace KJU.Core.Parser
 
         public static readonly Rule<KjuAlphabet> ExpressionTimesDivideModulo = CreateExpressionRule(
             KjuAlphabet.ExpressionTimesDivideModulo,
-            KjuAlphabet.ExpressionLogicalNot,
+            KjuAlphabet.ExpressionUnaryOperator,
             Star,
             Slash,
             Percent);
 
-        public static readonly Rule<KjuAlphabet> ExpressionLogicalNot = new Rule<KjuAlphabet>
+        public static readonly Rule<KjuAlphabet> ExpressionUnaryOperator = new Rule<KjuAlphabet>
         {
-            Lhs = KjuAlphabet.ExpressionLogicalNot,
+            Lhs = KjuAlphabet.ExpressionUnaryOperator,
             Rhs = Sum(
                 KjuAlphabet.ExpressionAtom.ToRegex(),
                 Concat(
-                    LogicNot.ToRegex(),
-                    KjuAlphabet.ExpressionLogicalNot.ToRegex()))
+                    Sum(
+                        LogicNot.ToRegex(),
+                        Plus.ToRegex(),
+                        Minus.ToRegex()),
+                    KjuAlphabet.ExpressionUnaryOperator.ToRegex()))
         };
 
         public static readonly Rule<KjuAlphabet> Literal = new Rule<KjuAlphabet>
@@ -216,7 +219,7 @@ namespace KJU.Core.Parser
                 Kju, Function, Block, Instruction, NotDelimeteredInstruction, FunctionParameter, FunctionCall,
                 IfStatement, WhileStatement, ReturnStatement, VariableDeclaration, VariableUse, Expression,
                 ExpressionLogicalOr, ExpressionLogicalAnd, ExpressionEqualsNotEquals, ExpressionLessThanGreaterThan,
-                ExpressionPlusMinus, ExpressionTimesDivideModulo, ExpressionLogicalNot, Literal, ExpressionAtom,
+                ExpressionPlusMinus, ExpressionTimesDivideModulo, ExpressionUnaryOperator, Literal, ExpressionAtom,
                 Statement
             })
         };
@@ -226,7 +229,7 @@ namespace KJU.Core.Parser
         {
             return new Rule<KjuAlphabet>
             {
-                Name = "ExpressionRule_" + currentRule.ToString(),
+                Name = $"ExpressionRule_{currentRule}",
                 Lhs = currentRule,
                 Rhs = Concat(
                     nextRule.ToRegex(),

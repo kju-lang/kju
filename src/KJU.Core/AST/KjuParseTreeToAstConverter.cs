@@ -11,10 +11,11 @@ namespace KJU.Core.AST
     {
         public static readonly string TokenCategoryErrorDiagnosticsType = "unexpectedTokenCategory";
         public static readonly string TypeIdentifierErrorDiagnosticsType = "unexpectedTypeIdentifier";
-        public static readonly string AstConversionErrorDiagnosticsType = "AST conversion error";
+        public static readonly string AstConversionErrorDiagnosticsType = "astConversionError";
 
         private readonly Dictionary<KjuAlphabet, ArithmeticOperationType> symbolToOperationType;
         private readonly Dictionary<KjuAlphabet, ComparisonType> symbolToComparisonType;
+        private readonly Dictionary<KjuAlphabet, UnaryOperationType> symbolToUnaryOperationType;
 
         public KjuParseTreeToAstConverter()
         {
@@ -44,11 +45,21 @@ namespace KJU.Core.AST
                 [KjuAlphabet.GreaterThan] = ComparisonType.Greater,
                 [KjuAlphabet.GreaterOrEqual] = ComparisonType.GreaterOrEqual,
             };
+
+            this.symbolToUnaryOperationType = new Dictionary<KjuAlphabet, UnaryOperationType>
+            {
+                [KjuAlphabet.LogicNot] = UnaryOperationType.Not,
+                [KjuAlphabet.Plus] = UnaryOperationType.Plus,
+                [KjuAlphabet.Minus] = UnaryOperationType.Minus
+            };
         }
 
         public Node GenerateAst(ParseTree<KjuAlphabet> parseTree, IDiagnostics diagnostics)
         {
-            return new ConverterProcess(this.symbolToOperationType, this.symbolToComparisonType)
+            return new ConverterProcess(
+                    this.symbolToOperationType,
+                    this.symbolToComparisonType,
+                    this.symbolToUnaryOperationType)
                 .GenerateAst(parseTree, diagnostics);
         }
 
@@ -56,6 +67,7 @@ namespace KJU.Core.AST
         {
             private readonly Dictionary<KjuAlphabet, ArithmeticOperationType> symbolToOperationType;
             private readonly Dictionary<KjuAlphabet, ComparisonType> symbolToComparisonType;
+            private readonly Dictionary<KjuAlphabet, UnaryOperationType> symbolToUnaryOperationType;
 
             private readonly Dictionary<KjuAlphabet, Func<Brunch<KjuAlphabet>, IDiagnostics, Expression>>
                 symbolToGenFunction;
@@ -64,33 +76,36 @@ namespace KJU.Core.AST
 
             public ConverterProcess(
                 Dictionary<KjuAlphabet, ArithmeticOperationType> symbolToOperationType,
-                Dictionary<KjuAlphabet, ComparisonType> symbolToComparisonType)
+                Dictionary<KjuAlphabet, ComparisonType> symbolToComparisonType,
+                Dictionary<KjuAlphabet, UnaryOperationType> symbolToUnaryOperationType)
             {
                 this.symbolToOperationType = symbolToOperationType;
                 this.symbolToComparisonType = symbolToComparisonType;
-                this.symbolToGenFunction = new Dictionary<KjuAlphabet, Func<Brunch<KjuAlphabet>, IDiagnostics, Expression>>()
-                {
-                    [KjuAlphabet.FunctionDeclaration] = this.FunctionDeclarationToAst,
-                    [KjuAlphabet.Block] = this.BlockToAst,
-                    [KjuAlphabet.Instruction] = this.InstructionToAst,
-                    [KjuAlphabet.NotDelimeteredInstruction] = this.NotDelimeteredInstructionToAst,
-                    [KjuAlphabet.FunctionParameter] = this.FunctionParameterToAst,
-                    [KjuAlphabet.IfStatement] = this.IfStatementToAst,
-                    [KjuAlphabet.WhileStatement] = this.WhileStatementToAst,
-                    [KjuAlphabet.ReturnStatement] = this.ReturnStatementToAst,
-                    [KjuAlphabet.VariableDeclaration] = this.VariableDeclarationToAst,
-                    [KjuAlphabet.VariableUse] = this.VariableUseToAst,
-                    [KjuAlphabet.Statement] = this.StatementToAst,
-                    [KjuAlphabet.Expression] = this.ExpressionToAst,
-                    [KjuAlphabet.ExpressionOr] = this.ExpressionLogicalOrToAst,
-                    [KjuAlphabet.ExpressionAnd] = this.ExpressionLogicalAndToAst,
-                    [KjuAlphabet.ExpressionEqualsNotEquals] = this.ExpressionEqualsNotEqualsToAst,
-                    [KjuAlphabet.ExpressionLessThanGreaterThan] = this.ExpressionLessThanGreaterThanToAst,
-                    [KjuAlphabet.ExpressionPlusMinus] = this.ExpressionPlusMinusToAst,
-                    [KjuAlphabet.ExpressionTimesDivideModulo] = this.ExpressionTimesDivideModuloToAst,
-                    [KjuAlphabet.ExpressionLogicalNot] = this.ExpressionLogicalNotToAst,
-                    [KjuAlphabet.Literal] = this.ExpressionAtomToAst,
-                };
+                this.symbolToUnaryOperationType = symbolToUnaryOperationType;
+                this.symbolToGenFunction =
+                    new Dictionary<KjuAlphabet, Func<Brunch<KjuAlphabet>, IDiagnostics, Expression>>()
+                    {
+                        [KjuAlphabet.FunctionDeclaration] = this.FunctionDeclarationToAst,
+                        [KjuAlphabet.Block] = this.BlockToAst,
+                        [KjuAlphabet.Instruction] = this.InstructionToAst,
+                        [KjuAlphabet.NotDelimeteredInstruction] = this.NotDelimeteredInstructionToAst,
+                        [KjuAlphabet.FunctionParameter] = this.FunctionParameterToAst,
+                        [KjuAlphabet.IfStatement] = this.IfStatementToAst,
+                        [KjuAlphabet.WhileStatement] = this.WhileStatementToAst,
+                        [KjuAlphabet.ReturnStatement] = this.ReturnStatementToAst,
+                        [KjuAlphabet.VariableDeclaration] = this.VariableDeclarationToAst,
+                        [KjuAlphabet.VariableUse] = this.VariableUseToAst,
+                        [KjuAlphabet.Statement] = this.StatementToAst,
+                        [KjuAlphabet.Expression] = this.ExpressionToAst,
+                        [KjuAlphabet.ExpressionOr] = this.ExpressionLogicalOrToAst,
+                        [KjuAlphabet.ExpressionAnd] = this.ExpressionLogicalAndToAst,
+                        [KjuAlphabet.ExpressionEqualsNotEquals] = this.ExpressionEqualsNotEqualsToAst,
+                        [KjuAlphabet.ExpressionLessThanGreaterThan] = this.ExpressionLessThanGreaterThanToAst,
+                        [KjuAlphabet.ExpressionPlusMinus] = this.ExpressionPlusMinusToAst,
+                        [KjuAlphabet.ExpressionTimesDivideModulo] = this.ExpressionTimesDivideModuloToAst,
+                        [KjuAlphabet.ExpressionUnaryOperator] = this.ExpressionLogicalNotToAst,
+                        [KjuAlphabet.Literal] = this.ExpressionAtomToAst,
+                    };
             }
 
             public Node GenerateAst(ParseTree<KjuAlphabet> parseTree, IDiagnostics diagnostics)
@@ -592,10 +607,12 @@ namespace KJU.Core.AST
                 }
                 else
                 {
+                    var operationToken = (Token<KjuAlphabet>)branch.Children[0];
+                    var operationTokenCategory = operationToken.Category;
+                    var operationType = this.symbolToUnaryOperationType[operationTokenCategory];
                     var expression =
                         this.ExpressionLogicalNotToAst((Brunch<KjuAlphabet>)branch.Children[1], diagnostics);
-                    var operationType = LogicalUnaryOperationType.Not;
-                    return new LogicalUnaryOperation(operationType, expression);
+                    return new UnaryOperation(operationType, expression);
                 }
             }
 
