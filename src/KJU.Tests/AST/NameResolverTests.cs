@@ -11,7 +11,7 @@
     [TestClass]
     public class NameResolverTests
     {
-        private INameResolver nameResolver = new NameResolver();
+        private readonly INameResolver nameResolver = new NameResolver();
 
         /*
          * fun a()
@@ -35,11 +35,8 @@
             var calls = new List<FunctionCall>();
             foreach (var id in names)
             {
-                var functionName = "b";
-                var arguments = new List<Expression>();
-                var functionCall = new FunctionCall(functionName, arguments);
-                var expressions = new List<Expression> { functionCall };
-                var body = new InstructionBlock(expressions);
+                var functionCall = new FunctionCall("b", new List<Expression>());
+                var body = new InstructionBlock(new List<Expression> { functionCall });
                 var fun = new FunctionDeclaration(
                     id,
                     UnitType.Instance,
@@ -53,9 +50,10 @@
             var resolver = new NameResolver();
             resolver.LinkNames(root, null);
             var bDeclaration = functions[1];
-            var expected = new List<FunctionDeclaration> { bDeclaration, bDeclaration, bDeclaration };
-            var actual = calls.Select(x => x.Declaration).ToList();
-            CollectionAssert.AreEqual(expected, actual);
+            var expected = new List<FunctionDeclaration> { bDeclaration };
+            CollectionAssert.AreEqual(expected, calls[0].DeclarationCandidates);
+            CollectionAssert.AreEqual(expected, calls[1].DeclarationCandidates);
+            CollectionAssert.AreEqual(expected, calls[2].DeclarationCandidates);
         }
 
         /*
@@ -111,7 +109,8 @@
             var resolver = new NameResolver();
             resolver.LinkNames(root, null);
             var expected = new List<Node> { x, h2, x2, f };
-            var actual = new List<Node> { v.Declaration, v3.Declaration, v2.Declaration, fc.Declaration };
+            var actual = new List<Node> { v.Declaration, v3.Declaration, v2.Declaration };
+            actual.AddRange(fc.DeclarationCandidates);
             CollectionAssert.AreEqual(expected, actual);
         }
 
@@ -291,9 +290,8 @@
 
             Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
             MockDiagnostics.Verify(
-                diagnosticsMock,
-                NameResolver.IsNoVariableDiagnostic,
-                NameResolver.IsNoFunctionDiagnostic);
+               diagnosticsMock,
+               NameResolver.IdentifierNotFoundDiagnostic);
         }
     }
 }

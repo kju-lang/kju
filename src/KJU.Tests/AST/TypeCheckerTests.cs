@@ -45,7 +45,7 @@
                             },
                             new FunctionCall("Fun1", new List<Expression>())
                             {
-                                Declaration = fun1
+                                DeclarationCandidates = new List<FunctionDeclaration> { fun1 }
                             })
                     }));
 
@@ -56,7 +56,7 @@
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.LinkTypes(root, diagnostics));
             MockDiagnostics.Verify(
                 diagnosticsMock,
-                TypeChecker.IncorrectNumberOfArgumentsDiagnostic,
+                TypeChecker.FunctionOverloadNotFoundDiagnostic,
                 TypeChecker.IncorrectAssigmentTypeDiagnostic);
         }
 
@@ -263,7 +263,7 @@
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.LinkTypes(root, diagnostics));
             MockDiagnostics.Verify(
                 diagnosticsMock,
-                TypeChecker.IncorrectArgumentTypeDiagnostic,
+                TypeChecker.FunctionOverloadNotFoundDiagnostic,
                 TypeChecker.IncorrectOperandTypeDiagnostic,
                 TypeChecker.IncorrectReturnTypeDiagnostic);
         }
@@ -317,7 +317,7 @@
                     "Fun1",
                     new List<Expression> { new IntegerLiteral(5) })
                 {
-                    Declaration = fun1
+                    DeclarationCandidates = new List<FunctionDeclaration> { fun1 }
                 });
 
             var fun2 = new FunctionDeclaration(
@@ -415,6 +415,7 @@
                     "Fun1",
                     new List<Expression> { new IntegerLiteral(5) { Type = IntType.Instance } })
                 {
+                    DeclarationCandidates = new List<FunctionDeclaration> { fun1 },
                     Declaration = fun1,
                     Type = IntType.Instance
                 })
@@ -503,7 +504,7 @@
                     "Fun1",
                     new List<Expression> { new IntegerLiteral(5) })
                 {
-                    Declaration = fun1
+                    DeclarationCandidates = new List<FunctionDeclaration> { fun1 }
                 });
 
             var fun2 = new FunctionDeclaration(
@@ -553,7 +554,7 @@
                                     "Fun1",
                                     new List<Expression>())
                                 {
-                                    Declaration = fun1
+                                    DeclarationCandidates = new List<FunctionDeclaration> { fun1 }
                                 },
                                 new IntegerLiteral(5)))
                     }));

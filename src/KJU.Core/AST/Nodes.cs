@@ -4,6 +4,7 @@
 namespace KJU.Core.AST
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     public class Expression : Node
     {
@@ -47,12 +48,26 @@ namespace KJU.Core.AST
 
         public InstructionBlock Body { get; }
 
+        public static bool ParametersTypesEquals(FunctionDeclaration left, FunctionDeclaration right)
+        {
+            return ParametersTypesEquals(
+                left.Parameters.Select(x => x.VariableType).ToList(),
+                right.Parameters.Select(x => x.VariableType).ToList());
+        }
+
+        public static bool ParametersTypesEquals(List<DataType> left, List<DataType> right)
+        {
+            return left.SequenceEqual(right);
+        }
+
         public override IEnumerable<Node> Children()
         {
-            var result = new List<Node>();
-            result.AddRange(this.Parameters);
-            result.Add(this.Body);
-            return result;
+            return new List<Node>(this.Parameters) { this.Body };
+        }
+
+        public override string ToString()
+        {
+            return $"{this.ReturnType} {this.Identifier}({string.Join(", ", this.Parameters.Select(x => x.VariableType))})";
         }
     }
 
@@ -136,17 +151,19 @@ namespace KJU.Core.AST
 
     public class FunctionCall : Expression
     {
-        public FunctionCall(string function, IReadOnlyList<Expression> arguments)
+        public FunctionCall(string identifier, IReadOnlyList<Expression> arguments)
         {
-            this.Function = function;
+            this.Identifier = identifier;
             this.Arguments = arguments;
         }
 
-        public string Function { get; }
+        public string Identifier { get; }
 
         public IReadOnlyList<Expression> Arguments { get; }
 
         public FunctionDeclaration Declaration { get; set; }
+
+        public List<FunctionDeclaration> DeclarationCandidates { get; set; }
 
         public override IEnumerable<Node> Children()
         {
@@ -297,7 +314,10 @@ namespace KJU.Core.AST
 
     public class LogicalBinaryOperation : BinaryOperation
     {
-        public LogicalBinaryOperation(LogicalBinaryOperationType binaryOperationType, Expression leftValue, Expression rightValue)
+        public LogicalBinaryOperation(
+            LogicalBinaryOperationType binaryOperationType,
+            Expression leftValue,
+            Expression rightValue)
         {
             this.BinaryOperationType = binaryOperationType;
             this.LeftValue = leftValue;

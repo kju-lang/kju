@@ -10,14 +10,13 @@ namespace KJU.Core.AST
     public class TypeChecker : ITypeChecker
     {
         public const string IncorrectReturnTypeDiagnostic = "incorrectReturnType";
-        public const string IncorrectArgumentTypeDiagnostic = "incorrectArgumentType";
         public const string IncorrectAssigmentTypeDiagnostic = "incorrectAssigmentType";
         public const string IncorrectLeftSideTypeDiagnostic = "incorrectLeftSideType";
         public const string IncorrectRightSideTypeDiagnostic = "incorrectRightSideType";
         public const string IncorrectOperandTypeDiagnostic = "incorrectOperandType";
         public const string IncorrectComparisonTypeDiagnostic = "incorrectComparisonType";
         public const string IncorrectUnaryExpressionTypeDiagnostic = "incorrectUnaryExpressionType";
-        public const string IncorrectNumberOfArgumentsDiagnostic = "incorrectNumberOfArguments";
+        public const string FunctionOverloadNotFoundDiagnostic = "functionOverloadNotFound";
 
         private static readonly IDictionary<UnaryOperationType, DataType> UnaryOperationToType =
             new Dictionary<UnaryOperationType, DataType>
@@ -79,7 +78,7 @@ namespace KJU.Core.AST
 
                         return;
 
-                    case FunctionDeclaration fun:
+                    case FunctionDeclaration _:
                         return;
                 }
 
@@ -89,43 +88,38 @@ namespace KJU.Core.AST
                 }
             }
 
-            private void CheckFunctionArgumentsTypes(FunctionCall funCall)
+            private void DetermineFunctionOverload(FunctionCall funCall)
             {
-                var arguments = funCall.Arguments;
-                var parameters = funCall.Declaration.Parameters;
-                var functionIdentifier = funCall.Declaration.Identifier;
-
-                if (arguments.Count != parameters.Count)
-                {
-                    var message =
-                        $"Incorrect number of arguments of function '{functionIdentifier}'. Expected {arguments.Count}, got {parameters.Count}";
-                    this.AddDiagnostic(
-                        DiagnosticStatus.Error,
-                        IncorrectNumberOfArgumentsDiagnostic,
-                        message,
-                        new List<Range> { funCall.InputRange });
-                    this.exceptions.Add(new TypeCheckerInternalException(message));
-                }
-
-                var pairs = arguments.Zip(
-                    parameters,
-                    (argument, parameter) => new { Argument = argument, Parameter = parameter });
-                foreach (var element in pairs)
-                {
-                    if (!element.Argument.Type.Equals(element.Parameter.VariableType))
+                var callArgumentsTypes = funCall.Arguments.Select(x => x.Type).ToList();
+                var result = funCall.DeclarationCandidates
+                    .FirstOrDefault(candidate =>
                     {
-                        var argumentIdentifier = element.Parameter.Identifier;
-                        var message =
-                            $"Incorrect type of argument '{argumentIdentifier}' of function '{functionIdentifier}'. Expected {element.Parameter.Type}, got {element.Argument.Type}";
-                        this.AddDiagnostic(
-                            DiagnosticStatus.Error,
-                            IncorrectArgumentTypeDiagnostic,
-                            message,
-                            new List<Range>() { funCall.InputRange });
-                        this.exceptions.Add(new TypeCheckerInternalException(
-                            message));
-                    }
+                        var candidateParameterTypes = candidate.Parameters.Select(x => x.VariableType).ToList();
+                        return FunctionDeclaration.ParametersTypesEquals(candidateParameterTypes, callArgumentsTypes);
+                    });
+                if (result != null)
+                {
+                    funCall.Declaration = result;
                 }
+                else
+                {
+                    this.ReportOverloadNotFound(funCall);
+                }
+            }
+
+            private void ReportOverloadNotFound(FunctionCall funCall)
+            {
+                var message =
+                    $"No matching function found for {funCall.Identifier}, found candidates: {string.Join(", ", funCall.DeclarationCandidates)}";
+                var ranges = new List<Range> { funCall.InputRange };
+                ranges.AddRange(funCall.DeclarationCandidates.Select(x => x.InputRange));
+
+                this.AddDiagnostic(
+                    DiagnosticStatus.Error,
+                    FunctionOverloadNotFoundDiagnostic,
+                    message,
+                    ranges);
+                this.exceptions.Add(new TypeCheckerInternalException(message));
             }
 
             private void Dfs(Node node)
@@ -179,9 +173,8 @@ namespace KJU.Core.AST
                         break;
 
                     case FunctionCall funCall:
-                        funCall.Type = funCall.Declaration.ReturnType;
-
-                        this.CheckFunctionArgumentsTypes(funCall);
+                        this.DetermineFunctionOverload(funCall);
+                        funCall.Type = funCall.Declaration?.ReturnType;
                         break;
 
                     case ReturnStatement returnNode:

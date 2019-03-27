@@ -31,16 +31,14 @@
             "$values": []
           },
           "Body": {
-            "$id": "7",
             "$type": "KJU.Core.AST.InstructionBlock, KJU.Core",
             "Instructions": {
               "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.Expression, KJU.Core]], System.Private.CoreLib",
               "$values": [
                 {
-                  "$id": "8",
+                  "$id": "7",
                   "$type": "KJU.Core.AST.ReturnStatement, KJU.Core",
                   "Value": {
-                    "$id": "9",
                     "$type": "KJU.Core.AST.IntegerLiteral, KJU.Core",
                     "Value": 5,
                     "Type": null,
@@ -58,7 +56,7 @@
           "InputRange": null
         },
         {
-          "$id": "10",
+          "$id": "8",
           "$type": "KJU.Core.AST.FunctionDeclaration, KJU.Core",
           "Identifier": "Fun2",
           "ReturnType": {
@@ -69,34 +67,38 @@
             "$values": []
           },
           "Body": {
-            "$id": "11",
             "$type": "KJU.Core.AST.InstructionBlock, KJU.Core",
             "Instructions": {
               "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.Expression, KJU.Core]], System.Private.CoreLib",
               "$values": [
                 {
-                  "$id": "12",
+                  "$id": "9",
                   "$type": "KJU.Core.AST.ReturnStatement, KJU.Core",
                   "Value": {
-                    "$id": "13",
                     "$type": "KJU.Core.AST.ArithmeticOperation, KJU.Core",
                     "OperationType": 0,
                     "LeftValue": {
-                      "$id": "14",
+                      "$id": "10",
                       "$type": "KJU.Core.AST.FunctionCall, KJU.Core",
                       "Function": "Fun1",
                       "Arguments": {
                         "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.Expression, KJU.Core]], System.Private.CoreLib",
                         "$values": []
                       },
-                      "Declaration": {
-                        "$ref": "6"
+                      "Declaration": null,
+                      "DeclarationCandidates": {
+                        "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.FunctionDeclaration, KJU.Core]], System.Private.CoreLib",
+                        "$values": [
+                          {
+                            "$ref": "6"
+                          }
+                        ]
                       },
                       "Type": null,
                       "InputRange": null
                     },
                     "RightValue": {
-                      "$id": "15",
+                      "$id": "11",
                       "$type": "KJU.Core.AST.IntegerLiteral, KJU.Core",
                       "Value": 5,
                       "Type": null,

@@ -383,7 +383,7 @@ namespace KJU.Tests.AST
                     builder.Append("if");
                     break;
                 case FunctionCall functionCall:
-                    builder.Append($"call {functionCall.Function}");
+                    builder.Append($"call {functionCall.Identifier}");
                     break;
                 case ReturnStatement _:
                     builder.Append("return");
