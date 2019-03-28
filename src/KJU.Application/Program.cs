@@ -13,13 +13,14 @@
     {
         public static void Main(string[] args)
         {
+            var compiler = new Compiler();
             foreach (string filename in args)
             {
                 IDiagnostics diag = new TextWriterDiagnostics(Console.Error);
 
                 try
                 {
-                    new Compiler().Run(filename, diag);
+                    compiler.Run(filename, diag);
                 }
                 catch (Exception ex) when (
                        ex is ParseException
@@ -27,8 +28,10 @@
                     || ex is PreprocessorException)
                 {
                 }
-
-                diag.Report();
+                finally
+                {
+                    diag.Report();
+                }
             }
         }
     }
