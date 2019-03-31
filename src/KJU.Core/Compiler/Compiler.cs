@@ -11,12 +11,16 @@ namespace KJU.Core.Compiler
 
     public class Compiler : ICompiler
     {
-        private INameResolver nameResolver;
-        private ITypeChecker typeChecker;
-        private IParseTreeToAstConverter<KjuAlphabet> parseTreeToAstConverter;
-        private Parser<KjuAlphabet> parser;
+        private readonly Parser<KjuAlphabet> parser;
+        private readonly IParseTreeToAstConverter<KjuAlphabet> parseTreeToAstConverter;
+        private readonly INameResolver nameResolver;
+        private readonly ITypeChecker typeChecker;
 
-        public Compiler(Parser<KjuAlphabet> parser, INameResolver nameResolver, ITypeChecker typeChecker, IParseTreeToAstConverter<KjuAlphabet> parseTreeToAstConverter)
+        public Compiler(
+            Parser<KjuAlphabet> parser,
+            IParseTreeToAstConverter<KjuAlphabet> parseTreeToAstConverter,
+            INameResolver nameResolver,
+            ITypeChecker typeChecker)
         {
             this.parser = parser;
             this.nameResolver = nameResolver;
@@ -25,20 +29,30 @@ namespace KJU.Core.Compiler
         }
 
         public Compiler()
-            : this(KjuParserFactory.Instance, new NameResolver(), new TypeChecker(), new KjuParseTreeToAstConverter())
+            : this(KjuParserFactory.Instance, new KjuParseTreeToAstConverter(), new NameResolver(), new TypeChecker())
         {
         }
 
         public void Run(string path, IDiagnostics diag)
         {
-            string data = File.ReadAllText(path);
-            Console.WriteLine($"compiling {data}...");
-            var tree = this.parser.Parse(data, diag);
-            Console.WriteLine($"tree: {tree}");
-            var ast = this.parseTreeToAstConverter.GenerateAst(tree, diag);
-            Console.WriteLine($"ast: {ast}");
-            this.nameResolver.LinkNames(ast, diag);
-            this.typeChecker.LinkTypes(ast, diag);
+            try
+            {
+                var data = File.ReadAllText(path);
+                var tree = this.parser.Parse(data, diag);
+                var ast = this.parseTreeToAstConverter.GenerateAst(tree, diag);
+                this.nameResolver.LinkNames(ast, diag);
+                this.typeChecker.LinkTypes(ast, diag);
+            }
+            catch (Exception ex) when (
+                ex is ParseException
+                || ex is FormatException
+                || ex is PreprocessorException
+                || ex is ParseTreeToAstConverterException
+                || ex is NameResolverException
+                || ex is TypeCheckerException)
+            {
+                throw new CompilerException("Compilation failed.", ex);
+            }
         }
     }
 }

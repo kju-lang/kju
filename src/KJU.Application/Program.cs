@@ -9,23 +9,20 @@
     using KJU.Core.Input;
     using KJU.Core.Parser;
 
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
             var compiler = new Compiler();
-            foreach (string filename in args)
+            foreach (var filename in args)
             {
-                IDiagnostics diag = new TextWriterDiagnostics(Console.Error);
+                var diag = new TextWriterDiagnostics(Console.Error);
 
                 try
                 {
                     compiler.Run(filename, diag);
                 }
-                catch (Exception ex) when (
-                       ex is ParseException
-                    || ex is FormatException
-                    || ex is PreprocessorException)
+                catch (CompilerException)
                 {
                 }
                 finally
