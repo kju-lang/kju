@@ -1,5 +1,8 @@
 <Spec>
     <IsPositive>false</IsPositive>
-    <IsDisabled>true</IsDisabled>
-    <!-- not yet detectable -->
+    <ExpectedMagicStrings>
+        <MagicString>IncorrectOperandType</MagicString>
+        <MagicString>IncorrectOperandType</MagicString>
+        <MagicString>IncorrectUnaryExpressionType</MagicString>
+    </ExpectedMagicStrings>
 </Spec>

@@ -264,21 +264,22 @@
             MockDiagnostics.Verify(
                 diagnosticsMock,
                 TypeChecker.FunctionOverloadNotFoundDiagnostic,
+                TypeChecker.AssignedValueHasNoTypeDiagnostic,
                 TypeChecker.IncorrectOperandTypeDiagnostic,
                 TypeChecker.IncorrectReturnTypeDiagnostic);
         }
 
         private static Node GenUntypedAst()
         {
-            // int Fun1(int Arg1)
+            // int Fun1(Arg1:Int):Int
             // {
-            //     int Var1 = 5;
+            //     var Var1:Int = 5;
             //     return Arg1 + Var1;
             // }
 
-            // int Fun2()
+            // int Fun2():Int
             // {
-            //     int Var2 = Fun1(5);
+            //     var Var2:Int = Fun1(5);
             //     Var2 += 3;
             //     return Var2;
             // }
@@ -457,15 +458,15 @@
 
         private static Node GenWrongAst()
         {
-            // int Fun1(bool Arg1)
+            // int Fun1(Arg1:Bool):Int
             // {
-            //     int Var1 = 5;
+            //     var Var1:Int = 5;
             //     return Arg1 + Var1;
             // }
 
             // unit Fun2()
             // {
-            //     int Var2 = Fun1(5);
+            //     var Var2:Int = Fun1(5);
             //     Var2 += 3;
             //     return Var2;
             // }

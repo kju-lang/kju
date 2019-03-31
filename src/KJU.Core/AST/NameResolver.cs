@@ -180,7 +180,7 @@
             private void ProcessVariable(Variable var, IDiagnostics diagnostics)
             {
                 string id = var.Identifier;
-                if (!this.variables.ContainsKey(id))
+                if (!this.variables.ContainsKey(id) || this.variables[id].Count == 0)
                 {
                     Diagnostic diagnostic = new Diagnostic(
                         DiagnosticStatus.Error,

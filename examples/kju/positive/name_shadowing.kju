@@ -1,6 +1,6 @@
-fun f(){
+fun f():Unit{
 	var f:Int=5;
-	fun f(){
+	fun f():Unit{
 	};
 	f=3;
 	f();

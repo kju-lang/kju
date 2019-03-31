@@ -11,11 +11,13 @@ namespace KJU.Core.AST
     {
         public const string IncorrectReturnTypeDiagnostic = "IncorrectReturnType";
         public const string IncorrectAssigmentTypeDiagnostic = "IncorrectAssigmentType";
+        public const string IncorrectIfPredicateTypeDiagnostic = "IncorrectIfPredicateType";
         public const string IncorrectLeftSideTypeDiagnostic = "IncorrectLeftSideType";
         public const string IncorrectRightSideTypeDiagnostic = "IncorrectRightSideType";
         public const string IncorrectOperandTypeDiagnostic = "IncorrectOperandType";
         public const string IncorrectComparisonTypeDiagnostic = "IncorrectComparisonType";
         public const string IncorrectUnaryExpressionTypeDiagnostic = "IncorrectUnaryExpressionType";
+        public const string AssignedValueHasNoTypeDiagnostic = "AssignedValueHasNoType";
         public const string FunctionOverloadNotFoundDiagnostic = "FunctionOverloadNotFound";
 
         private static readonly IDictionary<UnaryOperationType, DataType> UnaryOperationToType =
@@ -161,6 +163,35 @@ namespace KJU.Core.AST
                             throw new TypeCheckerException("Type checking failed.", this.exceptions);
                         }
 
+                        if (variable.Value != null)
+                        {
+                            var variableValueType = variable.Value.Type;
+                            if (variableValueType == null)
+                            {
+                                var identifier = variable.Identifier;
+                                var message =
+                                    $"Incorrect assignment variable '{identifier}' has no type.";
+                                this.AddDiagnostic(
+                                    DiagnosticStatus.Error,
+                                    AssignedValueHasNoTypeDiagnostic,
+                                    message,
+                                    new List<Range> { variable.InputRange });
+                                this.exceptions.Add(new TypeCheckerInternalException(message));
+                            }
+                            else if (!variable.Value.Type.Equals(variable.VariableType))
+                            {
+                                var identifier = variable.Identifier;
+                                var message =
+                                    $"Incorrect assignment value type of '{identifier}'. Expected {variable.VariableType}, got {variable.Value.Type}";
+                                this.AddDiagnostic(
+                                    DiagnosticStatus.Error,
+                                    IncorrectAssigmentTypeDiagnostic,
+                                    message,
+                                    new List<Range> { variable.InputRange });
+                                this.exceptions.Add(new TypeCheckerInternalException(message));
+                            }
+                        }
+
                         variable.Type = UnitType.Instance;
                         break;
 
@@ -169,6 +200,19 @@ namespace KJU.Core.AST
                         break;
 
                     case IfStatement ifNode:
+                        var conditionType = ifNode.Condition.Type;
+                        if (!BoolType.Instance.Equals(conditionType))
+                        {
+                            var message =
+                                $"If type must be {BoolType.Instance} got {conditionType}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectIfPredicateTypeDiagnostic,
+                                message,
+                                new List<Range> { ifNode.Condition.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+
                         ifNode.Type = UnitType.Instance;
                         break;
 
@@ -191,6 +235,10 @@ namespace KJU.Core.AST
 
                     case IntegerLiteral integerNode:
                         integerNode.Type = IntType.Instance;
+                        break;
+
+                    case UnitLiteral unitNode:
+                        unitNode.Type = UnitType.Instance;
                         break;
 
                     case Assignment assignmentNode:
@@ -311,6 +359,30 @@ namespace KJU.Core.AST
                         }
 
                         unaryOperation.Type = expectedType;
+                        break;
+                    case LogicalBinaryOperation logicalBinaryOperation:
+                        foreach (var operand in new List<Expression>()
+                            { logicalBinaryOperation.LeftValue, logicalBinaryOperation.RightValue })
+                        {
+                            var type = operand.Type;
+                            if (type == null)
+                            {
+                                throw new TypeCheckerInternalException("Operand type is null");
+                            }
+
+                            if (!type.Equals(BoolType.Instance))
+                            {
+                                var message = $"Incorrect operand type: expected {IntType.Instance}, got {type}";
+                                this.AddDiagnostic(
+                                    DiagnosticStatus.Error,
+                                    IncorrectOperandTypeDiagnostic,
+                                    message,
+                                    new List<Range> { operand.InputRange });
+                                this.exceptions.Add(new TypeCheckerInternalException(message));
+                            }
+                        }
+
+                        logicalBinaryOperation.Type = BoolType.Instance;
                         break;
                     case Expression e:
                         this.exceptions.Add(

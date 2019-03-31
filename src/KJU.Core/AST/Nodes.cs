@@ -67,7 +67,8 @@ namespace KJU.Core.AST
 
         public override string ToString()
         {
-            return $"{this.ReturnType} {this.Identifier}({string.Join(", ", this.Parameters.Select(x => x.VariableType))})";
+            return
+                $"{this.ReturnType} {this.Identifier}({string.Join(", ", this.Parameters.Select(x => x.VariableType))})";
         }
     }
 
@@ -229,6 +230,13 @@ namespace KJU.Core.AST
         }
 
         public long Value { get; }
+    }
+
+    public class UnitLiteral : Expression
+    {
+        public UnitLiteral()
+        {
+        }
     }
 
     public class Assignment : Expression

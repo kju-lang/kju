@@ -16,7 +16,7 @@ namespace KJU.Core.Lexer
 
             var tokenCategories = new Dictionary<KjuAlphabet, string>
             {
-                { KjuAlphabet.Whitespace, "[ \n\r\t][ \n\r\t]*" },
+                { KjuAlphabet.Whitespace, "[ \n\r\t\u000b\u000c][ \n\r\t\u000b\u000c]*" },
                 { KjuAlphabet.LBrace, "{" },
                 { KjuAlphabet.RBrace, "}" },
                 { KjuAlphabet.LParen, "\\(" },

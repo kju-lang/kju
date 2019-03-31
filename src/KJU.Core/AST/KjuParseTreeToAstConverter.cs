@@ -332,7 +332,7 @@ namespace KJU.Core.AST
 
             private Expression InstructionToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
-                return this.NotDelimeteredInstructionToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                return branch.Children.Count == 1 ? new UnitLiteral() : this.NotDelimeteredInstructionToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
             }
 
             private Expression NotDelimeteredInstructionToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)

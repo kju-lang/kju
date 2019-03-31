@@ -27,10 +27,10 @@ fun isPrimeFast(n : Int) : Bool
     else {};
 
     var a : Int = 0;
-    a += checkCompositeWitness(2, d, r);
-    a += checkCompositeWitness(3, d, r);
-    a += checkCompositeWitness(5, d, r);
-    a += checkCompositeWitness(7, d, r);
+    a += checkCompositeWitness(2, n);
+    a += checkCompositeWitness(3, n);
+    a += checkCompositeWitness(5, n);
+    a += checkCompositeWitness(7, n);
 
     if (a > 0)
     then
