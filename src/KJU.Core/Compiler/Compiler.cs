@@ -37,7 +37,7 @@ namespace KJU.Core.Compiler
         {
             try
             {
-                var data = File.ReadAllText(path);
+                var data = new FileInputReader(path).Read();
                 var tree = this.parser.Parse(data, diag);
                 var ast = this.parseTreeToAstConverter.GenerateAst(tree, diag);
                 this.nameResolver.LinkNames(ast, diag);
