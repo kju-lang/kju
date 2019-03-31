@@ -24,6 +24,7 @@
                 }
                 catch (CompilerException)
                 {
+                    Console.WriteLine("Compilation failed");
                 }
                 finally
                 {
