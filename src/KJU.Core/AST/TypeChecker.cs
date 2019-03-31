@@ -9,14 +9,14 @@ namespace KJU.Core.AST
 
     public class TypeChecker : ITypeChecker
     {
-        public const string IncorrectReturnTypeDiagnostic = "incorrectReturnType";
-        public const string IncorrectAssigmentTypeDiagnostic = "incorrectAssigmentType";
-        public const string IncorrectLeftSideTypeDiagnostic = "incorrectLeftSideType";
-        public const string IncorrectRightSideTypeDiagnostic = "incorrectRightSideType";
-        public const string IncorrectOperandTypeDiagnostic = "incorrectOperandType";
-        public const string IncorrectComparisonTypeDiagnostic = "incorrectComparisonType";
-        public const string IncorrectUnaryExpressionTypeDiagnostic = "incorrectUnaryExpressionType";
-        public const string FunctionOverloadNotFoundDiagnostic = "functionOverloadNotFound";
+        public const string IncorrectReturnTypeDiagnostic = "IncorrectReturnType";
+        public const string IncorrectAssigmentTypeDiagnostic = "IncorrectAssigmentType";
+        public const string IncorrectLeftSideTypeDiagnostic = "IncorrectLeftSideType";
+        public const string IncorrectRightSideTypeDiagnostic = "IncorrectRightSideType";
+        public const string IncorrectOperandTypeDiagnostic = "IncorrectOperandType";
+        public const string IncorrectComparisonTypeDiagnostic = "IncorrectComparisonType";
+        public const string IncorrectUnaryExpressionTypeDiagnostic = "IncorrectUnaryExpressionType";
+        public const string FunctionOverloadNotFoundDiagnostic = "FunctionOverloadNotFound";
 
         private static readonly IDictionary<UnaryOperationType, DataType> UnaryOperationToType =
             new Dictionary<UnaryOperationType, DataType>
