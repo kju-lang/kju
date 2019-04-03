@@ -15,7 +15,7 @@
     public class TypeCheckerTests
     {
         private readonly TypeCheckerHelper helper = new TypeCheckerHelper();
-        private readonly ITypeChecker typeChecker = new TypeChecker();
+        private readonly IPhase typeChecker = new TypeChecker();
 
         [TestMethod]
         public void IncorrectNumberOfArguments()
@@ -53,7 +53,7 @@
             var root = new Program(functions);
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.LinkTypes(root, diagnostics));
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
             MockDiagnostics.Verify(
                 diagnosticsMock,
                 TypeChecker.FunctionOverloadNotFoundDiagnostic,
@@ -94,7 +94,7 @@
             Node root = new Program(functions);
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.LinkTypes(root, diagnostics));
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
             MockDiagnostics.Verify(
                 diagnosticsMock,
                 TypeChecker.IncorrectLeftSideTypeDiagnostic,
@@ -183,7 +183,7 @@
             Node root = new Program(functions);
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            this.typeChecker.LinkTypes(root, diagnostics);
+            this.typeChecker.Run(root, diagnostics);
             Assert.IsTrue(this.helper.TypeCompareAst(expectedRoot, root));
             MockDiagnostics.Verify(diagnosticsMock);
         }
@@ -222,7 +222,7 @@
             Node root = new Program(functions);
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.LinkTypes(root, diagnostics));
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
             MockDiagnostics.Verify(
                 diagnosticsMock,
                 TypeChecker.IncorrectUnaryExpressionTypeDiagnostic,
@@ -237,7 +237,7 @@
             var expectedRoot = this.helper.JsonToAst(File.ReadAllText("../../../AST/SimpleAstTyped.json"));
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            this.typeChecker.LinkTypes(root, diagnostics);
+            this.typeChecker.Run(root, diagnostics);
             Assert.IsTrue(this.helper.TypeCompareAst(expectedRoot, root));
             MockDiagnostics.Verify(diagnosticsMock);
         }
@@ -249,7 +249,7 @@
             var expectedRoot = GenCorrectlyTypedAst();
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            this.typeChecker.LinkTypes(root, diagnostics);
+            this.typeChecker.Run(root, diagnostics);
             Assert.IsTrue(this.helper.TypeCompareAst(expectedRoot, root));
             MockDiagnostics.Verify(diagnosticsMock);
         }
@@ -260,7 +260,7 @@
             var root = GenWrongAst();
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.LinkTypes(root, diagnostics));
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
             MockDiagnostics.Verify(
                 diagnosticsMock,
                 TypeChecker.FunctionOverloadNotFoundDiagnostic,

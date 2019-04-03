@@ -7,7 +7,7 @@ namespace KJU.Core.AST
     using KJU.Core.AST.BuiltinTypes;
     using KJU.Core.Lexer;
 
-    public class TypeChecker : ITypeChecker
+    public class TypeChecker : IPhase
     {
         public const string IncorrectReturnTypeDiagnostic = "IncorrectReturnType";
         public const string IncorrectAssigmentTypeDiagnostic = "IncorrectAssigmentType";
@@ -28,7 +28,7 @@ namespace KJU.Core.AST
                 [UnaryOperationType.Minus] = IntType.Instance
             };
 
-        public void LinkTypes(Node root, IDiagnostics diagnostics)
+        public void Run(Node root, IDiagnostics diagnostics)
         {
             new TypeCheckerProcess(diagnostics).LinkTypes(root);
         }

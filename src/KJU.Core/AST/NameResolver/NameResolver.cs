@@ -6,12 +6,12 @@
     using Diagnostics;
     using Lexer;
 
-    public class NameResolver : INameResolver
+    public class NameResolver : IPhase
     {
         public const string MultipleDeclarationsDiagnostic = "NameResolverMultipleDeclarations";
         public const string IdentifierNotFoundDiagnostic = "NameResolverIdentifierNotFound";
 
-        public void LinkNames(Node root, IDiagnostics diagnostics)
+        public void Run(Node root, IDiagnostics diagnostics)
         {
             new ResolveProcess().Process(root, diagnostics);
         }

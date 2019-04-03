@@ -11,7 +11,7 @@
     [TestClass]
     public class NameResolverTests
     {
-        private readonly INameResolver nameResolver = new NameResolver();
+        private readonly IPhase nameResolver = new NameResolver();
 
         /*
          * fun a()
@@ -48,7 +48,7 @@
 
             var root = new Program(functions);
             var resolver = new NameResolver();
-            resolver.LinkNames(root, null);
+            resolver.Run(root, null);
             var bDeclaration = functions[1];
             var expected = new List<FunctionDeclaration> { bDeclaration };
             CollectionAssert.AreEqual(expected, calls[0].DeclarationCandidates);
@@ -107,7 +107,7 @@
             var root = new Program(functions);
 
             var resolver = new NameResolver();
-            resolver.LinkNames(root, null);
+            resolver.Run(root, null);
             var expected = new List<Node> { x, h2, x2, f };
             var actual = new List<Node> { v.Declaration, v3.Declaration, v2.Declaration };
             actual.AddRange(fc.DeclarationCandidates);
@@ -140,7 +140,7 @@
             var functions = new List<FunctionDeclaration> { f };
             var root = new Program(functions);
 
-            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(root, diagnostics));
             MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
@@ -174,7 +174,7 @@
             var functions = new List<FunctionDeclaration> { f, f2 };
             var root = new Program(functions);
 
-            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(root, diagnostics));
             MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
@@ -218,7 +218,7 @@
             var functions = new List<FunctionDeclaration> { f };
             var root = new Program(functions);
 
-            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(root, diagnostics));
             MockDiagnostics.Verify(diagnosticsMock, NameResolver.MultipleDeclarationsDiagnostic);
         }
 
@@ -251,7 +251,7 @@
             var functions = new List<FunctionDeclaration> { f };
             var root = new Program(functions);
 
-            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(root, diagnostics));
             MockDiagnostics.Verify(
                 mockDiagnostics,
                 NameResolver.IdentifierNotFoundDiagnostic,
@@ -288,7 +288,7 @@
             var functions = new List<FunctionDeclaration> { f };
             var root = new Program(functions);
 
-            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.LinkNames(root, diagnostics));
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(root, diagnostics));
             MockDiagnostics.Verify(
                diagnosticsMock,
                NameResolver.IdentifierNotFoundDiagnostic);

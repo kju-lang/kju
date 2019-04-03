@@ -2,46 +2,39 @@ namespace KJU.Core.Compiler
 {
     using System;
     using System.IO;
-    using KJU.Core;
-    using KJU.Core.AST;
-    using KJU.Core.Diagnostics;
-    using KJU.Core.Input;
-    using KJU.Core.Lexer;
-    using KJU.Core.Parser;
+    using AST;
+    using AST.ReturnChecker;
+    using Diagnostics;
+    using Input;
+    using Lexer;
+    using Parser;
 
     public class Compiler : ICompiler
     {
-        private readonly Parser<KjuAlphabet> parser;
-        private readonly IParseTreeToAstConverter<KjuAlphabet> parseTreeToAstConverter;
-        private readonly INameResolver nameResolver;
-        private readonly ITypeChecker typeChecker;
+        private readonly Parser<KjuAlphabet> parser = KjuParserFactory.Instance;
 
-        public Compiler(
-            Parser<KjuAlphabet> parser,
-            IParseTreeToAstConverter<KjuAlphabet> parseTreeToAstConverter,
-            INameResolver nameResolver,
-            ITypeChecker typeChecker)
-        {
-            this.parser = parser;
-            this.nameResolver = nameResolver;
-            this.typeChecker = typeChecker;
-            this.parseTreeToAstConverter = parseTreeToAstConverter;
-        }
+        private readonly IParseTreeToAstConverter<KjuAlphabet> parseTreeToAstConverter =
+            new KjuParseTreeToAstConverter();
 
-        public Compiler()
-            : this(KjuParserFactory.Instance, new KjuParseTreeToAstConverter(), new NameResolver(), new TypeChecker())
-        {
-        }
+        private readonly IPhase nameResolver = new NameResolver();
+        private readonly IPhase typeChecker = new TypeChecker();
+        private readonly IPhase returnChecker = new ReturnChecker();
 
         public void Run(string path, IDiagnostics diag)
         {
+            var data = File.ReadAllText(path);
+            this.RunOnText(data, diag);
+        }
+
+        public void RunOnText(string data, IDiagnostics diag)
+        {
             try
             {
-                var data = new FileInputReader(path).Read();
                 var tree = this.parser.Parse(data, diag);
                 var ast = this.parseTreeToAstConverter.GenerateAst(tree, diag);
-                this.nameResolver.LinkNames(ast, diag);
-                this.typeChecker.LinkTypes(ast, diag);
+                this.nameResolver.Run(ast, diag);
+                this.typeChecker.Run(ast, diag);
+                this.returnChecker.Run(ast, diag);
             }
             catch (Exception ex) when (
                 ex is ParseException
