@@ -1,9 +1,10 @@
 namespace KJU.Core.Compiler
 {
     using Diagnostics;
+    using KJU.Core.Input;
 
     public interface ICompiler
     {
-        void Run(string path, IDiagnostics diagnostics);
+        void RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics);
     }
 }

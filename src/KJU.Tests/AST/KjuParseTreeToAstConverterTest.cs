@@ -9,6 +9,7 @@ namespace KJU.Tests.AST
     using KJU.Core.Diagnostics;
     using KJU.Core.Lexer;
     using KJU.Core.Parser;
+    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
 
@@ -344,9 +345,7 @@ namespace KJU.Tests.AST
 
         private void TestTemplate(string code, string expectedAstSerialization)
         {
-            var parseTree = KjuParserFactory.Instance.Parse(code, this.diagnostics);
-
-            var ast = new KjuParseTreeToAstConverter().GenerateAst(parseTree, null);
+            var ast = KjuCompilerUtils.GenerateAst(code, this.diagnostics);
 
             Assert.AreEqual(expectedAstSerialization, this.SerializeAst(ast));
         }

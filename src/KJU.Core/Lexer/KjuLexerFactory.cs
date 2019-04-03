@@ -6,11 +6,9 @@ namespace KJU.Core.Lexer
     using System.Text;
     using KJU.Core.Input;
 
-    public class KjuLexerFactory
+    public static class KjuLexerFactory
     {
-        public static readonly Lexer<KjuAlphabet> Instance = CreateLexer();
-
-        private static Lexer<KjuAlphabet> CreateLexer()
+        public static Lexer<KjuAlphabet> CreateLexer()
         {
             var resolver = new ConflictResolver<KjuAlphabet>(KjuAlphabet.None);
 
@@ -59,8 +57,7 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.PercentAssign, "%=" }
             };
 
-            var lexer = new Lexer<KjuAlphabet>(tokenCategories, KjuAlphabet.Eof, KjuAlphabet.None, resolver.ResolveWithMinValue);
-            return lexer;
+            return new Lexer<KjuAlphabet>(tokenCategories, KjuAlphabet.Eof, KjuAlphabet.None, resolver.ResolveWithMinValue);
         }
     }
 }

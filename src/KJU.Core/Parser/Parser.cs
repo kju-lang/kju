@@ -11,10 +11,10 @@ namespace KJU.Core.Parser
 
     public class Parser<TLabel>
     {
-        public const string UnexpectedSymbolDiagnosticType = "UnexpectedSymbol";
-        public const string PrematureEofDiagnosticType = "PrematureEof";
-        public const string InvalidReduceActionDiagnosticType = "InvalidReduceAction";
-        public const string ParsingFinishedBeforeEofDiagnosticType = "ParsingFinishedBeforeEof";
+        public const string UnexpectedSymbolDiagnosticType = "Parser.UnexpectedSymbol";
+        public const string PrematureEofDiagnosticType = "Parser.PrematureEof";
+        public const string InvalidReduceActionDiagnosticType = "Parser.InvalidReduceAction";
+        public const string ParsingFinishedBeforeEofDiagnosticType = "Parser.ParsingFinishedBeforeEof";
 
         private readonly CompiledGrammar<TLabel> grammar;
 

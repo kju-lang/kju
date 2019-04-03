@@ -1,24 +1,24 @@
-namespace KJU.Core.AST
+namespace KJU.Core.AST.TypeChecker
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using BuiltinTypes;
     using Diagnostics;
-    using KJU.Core.AST.BuiltinTypes;
-    using KJU.Core.Lexer;
+    using Lexer;
 
     public class TypeChecker : IPhase
     {
-        public const string IncorrectReturnTypeDiagnostic = "IncorrectReturnType";
-        public const string IncorrectAssigmentTypeDiagnostic = "IncorrectAssigmentType";
-        public const string IncorrectIfPredicateTypeDiagnostic = "IncorrectIfPredicateType";
-        public const string IncorrectLeftSideTypeDiagnostic = "IncorrectLeftSideType";
-        public const string IncorrectRightSideTypeDiagnostic = "IncorrectRightSideType";
-        public const string IncorrectOperandTypeDiagnostic = "IncorrectOperandType";
-        public const string IncorrectComparisonTypeDiagnostic = "IncorrectComparisonType";
-        public const string IncorrectUnaryExpressionTypeDiagnostic = "IncorrectUnaryExpressionType";
-        public const string AssignedValueHasNoTypeDiagnostic = "AssignedValueHasNoType";
-        public const string FunctionOverloadNotFoundDiagnostic = "FunctionOverloadNotFound";
+        public const string IncorrectReturnTypeDiagnostic = "TypeChecker.IncorrectReturnType";
+        public const string IncorrectAssigmentTypeDiagnostic = "TypeChecker.IncorrectAssigmentType";
+        public const string IncorrectIfPredicateTypeDiagnostic = "TypeChecker.IncorrectIfPredicateType";
+        public const string IncorrectLeftSideTypeDiagnostic = "TypeChecker.IncorrectLeftSideType";
+        public const string IncorrectRightSideTypeDiagnostic = "TypeChecker.IncorrectRightSideType";
+        public const string IncorrectOperandTypeDiagnostic = "TypeChecker.IncorrectOperandType";
+        public const string IncorrectComparisonTypeDiagnostic = "TypeChecker.IncorrectComparisonType";
+        public const string IncorrectUnaryExpressionTypeDiagnostic = "TypeChecker.IncorrectUnaryExpressionType";
+        public const string AssignedValueHasNoTypeDiagnostic = "TypeChecker.AssignedValueHasNoType";
+        public const string FunctionOverloadNotFoundDiagnostic = "TypeChecker.FunctionOverloadNotFound";
 
         private static readonly IDictionary<UnaryOperationType, DataType> UnaryOperationToType =
             new Dictionary<UnaryOperationType, DataType>
@@ -383,6 +383,8 @@ namespace KJU.Core.AST
                         }
 
                         logicalBinaryOperation.Type = BoolType.Instance;
+                        break;
+                    case BreakStatement _:
                         break;
                     case Expression e:
                         this.exceptions.Add(

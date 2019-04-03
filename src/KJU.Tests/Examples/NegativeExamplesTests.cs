@@ -34,7 +34,7 @@ namespace KJU.Tests.Examples
             var compiler = new Compiler();
             var diag = new Mock<IDiagnostics>();
 
-            Assert.ThrowsException<CompilerException>(() => compiler.Run(example.Path, diag.Object));
+            Assert.ThrowsException<CompilerException>(() => compiler.RunOnFile(example.Path, diag.Object));
 
             MockDiagnostics.Verify(diag, example.ExpectedMagicStrings.ToArray());
         }

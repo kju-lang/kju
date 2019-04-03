@@ -57,17 +57,28 @@ namespace KJU.Tests.Parser
         [Ignore]
         public void HarderParenTest()
         {
-            var grammar = new Grammar<ParenAlphabet>();
-            grammar.Rules = new List<Rule<ParenAlphabet>>() {
-                new Rule<ParenAlphabet> { Name = "paren", Lhs = ParenAlphabet.Expr, Rhs = Concat<ParenAlphabet>(
+            var grammar = new Grammar<ParenAlphabet>
+            {
+                Rules = new List<Rule<ParenAlphabet>>()
+                {
+                    new Rule<ParenAlphabet>
+                    {
+                        Name = "paren",
+                        Lhs = ParenAlphabet.Expr,
+                        Rhs = Concat(
                             ParenAlphabet.L.ToRegex(),
                             ParenAlphabet.Expr.ToRegex(),
                             ParenAlphabet.S.ToRegex(),
-                            ParenAlphabet.R.ToRegex()) },
-                new Rule<ParenAlphabet> { Name = "X", Lhs = ParenAlphabet.Expr, Rhs = ParenAlphabet.X.ToRegex() },
-                new Rule<ParenAlphabet> { Name = "SY", Lhs = ParenAlphabet.S, Rhs = ParenAlphabet.Y.ToRegex().Optional() },
+                            ParenAlphabet.R.ToRegex())
+                    },
+                    new Rule<ParenAlphabet> { Name = "X", Lhs = ParenAlphabet.Expr, Rhs = ParenAlphabet.X.ToRegex() },
+                    new Rule<ParenAlphabet>
+                    {
+                        Name = "SY", Lhs = ParenAlphabet.S, Rhs = ParenAlphabet.Y.ToRegex().Optional()
+                    },
+                },
+                StartSymbol = ParenAlphabet.Expr
             };
-            grammar.StartSymbol = ParenAlphabet.Expr;
 
             var compiledGrammar = GrammarCompiler<ParenAlphabet>.CompileGrammar(grammar);
 

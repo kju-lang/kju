@@ -1,0 +1,12 @@
+fun f(x:Bool):Bool{
+	return x;
+}
+
+fun f(x:Int):Int{
+	return x;
+}
+
+fun kju():Unit{
+    var x:Bool = f(true);
+    var y:Int = f(5);
+}

@@ -33,7 +33,7 @@ namespace KJU.Tests.Examples
             var compiler = new Compiler();
             var diag = new Mock<IDiagnostics>();
 
-            compiler.Run(example.Path, diag.Object);
+            compiler.RunOnFile(example.Path, diag.Object);
 
             MockDiagnostics.Verify(diag, example.ExpectedMagicStrings.ToArray());
         }

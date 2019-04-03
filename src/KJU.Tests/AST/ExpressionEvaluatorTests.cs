@@ -83,8 +83,7 @@ namespace KJU.Tests.AST
         {
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            var tree = KjuParserFactory.Instance.Parse($"fun kju(): Unit {{ return {data}; }}", diagnostics);
-            var ast = new KjuParseTreeToAstConverter().GenerateAst(tree, diagnostics);
+            var ast = KjuCompilerUtils.GenerateAst($"fun kju(): Unit {{ return {data}; }}", diagnostics);
             return ((ReturnStatement)((Program)ast).Functions[0].Body.Instructions[0]).Value;
         }
     }

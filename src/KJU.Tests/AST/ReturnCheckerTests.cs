@@ -42,7 +42,7 @@ namespace KJU.Tests.AST
             },
             new object[]
             {
-                "fun foo(): Int { while x {}; return 5; }",
+                "fun foo(): Int { var x:Bool = true; while x {}; return 5; }",
                 new string[] { }
             },
             new object[]
@@ -106,7 +106,7 @@ namespace KJU.Tests.AST
             },
             new object[]
             {
-                "fun foo(): Int { while x {}; }",
+                "fun foo(): Int { var x:Bool = true; while x {}; }",
                 new[] { ReturnChecker.MissingReturnDiagnostic }
             },
             new object[]
@@ -137,7 +137,7 @@ namespace KJU.Tests.AST
         {
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            Compile(data, diagnostics);
+            KjuCompilerUtils.MakeAstWithReturnsChecked(data, diagnostics);
             MockDiagnostics.Verify(diagnosticsMock, diagTypes);
         }
 
@@ -147,15 +147,11 @@ namespace KJU.Tests.AST
         {
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
-            Assert.ThrowsException<ReturnCheckerException>(() => Compile(data, diagnostics));
+            Assert.ThrowsException<ReturnCheckerException>(() =>
+            {
+                KjuCompilerUtils.MakeAstWithReturnsChecked(data, diagnostics);
+            });
             MockDiagnostics.Verify(diagnosticsMock, diagTypes);
-        }
-
-        private static void Compile(string data, IDiagnostics diagnostics)
-        {
-            var tree = KjuParserFactory.Instance.Parse(data, diagnostics);
-            var ast = new KjuParseTreeToAstConverter().GenerateAst(tree, diagnostics);
-            new ReturnChecker().Run(ast, diagnostics);
         }
     }
 }

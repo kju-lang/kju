@@ -2,8 +2,10 @@ namespace KJU.Core.Compiler
 {
     using System;
     using System.IO;
+    using System.Linq;
     using AST;
     using AST.ReturnChecker;
+    using AST.TypeChecker;
     using Diagnostics;
     using Input;
     using Lexer;
@@ -11,7 +13,11 @@ namespace KJU.Core.Compiler
 
     public class Compiler : ICompiler
     {
-        private readonly Parser<KjuAlphabet> parser = KjuParserFactory.Instance;
+        private readonly Preprocessor preprocessor = new Preprocessor();
+        private readonly Lexer<KjuAlphabet> lexer = KjuLexerFactory.CreateLexer();
+
+        private readonly Parser<KjuAlphabet> parser =
+            ParserFactory<KjuAlphabet>.MakeParser(KjuGrammar.Instance, KjuAlphabet.Eof);
 
         private readonly IParseTreeToAstConverter<KjuAlphabet> parseTreeToAstConverter =
             new KjuParseTreeToAstConverter();
@@ -20,29 +26,27 @@ namespace KJU.Core.Compiler
         private readonly IPhase typeChecker = new TypeChecker();
         private readonly IPhase returnChecker = new ReturnChecker();
 
-        public void Run(string path, IDiagnostics diag)
-        {
-            var data = File.ReadAllText(path);
-            this.RunOnText(data, diag);
-        }
-
-        public void RunOnText(string data, IDiagnostics diag)
+        public void RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics)
         {
             try
             {
-                var tree = this.parser.Parse(data, diag);
-                var ast = this.parseTreeToAstConverter.GenerateAst(tree, diag);
-                this.nameResolver.Run(ast, diag);
-                this.typeChecker.Run(ast, diag);
-                this.returnChecker.Run(ast, diag);
+                var input = inputReader.Read();
+                var preprocessed = this.preprocessor.PreprocessInput(input, diagnostics);
+                var tokens = this.lexer.Scan(preprocessed, diagnostics);
+                var tokensFiltered = tokens.Where(x => !KjuAlphabet.Whitespace.Equals(x.Category));
+                var tree = this.parser.Parse(tokensFiltered, diagnostics);
+                var ast = this.parseTreeToAstConverter.GenerateAst(tree, diagnostics);
+                this.nameResolver.Run(ast, diagnostics);
+                this.typeChecker.Run(ast, diagnostics);
+                this.returnChecker.Run(ast, diagnostics);
             }
             catch (Exception ex) when (
-                ex is ParseException
-                || ex is FormatException
-                || ex is PreprocessorException
+                ex is PreprocessorException
+                || ex is ParseException
                 || ex is ParseTreeToAstConverterException
                 || ex is NameResolverException
-                || ex is TypeCheckerException)
+                || ex is TypeCheckerException
+                || ex is ReturnCheckerException)
             {
                 throw new CompilerException("Compilation failed.", ex);
             }

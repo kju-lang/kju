@@ -1,6 +1,0 @@
-<Spec>
-    <IsPositive>false</IsPositive>
-    <ExpectedMagicStrings>
-        <MagicString>UnterminatedComment</MagicString>
-    </ExpectedMagicStrings>
-</Spec>

@@ -7,8 +7,8 @@
 
     public class Preprocessor
     {
-        public const string CommentEndDiagnosticType = "CommentEnd";
-        public const string UnterminatedCommentDiagnosticType = "UnterminatedComment";
+        public const string UnexpectedCommentEndDiagnosticType = "Preprocessor.UnexpectedCommentEndToken";
+        public const string UnterminatedCommentDiagnosticType = "Preprocessor.UnterminatedComment";
 
         /// <summary>
         /// Perform necessary operations on input before passing it to lexer.
@@ -18,6 +18,7 @@
         /// every other character (not commented out) keeps its original ILocation.
         /// </summary>
         /// <param name="input">Input data in form of pairs (location, character).</param>
+        /// <param name="diagnostics">Logs in this object all errors</param>
         /// <returns>Input with comments filtered out.</returns>
         public IEnumerable<KeyValuePair<ILocation, char>>
             PreprocessInput(IEnumerable<KeyValuePair<ILocation, char>> input, IDiagnostics diagnostics)
@@ -49,7 +50,7 @@
                     {
                         diagnostics.Add(new Diagnostic(
                             DiagnosticStatus.Error,
-                            CommentEndDiagnosticType,
+                            UnexpectedCommentEndDiagnosticType,
                             "Unexpected comment end delimiter at {0}",
                             new List<Lexer.Range> { new Lexer.Range(c.Key, c.Key) }));
                         throw new PreprocessorException("Unexpected comment end", c.Key);

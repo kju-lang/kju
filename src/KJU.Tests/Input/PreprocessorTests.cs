@@ -113,7 +113,7 @@ namespace KJU.Tests.Input
             var diag = new Mock<IDiagnostics>();
             Assert.ThrowsException<PreprocessorException>(() =>
                 FromPreprocessor(this.preprocessor.PreprocessInput(ToInput(s), diag.Object)));
-            MockDiagnostics.Verify(diag, Preprocessor.CommentEndDiagnosticType);
+            MockDiagnostics.Verify(diag, Preprocessor.UnexpectedCommentEndDiagnosticType);
         }
 
         private static IEnumerable<KeyValuePair<ILocation, char>> ToInput(IEnumerable<char> s)

@@ -4,15 +4,18 @@ namespace KJU.Tests.Integration.Parser
     using System.Collections.Generic;
     using KJU.Core.Lexer;
     using KJU.Core.Parser;
+    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class KjuParserTests
     {
+        private readonly Parser<KjuAlphabet> parser = ParserFactory<KjuAlphabet>.MakeParser(KjuGrammar.Instance, KjuAlphabet.Eof);
+
         [TestMethod]
         public void EmptyProgramTest()
         {
-            var tree = KjuParserFactory.Instance.Parse(
+            this.parser.Parse(
                 new List<Token<KjuAlphabet>> { new Token<KjuAlphabet> { Category = KjuAlphabet.Eof } },
                 null);
         }
@@ -20,8 +23,9 @@ namespace KJU.Tests.Integration.Parser
         [TestMethod]
         public void SimpleProgramTest()
         {
-            var tree = KjuParserFactory.Instance.Parse(
-                new List<Token<KjuAlphabet>> {
+            this.parser.Parse(
+                new List<Token<KjuAlphabet>>
+                {
                     new Token<KjuAlphabet> { Category = KjuAlphabet.Fun },
                     new Token<KjuAlphabet> { Category = KjuAlphabet.VariableFunctionIdentifier, Text = "foo" },
                     new Token<KjuAlphabet> { Category = KjuAlphabet.LParen },
@@ -37,7 +41,7 @@ namespace KJU.Tests.Integration.Parser
         [TestMethod]
         public void EndToEndTest()
         {
-            var tree = KjuParserFactory.Instance.Parse("fun kju():Unit{var x:Int=2+2;}", null);
+            var tree = KjuCompilerUtils.Parse("fun kju():Unit{var x:Int=2+2;}", null);
             Assert.AreEqual(
                 actual: tree.ToString(),
                 expected: "Kju [FunctionDeclaration [Fun'fun', VariableFunctionIdentifier'kju', LParen'(', RParen')', Colon':', TypeIdentifier'Unit', Block [LBrace'{', Instruction [NotDelimeteredInstruction [Statement [VariableDeclaration [Var'var', VariableFunctionIdentifier'x', Colon':', TypeIdentifier'Int', Assign'=', Expression [ExpressionOr [ExpressionAnd [ExpressionEqualsNotEquals [ExpressionLessThanGreaterThan [ExpressionPlusMinus [ExpressionTimesDivideModulo [ExpressionUnaryOperator [ExpressionAtom [Literal [DecimalLiteral'2']]]], Plus'+', ExpressionPlusMinus [ExpressionTimesDivideModulo [ExpressionUnaryOperator [ExpressionAtom [Literal [DecimalLiteral'2']]]]]]]]]]]]]], Semicolon';'], RBrace'}']]]");

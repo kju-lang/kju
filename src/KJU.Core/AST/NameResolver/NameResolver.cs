@@ -8,8 +8,8 @@
 
     public class NameResolver : IPhase
     {
-        public const string MultipleDeclarationsDiagnostic = "NameResolverMultipleDeclarations";
-        public const string IdentifierNotFoundDiagnostic = "NameResolverIdentifierNotFound";
+        public const string MultipleDeclarationsDiagnostic = "NameResolver.MultipleDeclarations";
+        public const string IdentifierNotFoundDiagnostic = "NameResolver.IdentifierNotFound";
 
         public void Run(Node root, IDiagnostics diagnostics)
         {

@@ -9,7 +9,7 @@ namespace KJU.Core.AST.ReturnChecker
 
     public class ReturnChecker : IPhase
     {
-        public const string MissingReturnDiagnostic = "MissingReturn";
+        public const string MissingReturnDiagnostic = "ReturnChecker.MissingReturn";
 
         public void Run(Node root, IDiagnostics diagnostics)
         {

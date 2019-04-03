@@ -20,7 +20,7 @@
 
                 try
                 {
-                    compiler.Run(filename, diag);
+                    compiler.RunOnFile(filename, diag);
                 }
                 catch (CompilerException)
                 {

@@ -1,0 +1,6 @@
+<Spec>
+    <IsPositive>false</IsPositive>
+    <ExpectedMagicStrings>
+        <MagicString>Preprocessor.UnexpectedCommentEndToken</MagicString>
+    </ExpectedMagicStrings>
+</Spec>

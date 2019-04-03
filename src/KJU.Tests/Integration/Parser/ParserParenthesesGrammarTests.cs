@@ -75,7 +75,7 @@ namespace KJU.Tests.Integration.Parser
 
             var diag = new Mock<IDiagnostics>();
             Assert.ThrowsException<ParseException>(() => parser.Parse(GetParenTokens(parens), diag.Object));
-            MockDiagnostics.Verify(diag, "UnexpectedSymbol");
+            MockDiagnostics.Verify(diag, Parser<ParenAlphabet>.UnexpectedSymbolDiagnosticType);
         }
 
         private static IEnumerable<Token<ParenAlphabet>> GetParenTokens(string s)

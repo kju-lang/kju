@@ -2,10 +2,10 @@
 {
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using Core.Diagnostics;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
+    using KJU.Core.AST.TypeChecker;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using Util;
