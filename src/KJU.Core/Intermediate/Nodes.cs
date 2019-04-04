@@ -43,10 +43,6 @@ namespace KJU.Core.Intermediate
         public Node Value { get; set; }
     }
 
-    public class Ret : Node
-    {
-    }
-
     public class LogicalBinaryOperation : Node
     {
         public Node Lhs { get; set; }

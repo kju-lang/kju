@@ -15,7 +15,7 @@ namespace KJU.Core.Intermediate
             throw new NotImplementedException();
         }
 
-        public Label GenerateCall(VirtualRegister result, List<VirtualRegister> args, Label onReturn)
+        public Label GenerateCall(VirtualRegister result, List<VirtualRegister> args, Label onReturn, Function caller)
         {
             throw new NotImplementedException();
         }
@@ -40,11 +40,7 @@ namespace KJU.Core.Intermediate
             throw new NotImplementedException();
         }
 
-        public Label GenerateBody(
-            Label after,
-            AST.FunctionDeclaration root,
-            IReadOnlyDictionary<AST.VariableDeclaration, Variable> variables,
-            IReadOnlyDictionary<AST.FunctionDeclaration, Function> functions)
+        public Label GenerateBody(Label after, AST.FunctionDeclaration root)
         {
             throw new NotImplementedException();
         }

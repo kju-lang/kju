@@ -5,6 +5,7 @@ namespace KJU.Core.AST
 {
     using System.Collections.Generic;
     using System.Linq;
+    using Intermediate;
 
     public class Expression : Node
     {
@@ -47,6 +48,8 @@ namespace KJU.Core.AST
         public IReadOnlyList<VariableDeclaration> Parameters { get; }
 
         public InstructionBlock Body { get; }
+
+        public Intermediate.Function IntermediateFunction { get; set; }
 
         public static bool ParametersTypesEquals(FunctionDeclaration left, FunctionDeclaration right)
         {
@@ -101,6 +104,8 @@ namespace KJU.Core.AST
         public string Identifier { get; }
 
         public Expression Value { get; }
+
+        public Intermediate.Variable IntermediateVariable { get; set; }
 
         public override IEnumerable<Node> Children()
         {
