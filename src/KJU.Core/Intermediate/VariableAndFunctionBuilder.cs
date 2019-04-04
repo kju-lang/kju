@@ -6,12 +6,12 @@ namespace KJU.Core.Intermediate
 
     public static class VariableAndFunctionBuilder
     {
-        public static IReadOnlyDictionary<VariableDeclaration, Variable> BuildVariables(Node root)
+        public static IReadOnlyDictionary<VariableDeclaration, Variable> BuildVariables(AST.Node root)
         {
             throw new NotImplementedException();
         }
 
-        public static IReadOnlyDictionary<FunctionDeclaration, Function> BuildFunctions(Node root)
+        public static IReadOnlyDictionary<FunctionDeclaration, Function> BuildFunctions(AST.Node root)
         {
             throw new NotImplementedException();
         }
