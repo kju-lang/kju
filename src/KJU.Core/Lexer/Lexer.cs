@@ -13,8 +13,9 @@
 
     public class Lexer<TLabel>
     {
-        public const string NonTokenDiagnosticType = "NonToken";
-        public const string UnexpectedEOFDiagnosticType = "UnexpecetdEOF";
+        public const string NonTokenDiagnostic = "Lexer.NonToken";
+        public const string UnexpectedEOFDiagnostic = "Lexer.UnexpecetdEndOfFile";
+        public const string CharNotFromAlphabetDiagnostic = "Lexer.CharNotFromAlphabet";
 
         private readonly IDfa<TLabel, char> minimalizedDfa;
         private readonly TLabel eof;
@@ -50,25 +51,22 @@
             this.eof = eof;
         }
 
-        public IEnumerable<Token<TLabel>> Scan(IEnumerable<KeyValuePair<ILocation, char>> text, IDiagnostics diagnostics)
+        public IEnumerable<Token<TLabel>> Scan(
+            IEnumerable<KeyValuePair<ILocation, char>> text, IDiagnostics diagnostics)
         {
             using (var it = text.GetEnumerator())
             {
                 it.MoveNext();
                 var currChar = it.Current;
                 var currState = this.minimalizedDfa.StartingState();
-                currState = currChar.Value == Constants.EndOfInput
-                    ? null
-                    : this.minimalizedDfa.Transitions(currState)[currChar.Value];
+                currState = this.GetNextState(currChar, currState, diagnostics);
                 ILocation begin = currChar.Key;
                 StringBuilder tokenText = new StringBuilder();
                 while (currChar.Value != Constants.EndOfInput)
                 {
                     it.MoveNext();
                     var nextChar = it.Current;
-                    IState nextState = nextChar.Value == Constants.EndOfInput
-                        ? null
-                        : this.minimalizedDfa.Transitions(currState)[nextChar.Value];
+                    IState nextState = this.GetNextState(nextChar, currState, diagnostics);
                     tokenText.Append(currChar.Value);
                     if (nextState == null || this.minimalizedDfa.IsStable(nextState))
                     {
@@ -78,10 +76,10 @@
                         {
                             diagnostics.Add(new Diagnostic(
                                 DiagnosticStatus.Error,
-                                NonTokenDiagnosticType,
+                                NonTokenDiagnostic,
                                 $"Non-token at position {{0}} with text '{Diagnostic.EscapeForMessage(tokenText.ToString())}'",
                                 new List<Range> { rng }));
-                            throw new FormatException($"Non-token at position {rng} with text '{tokenText}'");
+                            throw new LexerException($"Non-token at position {rng} with text '{tokenText}'");
                         }
 
                         Token<TLabel> ret = new Token<TLabel>
@@ -101,16 +99,41 @@
 
                 if (begin != currChar.Key)
                 {
+                    var message = "Unexpected end of input";
                     diagnostics.Add(new Diagnostic(
                         DiagnosticStatus.Error,
-                        UnexpectedEOFDiagnosticType,
-                        "Unexpected end of input",
+                        UnexpectedEOFDiagnostic,
+                        message,
                         new List<Range> { }));
-                    throw new FormatException("Unexpected EOF");
+                    throw new LexerException(message);
                 }
             }
 
             yield return new Token<TLabel> { Category = this.eof };
+        }
+
+        private IState GetNextState(KeyValuePair<ILocation, char> currChar, IState currState, IDiagnostics diagnostics)
+        {
+            var location = currChar.Key;
+            var character = currChar.Value;
+            if (character == Constants.EndOfInput)
+            {
+                return null;
+            }
+
+            var transitions = this.minimalizedDfa.Transitions(currState);
+            if (transitions.TryGetValue(character, out var state))
+            {
+                return state;
+            }
+
+            var message = $"Char '{character}' is not from alphabet";
+            diagnostics.Add(new Diagnostic(
+                DiagnosticStatus.Error,
+                CharNotFromAlphabetDiagnostic,
+                message,
+                new List<Range> { new Range(location, location) }));
+            throw new LexerException(message);
         }
     }
 }

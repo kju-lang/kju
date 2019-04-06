@@ -74,8 +74,8 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[0])).Returns(trans0);
             dfa.Setup(x => x.IsStable(this.states[0])).Returns(true);
             var diag = new Mock<IDiagnostics>();
-            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("a"), diag.Object).ToList());
-            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnosticType);
+            Assert.ThrowsException<LexerException>(() => lexer.Scan(StringToLetters("a"), diag.Object).ToList());
+            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnostic);
         }
 
         [TestMethod]
@@ -158,8 +158,8 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
 
             var diag = new Mock<IDiagnostics>();
-            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("ab"), diag.Object).ToList());
-            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnosticType);
+            Assert.ThrowsException<LexerException>(() => lexer.Scan(StringToLetters("ab"), diag.Object).ToList());
+            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnostic);
         }
 
         [TestMethod]
@@ -222,8 +222,8 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
 
             var diag = new Mock<IDiagnostics>();
-            Assert.ThrowsException<FormatException>(() => lexer.Scan(StringToLetters("aa"), diag.Object).ToList());
-            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnosticType);
+            Assert.ThrowsException<LexerException>(() => lexer.Scan(StringToLetters("aa"), diag.Object).ToList());
+            MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnostic);
         }
 
         [TestMethod]

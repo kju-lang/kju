@@ -66,8 +66,18 @@ namespace KJU.Core.AST.ReturnChecker
                         case ArithmeticOperationType.Multiplication:
                             return new IntegerLiteral(left.Value * right.Value);
                         case ArithmeticOperationType.Division:
+                            if (right.Value == 0)
+                            {
+                                return null;
+                            }
+
                             return new IntegerLiteral(left.Value / right.Value);
                         case ArithmeticOperationType.Remainder:
+                            if (right.Value == 0)
+                            {
+                                return null;
+                            }
+
                             return new IntegerLiteral(left.Value % right.Value);
                         default:
                             throw new ExpressionEvaluatorException(

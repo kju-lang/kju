@@ -372,7 +372,7 @@ namespace KJU.Core.AST.TypeChecker
 
                             if (!type.Equals(BoolType.Instance))
                             {
-                                var message = $"Incorrect operand type: expected {IntType.Instance}, got {type}";
+                                var message = $"Incorrect operand type: expected {BoolType.Instance}, got {type}";
                                 this.AddDiagnostic(
                                     DiagnosticStatus.Error,
                                     IncorrectOperandTypeDiagnostic,

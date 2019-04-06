@@ -42,6 +42,7 @@ namespace KJU.Core.Compiler
             }
             catch (Exception ex) when (
                 ex is PreprocessorException
+                || ex is LexerException
                 || ex is ParseException
                 || ex is ParseTreeToAstConverterException
                 || ex is NameResolverException

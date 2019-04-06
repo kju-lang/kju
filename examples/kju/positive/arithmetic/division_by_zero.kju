@@ -1,0 +1,10 @@
+fun f():Int{
+	while((1/0) == 5){
+		return 0;		
+	};
+	return 1;		
+}
+
+fun main():Unit{
+	f();
+}

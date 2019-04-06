@@ -1,0 +1,5 @@
+
+
+fun main():Unit{
+	var ą:Int = 5;
+}
