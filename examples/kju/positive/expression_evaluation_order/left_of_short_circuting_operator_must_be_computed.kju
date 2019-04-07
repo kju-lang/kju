@@ -1,0 +1,13 @@
+fun kju():Unit{
+    var x:Bool=true;
+    var y:Bool=false;
+    var z:Int=0;
+    fun f():Bool{
+        z+=1;
+        return false;
+    };
+    f()||x;
+    f()||y;
+    f()||false;
+    f()||true;
+}

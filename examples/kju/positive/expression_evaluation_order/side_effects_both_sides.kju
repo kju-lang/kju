@@ -1,0 +1,8 @@
+fun kju():Unit{
+var x:Int=0;
+    fun f():Int{
+        x+=1;
+        return 0;
+    };
+    f()+x+f();
+}

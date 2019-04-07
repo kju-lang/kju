@@ -1,0 +1,22 @@
+fun kju():Unit{
+    var x:Int = 0;
+    fun add(p:Int):Int{
+        x+=1;
+        return p;
+    };
+    fun mul(p:Int):Int{
+        x*=2;
+        return p;
+    };
+    fun f(a:Int,b:Int):Int{
+        return x+a+b;
+    };
+    f(mul(add(x)),add(x));
+    /*
+evaluation order:
+add        ^ gets 0 adds 1 to x but returns 0;
+mul    ^ gets 0 multiplies x times 2 so x equals 2 returns 0
+add                 ^ gets x equal to 2 a makes it 3 returns 2
+f   ^ gets 0 and 2 and computes 3+0+2              
+    */
+}
