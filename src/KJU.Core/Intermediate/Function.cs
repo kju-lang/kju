@@ -5,7 +5,8 @@ namespace KJU.Core.Intermediate
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using KJU.Core.AST;
+    using System.Linq;
+    using AST.VariableAccessGraph;
 
     public class Function
     {
@@ -71,7 +72,7 @@ namespace KJU.Core.Intermediate
             if (loc.Function == this)
             {
                 return new ArithmeticBinaryOperation(
-                    ArithmeticOperationType.Addition,
+                    AST.ArithmeticOperationType.Addition,
                     framePointer,
                     new IntegerImmediateValue(loc.Offset));
             }
@@ -98,6 +99,17 @@ namespace KJU.Core.Intermediate
         public Label GenerateBody(Label after, AST.FunctionDeclaration root)
         {
             throw new NotImplementedException();
+        }
+
+        private void ExtractTemporaryVariables(AST.FunctionDeclaration root)
+        {
+            var variableAccessGraphGenerator = new VariableAccessGraphGenerator(new AST.CallGraph.CallGraphGenerator());
+            var variableModificationGraph = variableAccessGraphGenerator.BuildVariableModificationsPerAstNode(root);
+            var variableAccessGraph = variableAccessGraphGenerator.BuildVariableAccessesPerAstNode(root);
+            var extractor = new TemporaryVariablesExtractor(variableModificationGraph, variableAccessGraph);
+            var result = extractor.ExtractTemporaryVariables(root.Body);
+            var instructions = result.Concat(root.Body.Instructions).ToList();
+            root.Body = new AST.InstructionBlock(instructions);
         }
     }
 }

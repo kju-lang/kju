@@ -47,7 +47,7 @@ namespace KJU.Core.AST
 
         public IReadOnlyList<VariableDeclaration> Parameters { get; }
 
-        public InstructionBlock Body { get; }
+        public InstructionBlock Body { get; set; }
 
         public Intermediate.Function IntermediateFunction { get; set; }
 
@@ -82,7 +82,7 @@ namespace KJU.Core.AST
             this.Instructions = instructions;
         }
 
-        public IReadOnlyList<Expression> Instructions { get; }
+        public IReadOnlyList<Expression> Instructions { get; set; }
 
         public override IEnumerable<Node> Children()
         {
@@ -157,7 +157,7 @@ namespace KJU.Core.AST
 
     public class FunctionCall : Expression
     {
-        public FunctionCall(string identifier, IReadOnlyList<Expression> arguments)
+        public FunctionCall(string identifier, IList<Expression> arguments)
         {
             this.Identifier = identifier;
             this.Arguments = arguments;
@@ -165,7 +165,7 @@ namespace KJU.Core.AST
 
         public string Identifier { get; }
 
-        public IReadOnlyList<Expression> Arguments { get; }
+        public IList<Expression> Arguments { get; set; }
 
         public FunctionDeclaration Declaration { get; set; }
 

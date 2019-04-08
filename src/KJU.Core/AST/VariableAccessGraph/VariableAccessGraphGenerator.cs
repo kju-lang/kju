@@ -47,12 +47,24 @@ namespace KJU.Core.AST.VariableAccessGraph
             return this.AggregateNodeVariableInfo(root, accessGraph, extractor);
         }
 
+        public NodeVariableAccessMapping BuildVariableAccessesPerAstNode(
+            Node root)
+        {
+            return this.BuildVariableAccessesPerAstNode(root, this.BuildVariableAccessGraph(root));
+        }
+
         public NodeVariableAccessMapping BuildVariableModificationsPerAstNode(
             Node root,
             FunctionVariableAccessMapping modificationGraph)
         {
             var extractor = new ModifyInfoExtractor();
             return this.AggregateNodeVariableInfo(root, modificationGraph, extractor);
+        }
+
+        public NodeVariableAccessMapping BuildVariableModificationsPerAstNode(
+            Node root)
+        {
+            return this.BuildVariableModificationsPerAstNode(root, this.BuildVariableModificationGraph(root));
         }
 
         private FunctionVariableAccessMapping
