@@ -5,6 +5,7 @@
     using System.Linq;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
+    using KJU.Core.AST.CallGraph;
     using KJU.Core.Diagnostics;
     using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;

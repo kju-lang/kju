@@ -1,8 +1,9 @@
 namespace KJU.Core.AST.VariableAccessGraph
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using KJU.Core.AST.CallGraph;
+    using Util;
     using FunctionVariableAccessMapping =
         System.Collections.Generic.IReadOnlyDictionary<FunctionDeclaration,
             System.Collections.Generic.IReadOnlyCollection<VariableDeclaration>>;
@@ -12,19 +13,30 @@ namespace KJU.Core.AST.VariableAccessGraph
 
     public class VariableAccessGraphGenerator
     {
+        private readonly ICallGraphGenerator callGraphGenerator;
+
+        public VariableAccessGraphGenerator(ICallGraphGenerator callGraphGenerator)
+        {
+            this.callGraphGenerator = callGraphGenerator;
+        }
+
         private interface INodeInfoExtractor
         {
             IEnumerable<VariableDeclaration> ExtractInfo(Node node);
         }
 
-        public FunctionVariableAccessMapping BuildVariableAccessGraph(Node root)
+        public FunctionVariableAccessMapping
+            BuildVariableAccessGraph(Node root)
         {
-            throw new NotImplementedException();
+            var variablesExtractor = new AccessInfoExtractor();
+            return this.TransitiveCallClosure(root, variablesExtractor);
         }
 
-        public FunctionVariableAccessMapping BuildVariableModificationGraph(Node root)
+        public FunctionVariableAccessMapping
+            BuildVariableModificationGraph(Node root)
         {
-            throw new NotImplementedException();
+            var variablesExtractor = new ModifyInfoExtractor();
+            return this.TransitiveCallClosure(root, variablesExtractor);
         }
 
         public NodeVariableAccessMapping BuildVariableAccessesPerAstNode(
@@ -41,6 +53,35 @@ namespace KJU.Core.AST.VariableAccessGraph
         {
             var extractor = new ModifyInfoExtractor();
             return this.AggregateNodeVariableInfo(root, modificationGraph, extractor);
+        }
+
+        private FunctionVariableAccessMapping
+            TransitiveCallClosure(
+                Node root,
+                INodeInfoExtractor variablesExtractor)
+        {
+            var callGraphClosure = TransitiveClosure<FunctionDeclaration>.ComputeTransitiveClosure(this.callGraphGenerator.BuildCallGraph(root));
+            var functions = this.AggregateFunctionDeclarations(root).ToList();
+            return functions.ToDictionary(fun => fun, function =>
+            {
+                var result = this.AggregateFunctionVariables(function, variablesExtractor);
+                callGraphClosure[function]
+                    .Select(foo => this.AggregateFunctionVariables(foo, variablesExtractor))
+                    .ToList()
+                    .ForEach(x => result.UnionWith(x));
+                return (IReadOnlyCollection<VariableDeclaration>)result;
+            });
+        }
+
+        private IEnumerable<FunctionDeclaration> AggregateFunctionDeclarations(Node root)
+        {
+            var result = root.Children().SelectMany(this.AggregateFunctionDeclarations);
+            if (root is FunctionDeclaration functionDeclaration)
+            {
+                return result.Append(functionDeclaration);
+            }
+
+            return result;
         }
 
         private NodeVariableAccessMapping AggregateNodeVariableInfo(
@@ -66,6 +107,31 @@ namespace KJU.Core.AST.VariableAccessGraph
 
             dictionary[root] = rootSet;
             return dictionary;
+        }
+
+        private HashSet<VariableDeclaration> AggregateFunctionVariables(
+            FunctionDeclaration functionDeclaration,
+            INodeInfoExtractor infoExtractor)
+        {
+            var variables = new HashSet<VariableDeclaration>(functionDeclaration.Parameters);
+            var queue = new Queue<Node>();
+            queue.Enqueue(functionDeclaration.Body);
+            while (queue.Count > 0)
+            {
+                var node = queue.Dequeue();
+                if (node is FunctionDeclaration)
+                {
+                    continue;
+                }
+
+                variables.UnionWith(infoExtractor.ExtractInfo(node));
+                foreach (var child in node.Children())
+                {
+                    queue.Enqueue(child);
+                }
+            }
+
+            return variables;
         }
 
         private class AccessInfoExtractor : INodeInfoExtractor

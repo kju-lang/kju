@@ -1,9 +1,8 @@
-namespace KJU.Core.AST
+namespace KJU.Core.AST.CallGraph
 {
-    using System;
     using System.Collections.Generic;
 
-    public class CallGraphGenerator
+    public class CallGraphGenerator : ICallGraphGenerator
     {
         private Dictionary<FunctionDeclaration, IReadOnlyCollection<FunctionDeclaration>> callGraph;
 
