@@ -12,20 +12,104 @@ namespace KJU.Core.Intermediate
     {
         private int stackBytes;
 
+        public Function(Function parent)
+        {
+            this.Parent = parent;
+        }
+
+        public Function()
+        {
+        }
+
         public Variable Link { get; set; }
 
         public List<Variable> Arguments { get; set; }
 
         public Function Parent { get; set; }
 
+        private static List<ILocation> ArgumentRegisters()
+        {
+            return new List<ILocation>
+            {
+                new HardwareRegister(HardwareRegisterName.RDI),
+                new HardwareRegister(HardwareRegisterName.RSI),
+                new HardwareRegister(HardwareRegisterName.RDX),
+                new HardwareRegister(HardwareRegisterName.RCX),
+                new HardwareRegister(HardwareRegisterName.R8),
+                new HardwareRegister(HardwareRegisterName.R9)
+            };
+        }
+
+        private static Label ConcatTrees(IReadOnlyList<Tree> trees)
+        {
+            var treesReversed = trees.Reverse().ToList();
+            var treesDropped = treesReversed.Skip(1);
+            treesDropped
+                .Zip(treesReversed, (modified, target) => new { Modified = modified, Target = target })
+                .ToList()
+                .ForEach(x => { x.Modified.ControlFlow = new UnconditionalJump(new Label(x.Target)); });
+            return new Label(trees[0]);
+        }
+
         public MemoryLocation ReserveStackFrameLocation()
         {
             return new MemoryLocation(this, -(this.stackBytes += 8));
         }
 
-        public Label GenerateCall(VirtualRegister result, List<VirtualRegister> args, Label onReturn, Function caller)
+        // We will use standard x86-64 conventions -> RDI, RSI, RDX, RCX, R8, R9.
+        public Label GenerateCall(
+            VirtualRegister result,
+            List<VirtualRegister> arguments,
+            Label onReturn,
+            Function caller)
         {
-            throw new NotImplementedException();
+            if (arguments.Count > 5)
+            {
+                // Temporary solution
+                throw new FunctionObjectException("The function cannot have more than 5 arguments!");
+            }
+
+            var argumentsVariables = arguments.Select(argument => new
+            {
+                ArgumentValue = caller.GenerateRead(new Variable(caller, argument)),
+                ArgumentCopyVariable = new Variable(caller, new VirtualRegister()),
+            }).ToList();
+
+            var writeArgumentsOperations = argumentsVariables.Select(x =>
+            {
+                var writeOperation = caller.GenerateWrite(x.ArgumentCopyVariable, x.ArgumentValue);
+                return new Tree(writeOperation);
+            });
+
+            var argumentsValueTrees =
+                argumentsVariables.Select(x => caller.GenerateRead(x.ArgumentCopyVariable));
+
+            var arity = this.Arguments.Count;
+            var argumentRegisters = ArgumentRegisters();
+            var registersAndValues = argumentRegisters.Zip(
+                argumentsValueTrees,
+                (register, value) => new { Register = register, Value = value });
+
+            var registerWriteOperations = registersAndValues.Select(x =>
+            {
+                var registerVariable = new Variable(caller, x.Register);
+                return new Tree(caller.GenerateWrite(registerVariable, x.Value));
+            });
+
+            var descendant = this.GetDescendant(caller);
+
+            var linkVariable = new Variable(caller, argumentRegisters[arity]);
+            var readDescendantLinkOperation = caller.GenerateRead(descendant.Link);
+            var writeLinkOperation = caller.GenerateWrite(linkVariable, readDescendantLinkOperation);
+            var writeLinkOperationControlFlow = new FunctionCall(this, onReturn);
+            var writeLinkOperationTree = new Tree(writeLinkOperation) { ControlFlow = writeLinkOperationControlFlow };
+
+            var operations = writeArgumentsOperations
+                .Concat(registerWriteOperations)
+                .Append(writeLinkOperationTree)
+                .ToList();
+
+            return ConcatTrees(operations);
         }
 
         public Node GenerateRead(Variable v)
@@ -88,12 +172,53 @@ namespace KJU.Core.Intermediate
 
         public Label GeneratePrologue(Label after)
         {
-            throw new NotImplementedException();
+            var rbpRegister = new HardwareRegister(HardwareRegisterName.RBP);
+            var rbpVariable = new Variable(this, rbpRegister);
+            var rbpReadOperation = this.GenerateRead(rbpVariable);
+            var rbpPush = new Push(rbpReadOperation);
+            var pushRbpOperation = new Tree(rbpPush);
+
+            var rspRegister = new HardwareRegister(HardwareRegisterName.RSP);
+            var rspVariable = new Variable(this, rspRegister);
+            var rspRead = this.GenerateRead(rspVariable);
+            var rbpWrite = this.GenerateWrite(rbpVariable, rspRead);
+            var writeRbpOperation = new Tree(rbpWrite);
+
+            var allArguments = this.Arguments.Append(this.Link);
+            var argumentLocations = ArgumentRegisters();
+            var argumentsWithLocations = allArguments
+                .Zip(argumentLocations, (argument, location) => new { argument, location });
+            var rewriteParametersOperations = argumentsWithLocations.Select(x =>
+            {
+                var variable = new Variable(this, x.location);
+                var readOperation = this.GenerateRead(variable);
+                var writeOperation = this.GenerateWrite(x.argument, readOperation);
+                return new Tree(writeOperation);
+            });
+
+            var operations = new List<Tree> { pushRbpOperation, writeRbpOperation }
+                .Concat(rewriteParametersOperations)
+                .Append(after.Tree)
+                .ToList();
+            return ConcatTrees(operations);
         }
 
-        public Label GenerateEpilogue(Tree retVal, Label after)
+        public Label GenerateEpilogue(Node retVal)
         {
-            throw new NotImplementedException();
+            var raxRegister = new HardwareRegister(HardwareRegisterName.RAX);
+            var raxVariable = new Variable(this, raxRegister);
+
+            var writeOperation = this.GenerateWrite(raxVariable, retVal);
+            var rbpRegister = new HardwareRegister(HardwareRegisterName.RBP);
+            var popRbpOperation = new Pop(rbpRegister);
+
+            var operations = new List<Tree>
+            {
+                new Tree(writeOperation),
+                new Tree(popRbpOperation) { ControlFlow = new Ret() }
+            };
+
+            return ConcatTrees(operations);
         }
 
         public Label GenerateBody(Label after, AST.FunctionDeclaration root)
@@ -110,6 +235,17 @@ namespace KJU.Core.Intermediate
             var result = extractor.ExtractTemporaryVariables(root.Body);
             var instructions = result.Concat(root.Body.Instructions).ToList();
             root.Body = new AST.InstructionBlock(instructions);
+        }
+
+        private Function GetDescendant(Function caller)
+        {
+            var result = this.Parent != caller ? caller : this;
+            while (result.Parent != this.Parent)
+            {
+                result = result.Parent;
+            }
+
+            return result;
         }
     }
 }

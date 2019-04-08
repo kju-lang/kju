@@ -7,7 +7,12 @@ namespace KJU.Core.Intermediate
 
     public class UnconditionalJump : ControlFlowInstruction
     {
-        public Label Target { get; set; }
+        public UnconditionalJump(Label target)
+        {
+            this.Target = target;
+        }
+
+        public Label Target { get; }
     }
 
     public class ConditionalJump : ControlFlowInstruction
@@ -19,9 +24,15 @@ namespace KJU.Core.Intermediate
 
     public class FunctionCall : ControlFlowInstruction
     {
-        public Function Func { get; set; }
+        public FunctionCall(Function func, Label targetAfter)
+        {
+            this.Func = func;
+            this.TargetAfter = targetAfter;
+        }
 
-        public Label TargetAfter { get; set; }
+        public Function Func { get; }
+
+        public Label TargetAfter { get; }
     }
 
     public class Ret : ControlFlowInstruction

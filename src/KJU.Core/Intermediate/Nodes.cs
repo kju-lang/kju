@@ -110,4 +110,24 @@ namespace KJU.Core.Intermediate
 
         public UnaryOperationType Type { get; set; }
     }
+
+    public class Push : Node
+    {
+        public Push(Node value)
+        {
+            this.Value = value;
+        }
+
+        public Node Value { get; }
+    }
+
+    public class Pop : Node
+    {
+        public Pop(VirtualRegister register)
+        {
+            this.Register = register;
+        }
+
+        public VirtualRegister Register { get; }
+    }
 }
