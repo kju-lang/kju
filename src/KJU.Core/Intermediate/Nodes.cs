@@ -11,6 +11,11 @@ namespace KJU.Core.Intermediate
 
     public class IntegerImmediateValue : Node
     {
+        public IntegerImmediateValue(long value)
+        {
+            this.Value = value;
+        }
+
         public long Value { get; set; }
     }
 
@@ -21,11 +26,22 @@ namespace KJU.Core.Intermediate
 
     public class MemoryRead : Node
     {
+        public MemoryRead(Node addr)
+        {
+            this.Addr = addr;
+        }
+
         public Node Addr { get; set; }
     }
 
     public class MemoryWrite : Node
     {
+        public MemoryWrite(Node addr, Node value)
+        {
+            this.Addr = addr;
+            this.Value = value;
+        }
+
         public Node Addr { get; set; }
 
         public Node Value { get; set; }
@@ -33,11 +49,22 @@ namespace KJU.Core.Intermediate
 
     public class RegisterRead : Node
     {
+        public RegisterRead(VirtualRegister register)
+        {
+            this.Register = register;
+        }
+
         public VirtualRegister Register { get; set; }
     }
 
     public class RegisterWrite : Node
     {
+        public RegisterWrite(VirtualRegister register, Node value)
+        {
+            this.Register = register;
+            this.Value = value;
+        }
+
         public VirtualRegister Register { get; set; }
 
         public Node Value { get; set; }
@@ -54,6 +81,13 @@ namespace KJU.Core.Intermediate
 
     public class ArithmeticBinaryOperation : Node
     {
+        public ArithmeticBinaryOperation(ArithmeticOperationType type, Node lhs, Node rhs)
+        {
+            this.Type = type;
+            this.Lhs = lhs;
+            this.Rhs = rhs;
+        }
+
         public Node Lhs { get; set; }
 
         public Node Rhs { get; set; }
