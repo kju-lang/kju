@@ -144,7 +144,7 @@ namespace KJU.Core.Intermediate
             };
         }
 
-        private class BlockWithResult : Expression
+        internal class BlockWithResult : Expression
         {
             // Helper node: execute body, then 'return' result
             public BlockWithResult(InstructionBlock body, Expression result)

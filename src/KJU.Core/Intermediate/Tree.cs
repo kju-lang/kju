@@ -7,6 +7,12 @@ namespace KJU.Core.Intermediate
             this.Root = root;
         }
 
+        public Tree(Node root, ControlFlowInstruction controlFlow)
+        {
+            this.Root = root;
+            this.ControlFlow = controlFlow;
+        }
+
         public Node Root { get; }
 
         public ControlFlowInstruction ControlFlow { get; set; }

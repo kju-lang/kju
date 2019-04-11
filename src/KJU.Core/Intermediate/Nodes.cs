@@ -33,6 +33,10 @@ namespace KJU.Core.Intermediate
         public bool? TemplateValue { get; set; }
     }
 
+    public class UnitImmediateValue : Node
+    {
+    }
+
     public class MemoryRead : Node
     {
         public MemoryRead(Node addr)

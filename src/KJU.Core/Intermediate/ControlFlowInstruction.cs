@@ -17,9 +17,15 @@ namespace KJU.Core.Intermediate
 
     public class ConditionalJump : ControlFlowInstruction
     {
-        public Label TrueTarget { get; set; }
+        public ConditionalJump(Label trueTarget, Label falseTarget)
+        {
+            this.TrueTarget = trueTarget;
+            this.FalseTarget = falseTarget;
+        }
 
-        public Label FalseTarget { get; set; }
+        public Label TrueTarget { get; }
+
+        public Label FalseTarget { get; }
     }
 
     public class FunctionCall : ControlFlowInstruction
