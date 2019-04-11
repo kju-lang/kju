@@ -16,12 +16,21 @@ namespace KJU.Core.Intermediate
             this.Value = value;
         }
 
-        public long Value { get; set; }
+        public long Value { get; }
+
+        public long? TemplateValue { get; set; }
     }
 
     public class BooleanImmediateValue : Node
     {
-        public bool Value { get; set; }
+        public BooleanImmediateValue(bool value)
+        {
+            this.Value = value;
+        }
+
+        public bool Value { get; }
+
+        public bool? TemplateValue { get; set; }
     }
 
     public class MemoryRead : Node
@@ -31,7 +40,7 @@ namespace KJU.Core.Intermediate
             this.Addr = addr;
         }
 
-        public Node Addr { get; set; }
+        public Node Addr { get; }
     }
 
     public class MemoryWrite : Node
@@ -88,27 +97,40 @@ namespace KJU.Core.Intermediate
             this.Rhs = rhs;
         }
 
-        public Node Lhs { get; set; }
+        public Node Lhs { get; }
 
-        public Node Rhs { get; set; }
+        public Node Rhs { get; }
 
-        public ArithmeticOperationType Type { get; set; }
+        public ArithmeticOperationType Type { get; }
     }
 
     public class Comparison : Node
     {
-        public Node Lhs { get; set; }
+        public Comparison(Node lhs, Node rhs, ComparisonType type)
+        {
+            this.Lhs = lhs;
+            this.Rhs = rhs;
+            this.Type = type;
+        }
 
-        public Node Rhs { get; set; }
+        public Node Lhs { get; }
 
-        public ComparisonType Type { get; set; }
+        public Node Rhs { get; }
+
+        public ComparisonType Type { get; }
     }
 
     public class UnaryOperation : Node
     {
-        public Node Operand { get; set; }
+        public UnaryOperation(Node operand, UnaryOperationType type)
+        {
+            this.Operand = operand;
+            this.Type = type;
+        }
 
-        public UnaryOperationType Type { get; set; }
+        public Node Operand { get; }
+
+        public UnaryOperationType Type { get; }
     }
 
     public class Push : Node

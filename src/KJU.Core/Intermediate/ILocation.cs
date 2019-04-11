@@ -13,10 +13,10 @@ namespace KJU.Core.Intermediate
     {
         public HardwareRegister(HardwareRegisterName name)
         {
-            this.ForceAllocation = name;
+            this.Name = name;
         }
 
-        public HardwareRegisterName ForceAllocation { get; }
+        public HardwareRegisterName Name { get; }
     }
 
     public class MemoryLocation : ILocation

@@ -2,7 +2,8 @@ namespace KJU.Core.CodeGeneration
 {
     using System;
     using System.Collections.Generic;
-    using KJU.Core.Intermediate;
+    using Intermediate;
+    using Templates;
 
     public class InstructionSelector
     {
