@@ -31,12 +31,12 @@ namespace KJU.Core.Intermediate
         {
             return new List<ILocation>
             {
-                new HardwareRegister(HardwareRegisterName.RDI),
-                new HardwareRegister(HardwareRegisterName.RSI),
-                new HardwareRegister(HardwareRegisterName.RDX),
-                new HardwareRegister(HardwareRegisterName.RCX),
-                new HardwareRegister(HardwareRegisterName.R8),
-                new HardwareRegister(HardwareRegisterName.R9)
+                HardwareRegister.RDI,
+                HardwareRegister.RSI,
+                HardwareRegister.RDX,
+                HardwareRegister.RCX,
+                HardwareRegister.R8,
+                HardwareRegister.R9
             };
         }
 
@@ -114,12 +114,12 @@ namespace KJU.Core.Intermediate
 
         public Node GenerateRead(Variable v)
         {
-            return this.GenerateRead(v, new RegisterRead(new HardwareRegister(HardwareRegisterName.RBP)));
+            return this.GenerateRead(v, new RegisterRead(HardwareRegister.RBP));
         }
 
         public Node GenerateWrite(Variable v, Node value)
         {
-            return this.GenerateWrite(v, value, new RegisterRead(new HardwareRegister(HardwareRegisterName.RBP)));
+            return this.GenerateWrite(v, value, new RegisterRead(HardwareRegister.RBP));
         }
 
         private Node GenerateRead(Variable v, Node framePointer)
@@ -172,13 +172,13 @@ namespace KJU.Core.Intermediate
 
         public Label GeneratePrologue(Label after)
         {
-            var rbpRegister = new HardwareRegister(HardwareRegisterName.RBP);
+            var rbpRegister = HardwareRegister.RBP;
             var rbpVariable = new Variable(this, rbpRegister);
             var rbpReadOperation = this.GenerateRead(rbpVariable);
             var rbpPush = new Push(rbpReadOperation);
             var pushRbpOperation = new Tree(rbpPush);
 
-            var rspRegister = new HardwareRegister(HardwareRegisterName.RSP);
+            var rspRegister = HardwareRegister.RSP;
             var rspVariable = new Variable(this, rspRegister);
             var rspRead = this.GenerateRead(rspVariable);
             var rbpWrite = this.GenerateWrite(rbpVariable, rspRead);
@@ -205,11 +205,11 @@ namespace KJU.Core.Intermediate
 
         public Label GenerateEpilogue(Node retVal)
         {
-            var raxRegister = new HardwareRegister(HardwareRegisterName.RAX);
+            var raxRegister = HardwareRegister.RAX;
             var raxVariable = new Variable(this, raxRegister);
 
             var writeOperation = this.GenerateWrite(raxVariable, retVal);
-            var rbpRegister = new HardwareRegister(HardwareRegisterName.RBP);
+            var rbpRegister = HardwareRegister.RBP;
             var popRbpOperation = new Pop(rbpRegister);
 
             var operations = new List<Tree>
