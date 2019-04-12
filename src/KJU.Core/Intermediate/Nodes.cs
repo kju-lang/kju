@@ -55,9 +55,9 @@ namespace KJU.Core.Intermediate
             this.Value = value;
         }
 
-        public Node Addr { get; set; }
+        public Node Addr { get; }
 
-        public Node Value { get; set; }
+        public Node Value { get; }
     }
 
     public class RegisterRead : Node
@@ -67,7 +67,7 @@ namespace KJU.Core.Intermediate
             this.Register = register;
         }
 
-        public VirtualRegister Register { get; set; }
+        public VirtualRegister Register { get; }
     }
 
     public class RegisterWrite : Node
@@ -78,18 +78,25 @@ namespace KJU.Core.Intermediate
             this.Value = value;
         }
 
-        public VirtualRegister Register { get; set; }
+        public VirtualRegister Register { get; }
 
-        public Node Value { get; set; }
+        public Node Value { get; }
     }
 
     public class LogicalBinaryOperation : Node
     {
-        public Node Lhs { get; set; }
+        public LogicalBinaryOperation(Node lhs, Node rhs, AST.LogicalBinaryOperationType type)
+        {
+            this.Lhs = lhs;
+            this.Rhs = rhs;
+            this.Type = type;
+        }
 
-        public Node Rhs { get; set; }
+        public Node Lhs { get; }
 
-        public LogicalBinaryOperationType Type { get; set; }
+        public Node Rhs { get; }
+
+        public LogicalBinaryOperationType Type { get; }
     }
 
     public class ArithmeticBinaryOperation : Node
