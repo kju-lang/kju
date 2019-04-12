@@ -7,20 +7,20 @@ namespace KJU.Core.CodeGeneration
     public abstract class Instruction
     {
         protected Instruction(
-            IReadOnlyCollection<VirtualRegister> use = null,
-            IReadOnlyCollection<VirtualRegister> define = null,
-            IReadOnlyCollection<Tuple<VirtualRegister, VirtualRegister>> copy = null)
+            IReadOnlyCollection<VirtualRegister> uses = null,
+            IReadOnlyCollection<VirtualRegister> defines = null,
+            IReadOnlyCollection<Tuple<VirtualRegister, VirtualRegister>> copies = null)
         {
-            this.Use = use ?? new List<VirtualRegister>();
-            this.Define = define ?? new List<VirtualRegister>();
-            this.Copy = copy ?? new List<Tuple<VirtualRegister, VirtualRegister>>();
+            this.Uses = uses ?? new List<VirtualRegister>();
+            this.Defines = defines ?? new List<VirtualRegister>();
+            this.Copies = copies ?? new List<Tuple<VirtualRegister, VirtualRegister>>();
         }
 
-        public IReadOnlyCollection<VirtualRegister> Use { get; }
+        public IReadOnlyCollection<VirtualRegister> Uses { get; }
 
-        public IReadOnlyCollection<VirtualRegister> Define { get; }
+        public IReadOnlyCollection<VirtualRegister> Defines { get; }
 
-        public IReadOnlyCollection<Tuple<VirtualRegister, VirtualRegister>> Copy { get; }
+        public IReadOnlyCollection<Tuple<VirtualRegister, VirtualRegister>> Copies { get; }
 
         public abstract string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment);
     }
