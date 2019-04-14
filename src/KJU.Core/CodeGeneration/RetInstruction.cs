@@ -1,16 +1,15 @@
-namespace KJU.Core.CodeGeneration
+﻿namespace KJU.Core.CodeGeneration
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using KJU.Core.Intermediate;
 
-    public class CallInstruction : Instruction
+    public class RetInstruction : Instruction
     {
-        public Label Label { get; set; }
-
         public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
-            return $"call {this.Label.Id}\n";
+            return "ret\n";
         }
     }
 }

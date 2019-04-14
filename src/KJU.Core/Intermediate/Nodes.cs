@@ -3,10 +3,20 @@
 
 namespace KJU.Core.Intermediate
 {
+    using System.Collections.Generic;
     using KJU.Core.AST;
 
     public class Node
     {
+        public virtual List<Node> Children()
+        {
+            return new List<Node>();
+        }
+
+        public virtual List<object> Match(Node template)
+        {
+            return null;
+        }
     }
 
     public class IntegerImmediateValue : Node
@@ -19,6 +29,26 @@ namespace KJU.Core.Intermediate
         public long Value { get; }
 
         public long? TemplateValue { get; set; }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is IntegerImmediateValue i)
+            {
+                if (i.TemplateValue == null)
+                {
+                    return new List<object> { this.Value };
+                }
+
+                if (i.TemplateValue == this.Value)
+                {
+                    return new List<object>();
+                }
+
+                return null;
+            }
+
+            return null;
+        }
     }
 
     public class BooleanImmediateValue : Node
@@ -31,10 +61,39 @@ namespace KJU.Core.Intermediate
         public bool Value { get; }
 
         public bool? TemplateValue { get; set; }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is BooleanImmediateValue b)
+            {
+                if (b.TemplateValue == null)
+                {
+                    return new List<object> { this.Value };
+                }
+
+                if (b.TemplateValue == this.Value)
+                {
+                    return new List<object>();
+                }
+
+                return null;
+            }
+
+            return null;
+        }
     }
 
     public class UnitImmediateValue : Node
     {
+        public override List<object> Match(Node template)
+        {
+            if (template is UnitImmediateValue)
+            {
+                return new List<object>();
+            }
+
+            return null;
+        }
     }
 
     public class MemoryRead : Node
@@ -45,6 +104,21 @@ namespace KJU.Core.Intermediate
         }
 
         public Node Addr { get; }
+
+        public override List<Node> Children()
+        {
+            return new List<Node> { this.Addr };
+        }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is MemoryRead)
+            {
+                return new List<object>();
+            }
+
+            return null;
+        }
     }
 
     public class MemoryWrite : Node
@@ -58,6 +132,21 @@ namespace KJU.Core.Intermediate
         public Node Addr { get; }
 
         public Node Value { get; }
+
+        public override List<Node> Children()
+        {
+            return new List<Node> { this.Addr, this.Value };
+        }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is MemoryWrite)
+            {
+                return new List<object>();
+            }
+
+            return null;
+        }
     }
 
     public class RegisterRead : Node
@@ -68,6 +157,16 @@ namespace KJU.Core.Intermediate
         }
 
         public VirtualRegister Register { get; }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is RegisterRead)
+            {
+                return new List<object> { this.Register };
+            }
+
+            return null;
+        }
     }
 
     public class RegisterWrite : Node
@@ -81,6 +180,21 @@ namespace KJU.Core.Intermediate
         public VirtualRegister Register { get; }
 
         public Node Value { get; }
+
+        public override List<Node> Children()
+        {
+            return new List<Node> { this.Value };
+        }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is RegisterWrite)
+            {
+                return new List<object> { this.Register };
+            }
+
+            return null;
+        }
     }
 
     public class LogicalBinaryOperation : Node
@@ -97,6 +211,24 @@ namespace KJU.Core.Intermediate
         public Node Rhs { get; }
 
         public LogicalBinaryOperationType Type { get; }
+
+        public override List<Node> Children()
+        {
+            return new List<Node> { this.Lhs, this.Rhs };
+        }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is LogicalBinaryOperation op)
+            {
+                if (op.Type.Equals(this.Type))
+                {
+                    return new List<object>();
+                }
+            }
+
+            return null;
+        }
     }
 
     public class ArithmeticBinaryOperation : Node
@@ -113,6 +245,24 @@ namespace KJU.Core.Intermediate
         public Node Rhs { get; }
 
         public ArithmeticOperationType Type { get; }
+
+        public override List<Node> Children()
+        {
+            return new List<Node> { this.Lhs, this.Rhs };
+        }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is ArithmeticBinaryOperation op)
+            {
+                if (op.Type.Equals(this.Type))
+                {
+                    return new List<object>();
+                }
+            }
+
+            return null;
+        }
     }
 
     public class Comparison : Node
@@ -129,6 +279,24 @@ namespace KJU.Core.Intermediate
         public Node Rhs { get; }
 
         public ComparisonType Type { get; }
+
+        public override List<Node> Children()
+        {
+            return new List<Node> { this.Lhs, this.Rhs };
+        }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is Comparison com)
+            {
+                if (com.Type.Equals(this.Type))
+                {
+                    return new List<object>();
+                }
+            }
+
+            return null;
+        }
     }
 
     public class UnaryOperation : Node
@@ -142,6 +310,24 @@ namespace KJU.Core.Intermediate
         public Node Operand { get; }
 
         public UnaryOperationType Type { get; }
+
+        public override List<Node> Children()
+        {
+            return new List<Node> { this.Operand };
+        }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is UnaryOperation op)
+            {
+                if (op.Type.Equals(this.Type))
+                {
+                    return new List<object>();
+                }
+            }
+
+            return null;
+        }
     }
 
     public class Push : Node
@@ -152,6 +338,21 @@ namespace KJU.Core.Intermediate
         }
 
         public Node Value { get; }
+
+        public override List<Node> Children()
+        {
+            return new List<Node> { this.Value };
+        }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is Push)
+            {
+                return new List<object>();
+            }
+
+            return null;
+        }
     }
 
     public class Pop : Node
@@ -162,5 +363,15 @@ namespace KJU.Core.Intermediate
         }
 
         public VirtualRegister Register { get; }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is Pop)
+            {
+                return new List<object> { this.Register };
+            }
+
+            return null;
+        }
     }
 }
