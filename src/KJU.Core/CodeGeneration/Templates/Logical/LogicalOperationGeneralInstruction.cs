@@ -55,7 +55,7 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
             builder.AppendLine($"{this.OperationTypeInstruction()} {resultHardware} {rhsHardware}");
             return builder.ToString();
         }
-        
+
         private string OperationTypeInstruction()
         {
             switch (this.operationType)
