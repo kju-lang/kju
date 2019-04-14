@@ -5,20 +5,22 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using AST;
+    using Comparison;
     using Intermediate;
 
-    public class LogicalBinaryOperationInstruction : Instruction
+    public class LogicalOperationGeneralInstruction : Instruction
     {
         private readonly VirtualRegister lhs;
         private readonly VirtualRegister rhs;
         private readonly VirtualRegister result;
-        private readonly string instruction;
+        private readonly LogicalBinaryOperationType operationType;
 
-        public LogicalBinaryOperationInstruction(
+        public LogicalOperationGeneralInstruction(
             VirtualRegister lhs,
             VirtualRegister rhs,
             VirtualRegister result,
-            string instruction)
+            LogicalBinaryOperationType operationType)
             : base(
                 new List<VirtualRegister> { lhs, rhs },
                 new List<VirtualRegister> { result },
@@ -31,7 +33,7 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
             this.lhs = lhs;
             this.rhs = rhs;
             this.result = result;
-            this.instruction = instruction;
+            this.operationType = operationType;
         }
 
         public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
@@ -50,8 +52,21 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
                 builder.AppendLine($"mov {resultHardware} {lhsHardware}");
             }
 
-            builder.AppendLine($"{this.instruction} {resultHardware} {rhsHardware}");
+            builder.AppendLine($"{this.OperationTypeInstruction()} {resultHardware} {rhsHardware}");
             return builder.ToString();
+        }
+        
+        private string OperationTypeInstruction()
+        {
+            switch (this.operationType)
+            {
+                case LogicalBinaryOperationType.And:
+                    return "and";
+                case LogicalBinaryOperationType.Or:
+                    return "or";
+                default:
+                    throw new InstructionException("Something wrong with the type of the operation.");
+            }
         }
     }
 }

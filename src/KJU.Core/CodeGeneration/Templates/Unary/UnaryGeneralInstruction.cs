@@ -8,13 +8,13 @@ namespace KJU.Core.CodeGeneration.Templates.Unary
     using AST;
     using Intermediate;
 
-    public class UnaryInstruction : Instruction
+    public class UnaryGeneralInstruction : Instruction
     {
         private readonly VirtualRegister input;
         private readonly VirtualRegister result;
         private readonly UnaryOperationType type;
 
-        public UnaryInstruction(
+        public UnaryGeneralInstruction(
             VirtualRegister input,
             VirtualRegister result,
             UnaryOperationType type)
@@ -43,7 +43,7 @@ namespace KJU.Core.CodeGeneration.Templates.Unary
             switch (this.type)
             {
                 case UnaryOperationType.Not:
-                    builder.AppendLine($"xor {resultHardware}, 1");
+                    builder.AppendLine($"xor {resultHardware} 1");
                     break;
                 case UnaryOperationType.Minus:
                     builder.AppendLine($"neg {resultHardware}");

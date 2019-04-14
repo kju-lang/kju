@@ -1,5 +1,6 @@
 namespace KJU.Core.CodeGeneration.Templates.Stack
 {
+    using System;
     using System.Collections.Generic;
     using Intermediate;
 
@@ -29,7 +30,7 @@ namespace KJU.Core.CodeGeneration.Templates.Stack
             public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var hardwareRegister = this.register.ToHardware(registerAssignment);
-                return $"push {hardwareRegister}";
+                return $"push {hardwareRegister}{Environment.NewLine}";
             }
         }
     }

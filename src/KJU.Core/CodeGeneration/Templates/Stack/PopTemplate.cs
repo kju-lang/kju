@@ -2,6 +2,7 @@
 #pragma warning disable SA1118  // Parameter must not span multiple lines
 namespace KJU.Core.CodeGeneration.Templates.Stack
 {
+    using System;
     using System.Collections.Generic;
     using Intermediate;
 
@@ -24,10 +25,7 @@ namespace KJU.Core.CodeGeneration.Templates.Stack
             public PushInstruction(VirtualRegister register)
                 : base(
                 new List<VirtualRegister>(),
-                new List<VirtualRegister>
-                {
-                    register
-                })
+                new List<VirtualRegister> { register })
             {
                 this.register = register;
             }
@@ -35,7 +33,7 @@ namespace KJU.Core.CodeGeneration.Templates.Stack
             public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var hardwareRegister = this.register.ToHardware(registerAssignment);
-                return $"pop {hardwareRegister}";
+                return $"pop {hardwareRegister}{Environment.NewLine}";
             }
         }
     }

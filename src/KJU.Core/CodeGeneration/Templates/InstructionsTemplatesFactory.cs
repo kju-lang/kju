@@ -13,7 +13,7 @@ namespace KJU.Core.CodeGeneration.Templates
     {
         private IReadOnlyList<InstructionTemplate> CreateInstructionTemplates()
         {
-            return new List<InstructionTemplate>
+            var templates = new List<InstructionTemplate>
             {
                 new RegisterWriteTemplate(),
                 new RegisterReadTemplate(),
@@ -27,21 +27,21 @@ namespace KJU.Core.CodeGeneration.Templates
                 new MulTemplate(),
                 new DivTemplate(),
                 new ModTemplate(),
-                new AndTemplate(),
 
-                new OrTemplate(),
-                new EqualTemplate(),
-                new NotEqualTemplate(),
-                new LessTemplate(),
-                new LessOrEqualTemplate(),
-                new GreaterTemplate(),
-                new GreaterOrEqualTemplate(),
-                new MinusTemplate(),
-                new NotTemplate(),
-                new PlusTemplate(),
                 new PushTemplate(),
                 new PopTemplate()
             };
+
+            var comparisonTemplates = new ComparisonTemplateFactory().GetTemplates();
+            templates.AddRange(comparisonTemplates);
+
+            var logicalOperationTemplates = new LogicalOperationTemplateFactory().GetTemplates();
+            templates.AddRange(logicalOperationTemplates);
+
+            var unaryOperationTemplates = new UnaryTemplateFactory().GetTemplates();
+            templates.AddRange(unaryOperationTemplates);
+
+            return templates;
         }
     }
 }

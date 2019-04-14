@@ -5,17 +5,20 @@ namespace KJU.Core.CodeGeneration.Templates.Unary
     using Intermediate;
     using UnaryOperation = Intermediate.UnaryOperation;
 
-    public class MinusTemplate : InstructionTemplate
+    public class UnaryGeneralTemplate : InstructionTemplate
     {
-        public MinusTemplate()
-            : base(new UnaryOperation(null, UnaryOperationType.Minus), 1)
+        private readonly UnaryOperationType operationType;
+
+        public UnaryGeneralTemplate(UnaryOperationType operationType)
+            : base(new UnaryOperation(null, operationType), 1)
         {
+            this.operationType = operationType;
         }
 
         public override Instruction Emit(VirtualRegister result, IReadOnlyList<object> fill, string label)
         {
             var input = fill.GetRegister(0);
-            return new UnaryInstruction(input, result, UnaryOperationType.Minus);
+            return new UnaryGeneralInstruction(input, result, this.operationType);
         }
     }
 }
