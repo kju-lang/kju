@@ -62,7 +62,7 @@ namespace KJU.Core.CodeGeneration.Templates.Comparison
                 {
                     builder.AppendLine($"sub {resultHardware} {lhsHardware}");
                     builder.AppendLine($"dec {resultHardware}");
-                    builder.AppendLine($"shr {resultHardware}");
+                    builder.AppendLine($"shr {resultHardware} 63");
                     builder.AppendLine($"xor 1");
                 }
                 else

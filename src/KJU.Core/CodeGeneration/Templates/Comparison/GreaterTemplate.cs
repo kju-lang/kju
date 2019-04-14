@@ -61,7 +61,7 @@ namespace KJU.Core.CodeGeneration.Templates.Comparison
                 if (resultHardware == rhsHardware)
                 {
                     builder.AppendLine($"sub {resultHardware} {lhsHardware}");
-                    builder.AppendLine($"shr {resultHardware}");
+                    builder.AppendLine($"shr {resultHardware} 63");
                 }
                 else
                 {
