@@ -221,11 +221,11 @@ namespace KJU.Core.Intermediate
             return ConcatTrees(operations);
         }
 
-        public Label GenerateBody(Label after, AST.FunctionDeclaration root)
+        public Label GenerateBody(AST.FunctionDeclaration root)
         {
             this.ExtractTemporaryVariables(root);
             var generator = new FunctionBodyGenerator(this);
-            return generator.BuildFunctionBody(root.Body, after);
+            return generator.BuildFunctionBody(root.Body);
         }
 
         private void ExtractTemporaryVariables(AST.FunctionDeclaration root)

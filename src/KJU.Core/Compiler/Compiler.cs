@@ -8,6 +8,7 @@ namespace KJU.Core.Compiler
     using AST.TypeChecker;
     using Diagnostics;
     using Input;
+    using Intermediate;
     using Lexer;
     using Parser;
 
@@ -26,6 +27,9 @@ namespace KJU.Core.Compiler
         private readonly IPhase typeChecker = new TypeChecker();
         private readonly IPhase returnChecker = new ReturnChecker();
 
+        private readonly IntermediateRepresentationGenerator intermediateGenerator =
+            new IntermediateRepresentationGenerator();
+
         public void RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics)
         {
             try
@@ -39,6 +43,8 @@ namespace KJU.Core.Compiler
                 this.nameResolver.Run(ast, diagnostics);
                 this.typeChecker.Run(ast, diagnostics);
                 this.returnChecker.Run(ast, diagnostics);
+                VariableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
+                var funcionsIR = this.intermediateGenerator.CreateIR(ast);
             }
             catch (Exception ex) when (
                 ex is PreprocessorException
@@ -47,7 +53,8 @@ namespace KJU.Core.Compiler
                 || ex is ParseTreeToAstConverterException
                 || ex is NameResolverException
                 || ex is TypeCheckerException
-                || ex is ReturnCheckerException)
+                || ex is ReturnCheckerException
+                || ex is FunctionBodyGeneratorException)
             {
                 throw new CompilerException("Compilation failed.", ex);
             }

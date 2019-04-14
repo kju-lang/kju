@@ -17,9 +17,10 @@ namespace KJU.Core.Intermediate
             this.func = func;
         }
 
-        public Label BuildFunctionBody(AST.InstructionBlock body, Label after)
+        public Label BuildFunctionBody(AST.InstructionBlock body)
         {
-            Computation afterPrologue = this.ConvertNode(body, after);
+            Label guardEpilogue = this.func.GenerateEpilogue(new UnitImmediateValue());
+            Computation afterPrologue = this.ConvertNode(body, guardEpilogue);
             return this.func.GeneratePrologue(afterPrologue.Start);
         }
 
@@ -150,7 +151,9 @@ namespace KJU.Core.Intermediate
         private Computation ConvertNode(AST.ReturnStatement node, Label after)
         {
             Label epilogueLabel = new Label(null);
-            Computation value = this.GenerateExpression(node.Value, epilogueLabel);
+            Computation value = node.Value == null
+                ? new Computation(epilogueLabel, new UnitImmediateValue())
+                : this.GenerateExpression(node.Value, epilogueLabel);
             epilogueLabel.Tree = this.func.GenerateEpilogue(value.Result).Tree;
             return new Computation(value.Start);
         }
