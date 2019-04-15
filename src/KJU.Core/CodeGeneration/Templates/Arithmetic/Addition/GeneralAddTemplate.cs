@@ -1,17 +1,17 @@
 #pragma warning disable SA1008 // Opening parenthesis must not be followed by a space.
 #pragma warning disable SA1118  // Parameter must not span multiple lines
-namespace KJU.Core.CodeGeneration.Templates.Arithmetic
+namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Addition
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using AST;
-    using Intermediate;
+    using KJU.Core.AST;
+    using KJU.Core.Intermediate;
 
-    internal class MulTemplate : InstructionTemplate
+    internal class GeneralAddTemplate : InstructionTemplate
     {
-        public MulTemplate()
-            : base(new ArithmeticBinaryOperation(ArithmeticOperationType.Multiplication, null, null), 1)
+        public GeneralAddTemplate()
+            : base(new ArithmeticBinaryOperation(ArithmeticOperationType.Addition, null, null), 1)
         {
         }
 
@@ -19,16 +19,16 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
         {
             var lhs = fill.GetRegister(0);
             var rhs = fill.GetRegister(1);
-            return new MulInstruction(lhs, rhs, result);
+            return new AddInstruction(lhs, rhs, result);
         }
 
-        private class MulInstruction : Instruction
+        private class AddInstruction : Instruction
         {
             private readonly VirtualRegister lhs;
             private readonly VirtualRegister rhs;
             private readonly VirtualRegister result;
 
-            public MulInstruction(
+            public AddInstruction(
                 VirtualRegister lhs,
                 VirtualRegister rhs,
                 VirtualRegister result)
@@ -62,7 +62,7 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                     builder.AppendLine($"mov {resultHardware} {lhsHardware}");
                 }
 
-                builder.AppendLine($"imul {resultHardware} {rhsHardware}");
+                builder.AppendLine($"add {resultHardware} {rhsHardware}");
                 return builder.ToString();
             }
         }

@@ -1,17 +1,17 @@
 #pragma warning disable SA1008 // Opening parenthesis must not be followed by a space.
 #pragma warning disable SA1118  // Parameter must not span multiple lines
-namespace KJU.Core.CodeGeneration.Templates.Arithmetic
+namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Multiplication
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using AST;
-    using Intermediate;
+    using KJU.Core.AST;
+    using KJU.Core.Intermediate;
 
-    internal class AddTemplate : InstructionTemplate
+    internal class GeneralMultiplicationTemplate : InstructionTemplate
     {
-        public AddTemplate()
-            : base(new ArithmeticBinaryOperation(ArithmeticOperationType.Addition, null, null), 1)
+        public GeneralMultiplicationTemplate()
+            : base(new ArithmeticBinaryOperation(ArithmeticOperationType.Multiplication, null, null), 1)
         {
         }
 
@@ -19,16 +19,16 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
         {
             var lhs = fill.GetRegister(0);
             var rhs = fill.GetRegister(1);
-            return new AddInstruction(lhs, rhs, result);
+            return new MulInstruction(lhs, rhs, result);
         }
 
-        private class AddInstruction : Instruction
+        private class MulInstruction : Instruction
         {
             private readonly VirtualRegister lhs;
             private readonly VirtualRegister rhs;
             private readonly VirtualRegister result;
 
-            public AddInstruction(
+            public MulInstruction(
                 VirtualRegister lhs,
                 VirtualRegister rhs,
                 VirtualRegister result)
@@ -62,7 +62,7 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                     builder.AppendLine($"mov {resultHardware} {lhsHardware}");
                 }
 
-                builder.AppendLine($"add {resultHardware} {rhsHardware}");
+                builder.AppendLine($"imul {resultHardware} {rhsHardware}");
                 return builder.ToString();
             }
         }

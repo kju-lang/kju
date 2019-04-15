@@ -2,6 +2,8 @@ namespace KJU.Core.CodeGeneration.Templates
 {
     using System.Collections.Generic;
     using Arithmetic;
+    using Arithmetic.Addition;
+    using Arithmetic.Multiplication;
     using Comparison;
     using Logical;
     using RawValues;
@@ -13,6 +15,12 @@ namespace KJU.Core.CodeGeneration.Templates
     {
         private IReadOnlyList<InstructionTemplate> CreateInstructionTemplates()
         {
+            var powerOf2 = new PowerOf2MultiplicationTemplateFactory().GetTemplates();
+            var multiplicationConstant = new MultiplicationByConstantTemplateFactory().GetTemplates();
+            var addConstant = new AddConstantTemplateFactory().GetTemplates();
+            var comparisonTemplates = new ComparisonTemplateFactory().GetTemplates();
+            var logicalOperationTemplates = new LogicalOperationTemplateFactory().GetTemplates();
+            var unaryOperationTemplates = new UnaryTemplateFactory().GetTemplates();
             var templates = new List<InstructionTemplate>
             {
                 new RegisterWriteTemplate(),
@@ -22,9 +30,9 @@ namespace KJU.Core.CodeGeneration.Templates
                 new UnitImmediateValueTemplate(),
                 new MemoryReadTemplate(),
                 new MemoryWriteTemplate(),
-                new AddTemplate(),
+                new GeneralAddTemplate(),
                 new SubTemplate(),
-                new MulTemplate(),
+                new GeneralMultiplicationTemplate(),
                 new DivTemplate(),
                 new ModTemplate(),
 
@@ -32,15 +40,12 @@ namespace KJU.Core.CodeGeneration.Templates
                 new PopTemplate()
             };
 
-            var comparisonTemplates = new ComparisonTemplateFactory().GetTemplates();
             templates.AddRange(comparisonTemplates);
-
-            var logicalOperationTemplates = new LogicalOperationTemplateFactory().GetTemplates();
             templates.AddRange(logicalOperationTemplates);
-
-            var unaryOperationTemplates = new UnaryTemplateFactory().GetTemplates();
             templates.AddRange(unaryOperationTemplates);
-
+            templates.AddRange(powerOf2);
+            templates.AddRange(multiplicationConstant);
+            templates.AddRange(addConstant);
             return templates;
         }
     }
