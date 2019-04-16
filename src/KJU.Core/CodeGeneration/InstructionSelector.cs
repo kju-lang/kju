@@ -8,81 +8,82 @@ namespace KJU.Core.CodeGeneration
 
     public class InstructionSelector
     {
-        private Dictionary<Type, List<InstructionTemplate>> nonConditionalJumpDict;
-        private Dictionary<Type, List<InstructionTemplate>> conditionalJumpDict;
+        private readonly Dictionary<Type, List<InstructionTemplate>> nonConditionalJumpDict;
+        private readonly Dictionary<Type, List<InstructionTemplate>> conditionalJumpDict;
 
-        public InstructionSelector(IReadOnlyCollection<InstructionTemplate> templates)
+        public InstructionSelector(IEnumerable<InstructionTemplate> templates)
         {
-            var templateDict = new Dictionary<Type, List<InstructionTemplate>>();
-            var conditionalJumpDict = new Dictionary<Type, List<InstructionTemplate>>();
+            var dictionaries = templates
+                .GroupBy(template => template.IsConditionalJump)
+                .ToDictionary(
+                    jumpGroup => jumpGroup.Key,
+                    jumpGroup => jumpGroup
+                        .GroupBy(template => template.Shape.GetType())
+                        .ToDictionary(
+                            templateGroup => templateGroup.Key,
+                            templateGroup => templateGroup
+                                .OrderByDescending(template => template.Score)
+                                .ToList()));
 
-            foreach (var template in templates)
-            {
-                if (!templateDict.Keys.Contains(template.Shape.GetType()))
-                {
-                    templateDict.Add(template.Shape.GetType(), new List<InstructionTemplate>());
-                    conditionalJumpDict.Add(template.Shape.GetType(), new List<InstructionTemplate>());
-                }
-
-                if (template.IsConditionalJump)
-                {
-                    conditionalJumpDict[template.Shape.GetType()].Add(template);
-                }
-                else
-                {
-                    templateDict[template.Shape.GetType()].Add(template);
-                }
-            }
-
-            this.nonConditionalJumpDict = new Dictionary<Type, List<InstructionTemplate>>();
-            this.conditionalJumpDict = new Dictionary<Type, List<InstructionTemplate>>();
-
-            foreach (Type type in templateDict.Keys)
-            {
-                this.nonConditionalJumpDict.Add(type, templateDict[type].OrderByDescending(t => t.Score).ToList());
-                this.conditionalJumpDict.Add(type, conditionalJumpDict[type].OrderByDescending(t => t.Score).ToList());
-            }
+            this.nonConditionalJumpDict = dictionaries.TryGetValue(false, out var nonJumpDict)
+                ? nonJumpDict
+                : new Dictionary<Type, List<InstructionTemplate>>();
+            this.conditionalJumpDict = dictionaries.TryGetValue(true, out var jumpDict)
+                ? jumpDict
+                : new Dictionary<Type, List<InstructionTemplate>>();
         }
 
         public IEnumerable<Instruction> Select(Tree tree)
         {
-            List<Instruction> instructions = new List<Instruction>();
-            Node node = tree.Root;
-            VirtualRegister result = new VirtualRegister();
+            var node = tree.Root;
+            var result = new VirtualRegister();
 
-            if (tree.ControlFlow is ConditionalJump jump)
+            var controlFlow = tree.ControlFlow;
+            switch (controlFlow)
             {
-                this.FitTemplates(node, result, this.conditionalJumpDict, jump.TrueTarget.Id, instructions);
-                if (jump.FalseTarget != null)
+                case ConditionalJump jump:
                 {
-                    instructions.Add(new UnconditionalJumpInstruction { Label = jump.FalseTarget });
-                }
-            }
-            else if (tree.ControlFlow is FunctionCall call)
-            {
-                this.FitTemplates(node, result, this.nonConditionalJumpDict, null, instructions);
+                    var instructions = this.FitTemplates(node, result, this.conditionalJumpDict, jump.TrueTarget.Id);
+                    if (jump.FalseTarget != null)
+                    {
+                        instructions.Add(new UnconditionalJumpInstruction(jump.FalseTarget));
+                    }
 
-                if (call.TargetAfter != null)
+                    return instructions;
+                }
+
+                case FunctionCall call:
                 {
-                    instructions.Add(new CallInstruction { Func = call.Func });
+                    var instructions = this.FitTemplates(node, result, this.nonConditionalJumpDict, null);
+
+                    if (call.TargetAfter != null)
+                    {
+                        instructions.Add(new CallInstruction(call.Func));
+                    }
+
+                    return instructions;
                 }
-            }
-            else if (tree.ControlFlow is UnconditionalJump jmp)
-            {
-                this.FitTemplates(node, result, this.nonConditionalJumpDict, null, instructions);
-                if (jmp.Target != null)
+
+                case UnconditionalJump jmp:
                 {
-                    instructions.Add(new UnconditionalJumpInstruction { Label = jmp.Target });
+                    var instructions = this.FitTemplates(node, result, this.nonConditionalJumpDict, null);
+                    if (jmp.Target != null)
+                    {
+                        instructions.Add(new UnconditionalJumpInstruction(jmp.Target));
+                    }
+
+                    return instructions;
                 }
-            }
-            else if (tree.ControlFlow is Ret)
-            {
-                this.FitTemplates(node, result, this.nonConditionalJumpDict, null, instructions);
 
-                instructions.Add(new RetInstruction());
-            }
+                case Ret _:
+                {
+                    return this.FitTemplates(node, result, this.nonConditionalJumpDict, null)
+                        .Append(new RetInstruction());
+                }
 
-            return instructions;
+                default:
+                    throw new InstructionSelectorException($"Unknown control flow: {controlFlow}");
+            }
         }
 
         private List<object> Fit(Node template, Node root)
@@ -92,59 +93,68 @@ namespace KJU.Core.CodeGeneration
                 return new List<object> { root };
             }
 
-            List<object> placeholders = root.Match(template);
-            if (placeholders == null)
+            var rootPlaceholders = root.Match(template);
+            if (rootPlaceholders == null)
             {
                 return null;
             }
 
-            for (int i = 0; i < root.Children().Count; ++i)
-            {
-                List<object> fitChild = this.Fit(template.Children()[i], root.Children()[i]);
-                if (fitChild == null)
-                {
-                    return null;
-                }
+            var childrenFits = root.Children()
+                .Zip(
+                    template.Children(),
+                    (rootNode, templateNode) => new { RootNode = rootNode, TemplateNode = templateNode })
+                .Select(child => this.Fit(child.TemplateNode, child.RootNode)).ToList();
 
-                placeholders.AddRange(fitChild);
+            if (childrenFits.Any(x => x == null))
+            {
+                return null;
             }
 
-            return placeholders;
+            var childrenPlaceholders = childrenFits.SelectMany(x => x);
+            return rootPlaceholders.Concat(childrenPlaceholders).ToList();
         }
 
-        private void FitTemplates(Node node, VirtualRegister result, Dictionary<Type, List<InstructionTemplate>> templateDict, string label, List<Instruction> instructions)
+        private IList<Instruction> FitTemplates(
+            Node node,
+            VirtualRegister result,
+            IReadOnlyDictionary<Type, List<InstructionTemplate>> templateDict,
+            string label)
         {
-            if (!templateDict.ContainsKey(node.GetType()))
+            if (!templateDict.TryGetValue(node.GetType(), out var currentCandidates))
             {
-                throw new InstructionSelectorException("No matching template");
+                throw new InstructionSelectorException($"No templates for: {node.GetType()}.");
             }
 
-            foreach (var template in templateDict[node.GetType()])
+            var bestMatch = currentCandidates
+                .Select(currentTemplate => new
+                    { Template = currentTemplate, Fits = this.Fit(currentTemplate.Shape, node) })
+                .FirstOrDefault(x => x.Fits != null);
+            if (bestMatch == null)
             {
-                List<object> fits = this.Fit(template.Shape, node);
-                if (fits != null)
+                throw new InstructionSelectorException($"No matching template for {node}.");
+            }
+
+            var fill = new List<object>();
+            var instructions = new List<Instruction>();
+            foreach (var child in bestMatch.Fits)
+            {
+                object currentFill;
+                if (child is Node n)
                 {
-                    List<object> fill = new List<object>();
-                    foreach (object child in fits)
-                    {
-                        if (child is Node n)
-                        {
-                            VirtualRegister register = new VirtualRegister();
-                            fill.Add(register);
-                            this.FitTemplates(n, register, this.nonConditionalJumpDict, null, instructions);
-                        }
-                        else
-                        {
-                            fill.Add(child);
-                        }
-                    }
-
-                    instructions.Add(template.Emit(result, fill, label));
-                    return;
+                    var register = new VirtualRegister();
+                    instructions.AddRange(this.FitTemplates(n, register, this.nonConditionalJumpDict, null));
+                    currentFill = result;
                 }
+                else
+                {
+                    currentFill = child;
+                }
+
+                fill.Add(currentFill);
             }
 
-            throw new InstructionSelectorException("No matching template");
+            instructions.Add(bestMatch.Template.Emit(result, fill, label));
+            return instructions;
         }
     }
 }

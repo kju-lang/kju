@@ -6,11 +6,16 @@ namespace KJU.Core.CodeGeneration
 
     public class CallInstruction : Instruction
     {
-        public Function Func { get; set; }
+        public CallInstruction(Function function)
+        {
+            this.Function = function;
+        }
+
+        public Function Function { get; }
 
         public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
-            return $"call {this.Func.MangledName}\n";
+            return $"call {this.Function.MangledName}\n";
         }
     }
 }

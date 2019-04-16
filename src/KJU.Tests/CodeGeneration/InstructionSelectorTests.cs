@@ -3,6 +3,7 @@ namespace KJU.Tests.CodeGeneration
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using KJU.Core.AST;
     using KJU.Core.CodeGeneration;
@@ -16,30 +17,28 @@ namespace KJU.Tests.CodeGeneration
         [TestMethod]
         public void SimpleTest()
         {
-            InstructionTemplate template = new RegisterReadTemplate();
-            List<InstructionTemplate> templates = new List<InstructionTemplate> { template };
+            var template = new RegisterReadTemplate();
+            var templates = new List<InstructionTemplate> { template };
             var root = new RegisterRead(new VirtualRegister());
-            Tree tree = new Tree(root);
-            tree.ControlFlow = new Ret();
-            InstructionSelector selector = new InstructionSelector(templates);
-            var ins = selector.Select(tree) as List<Instruction>;
-            Assert.AreEqual(2, ins.Count);
+            var tree = new Tree(root) { ControlFlow = new Ret() };
+            var selector = new InstructionSelector(templates);
+            var ins = selector.Select(tree);
+            Assert.AreEqual(2, ins.Count());
         }
 
         [TestMethod]
         public void AddTest()
         {
-            List<InstructionTemplate> templates = new List<InstructionTemplate> { new AddTemplate(), new RegisterReadTemplate() };
+            var templates = new List<InstructionTemplate> { new AddTemplate(), new RegisterReadTemplate() };
             var v1 = new RegisterRead(new VirtualRegister());
             var v2 = new RegisterRead(new VirtualRegister());
             var v3 = new RegisterRead(new VirtualRegister());
             var node = new ArithmeticBinaryOperation(ArithmeticOperationType.Addition, v1, v2);
             var root = new ArithmeticBinaryOperation(ArithmeticOperationType.Addition, v3, node);
-            Tree tree = new Tree(root);
-            tree.ControlFlow = new Ret();
-            InstructionSelector selector = new InstructionSelector(templates);
-            var ins = selector.Select(tree) as List<Instruction>;
-            Assert.AreEqual(6, ins.Count);
+            var tree = new Tree(root) { ControlFlow = new Ret() };
+            var selector = new InstructionSelector(templates);
+            var ins = selector.Select(tree);
+            Assert.AreEqual(6, ins.Count());
         }
 
         internal class MovRegisterRegisterInstruction : Instruction
@@ -130,16 +129,16 @@ namespace KJU.Tests.CodeGeneration
 
             public override Instruction Emit(VirtualRegister result, IReadOnlyList<object> fill, string label)
             {
-                VirtualRegister readFrom = fill[0] as VirtualRegister;
+                var readFrom = fill[0] as VirtualRegister;
 
                 var uses = new List<VirtualRegister> { readFrom };
                 var defines = new List<VirtualRegister> { result };
                 var copies = new List<Tuple<VirtualRegister, VirtualRegister>>
-            {
-                new Tuple<VirtualRegister, VirtualRegister>(
-                    readFrom,
-                    result)
-            };
+                {
+                    new Tuple<VirtualRegister, VirtualRegister>(
+                        readFrom,
+                        result)
+                };
                 return new MovRegisterRegisterInstruction(
                     result,
                     readFrom,
