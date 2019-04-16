@@ -27,7 +27,7 @@ namespace KJU.Core.Intermediate
 
         public Function Parent { get; set; }
 
-        public Label Label { get; set; }
+        public string MangledName { get; set; }
 
         private static List<ILocation> ArgumentRegisters()
         {

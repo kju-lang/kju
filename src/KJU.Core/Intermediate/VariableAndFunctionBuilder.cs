@@ -19,6 +19,7 @@ namespace KJU.Core.Intermediate
                 case FunctionDeclaration functionDeclaration:
                 {
                     var function = new Function(parent);
+                    function.MangledName = NameMangler.GetMangledName(functionDeclaration, parent == null ? null : parent.MangledName);
                     function.Link = new Variable(function, function.ReserveStackFrameLocation());
                     function.Arguments = functionDeclaration.Parameters.Select(param =>
                     {

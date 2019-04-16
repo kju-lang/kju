@@ -62,14 +62,9 @@ namespace KJU.Core.CodeGeneration
             {
                 this.FitTemplates(node, result, this.nonConditionalJumpDict, null, instructions);
 
-                if (call.Func.Label == null)
-                {
-                    throw new InstructionSelectorException("Function does not have a label");
-                }
-
                 if (call.TargetAfter != null)
                 {
-                    instructions.Add(new CallInstruction { Label = call.Func.Label });
+                    instructions.Add(new CallInstruction { Func = call.Func });
                 }
             }
             else if (tree.ControlFlow is UnconditionalJump jmp)
