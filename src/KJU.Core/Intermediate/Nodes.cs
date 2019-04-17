@@ -53,6 +53,10 @@ namespace KJU.Core.Intermediate
 
     public class BooleanImmediateValue : Node
     {
+        public BooleanImmediateValue()
+        {
+        }
+
         public BooleanImmediateValue(bool value)
         {
             this.Value = value;
