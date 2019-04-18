@@ -15,6 +15,8 @@ namespace KJU.Tests.Examples
     [TestClass]
     public class NegativeExamplesTests
     {
+        public static readonly ICompiler Compiler = new Compiler();
+
         public static IEnumerable<object[]> Data
         {
             get
@@ -31,10 +33,9 @@ namespace KJU.Tests.Examples
         [DynamicData(nameof(Data), DynamicDataSourceType.Property)]
         public void TestExamplesSpecification(KjuExample example)
         {
-            var compiler = new Compiler();
             var diag = new Mock<IDiagnostics>();
 
-            Assert.ThrowsException<CompilerException>(() => compiler.RunOnFile(example.Path, diag.Object));
+            Assert.ThrowsException<CompilerException>(() => Compiler.RunOnFile(example.Path, diag.Object));
 
             MockDiagnostics.Verify(diag, example.ExpectedMagicStrings.ToArray());
         }

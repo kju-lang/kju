@@ -2,11 +2,10 @@ namespace KJU.Tests.Examples
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
-    using KJU.Core;
     using KJU.Core.Compiler;
     using KJU.Core.Diagnostics;
-    using KJU.Core.Input;
     using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
@@ -14,15 +13,17 @@ namespace KJU.Tests.Examples
     [TestClass]
     public class PositiveExamplesTests
     {
+        public static readonly ICompiler Compiler = new Compiler();
+
         public static IEnumerable<object[]> Data
         {
             get
             {
                 var examplesGetter = new KjuExamplesGetter();
                 return examplesGetter.Examples
-                    .Where((example) => !example.IsDisabled)
-                    .Where((example) => example.IsPositive)
-                    .Select((example) => new object[] { example });
+                    .Where(example => !example.IsDisabled)
+                    .Where(example => example.IsPositive)
+                    .Select(example => new object[] { example });
             }
         }
 
@@ -30,11 +31,8 @@ namespace KJU.Tests.Examples
         [DynamicData(nameof(Data), DynamicDataSourceType.Property)]
         public void TestExamplesSpecification(KjuExample example)
         {
-            var compiler = new Compiler();
             var diag = new Mock<IDiagnostics>();
-
-            compiler.RunOnFile(example.Path, diag.Object);
-
+            Compiler.RunOnFile(example.Path, diag.Object);
             MockDiagnostics.Verify(diag, example.ExpectedMagicStrings.ToArray());
         }
     }
