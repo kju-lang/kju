@@ -8,77 +8,90 @@ namespace KJU.Core.CodeGeneration
 
     public class InstructionSelector
     {
-        private readonly Dictionary<Type, List<InstructionTemplate>> nonConditionalJumpDict;
-        private readonly Dictionary<Type, List<InstructionTemplate>> conditionalJumpDict;
+        private readonly Dictionary<JumpType, Dictionary<ShapeKey, List<InstructionTemplate>>> templates;
 
         public InstructionSelector(IEnumerable<InstructionTemplate> templates)
         {
-            var dictionaries = templates
-                .GroupBy(template => template.IsConditionalJump)
+            var templatesDictionary = templates.GroupBy(template =>
+                    template.IsConditionalJump ? JumpType.Conditional : JumpType.NonConditional)
                 .ToDictionary(
                     jumpGroup => jumpGroup.Key,
-                    jumpGroup => jumpGroup
-                        .GroupBy(template => template.Shape.GetType())
-                        .ToDictionary(
-                            templateGroup => templateGroup.Key,
-                            templateGroup => templateGroup
-                                .OrderByDescending(template => template.Score)
-                                .ToList()));
+                    jumpGroup => jumpGroup);
 
-            this.nonConditionalJumpDict = dictionaries.TryGetValue(false, out var nonJumpDict)
-                ? nonJumpDict
-                : new Dictionary<Type, List<InstructionTemplate>>();
-            this.conditionalJumpDict = dictionaries.TryGetValue(true, out var jumpDict)
-                ? jumpDict
-                : new Dictionary<Type, List<InstructionTemplate>>();
+            this.templates = templatesDictionary.ToDictionary(
+                x => x.Key,
+                x => x.Value.GroupBy(template => new ShapeKey(template.Shape?.GetType()))
+                    .ToDictionary(
+                        templateGroup => templateGroup.Key,
+                        templateGroup => templateGroup
+                            .OrderByDescending(template => template.Score)
+                            .ToList()));
+
+            foreach (JumpType jumpType in Enum.GetValues(typeof(JumpType)))
+            {
+                if (!this.templates.ContainsKey(jumpType))
+                {
+                    this.templates[jumpType] = new Dictionary<ShapeKey, List<InstructionTemplate>>();
+                }
+            }
+        }
+
+        private enum JumpType
+        {
+            Conditional,
+            NonConditional
         }
 
         public IEnumerable<Instruction> Select(Tree tree)
         {
             var node = tree.Root;
             var result = new VirtualRegister();
-
+            JumpType jumpType;
+            string label;
             var controlFlow = tree.ControlFlow;
             switch (controlFlow)
             {
                 case ConditionalJump jump:
                 {
-                    var instructions = this.FitTemplates(node, result, this.conditionalJumpDict, jump.TrueTarget.Id);
-                    if (jump.FalseTarget != null)
-                    {
-                        instructions.Add(new UnconditionalJumpInstruction(jump.FalseTarget));
-                    }
+                    jumpType = JumpType.Conditional;
+                    label = jump.TrueTarget.Id;
+                    break;
+                }
 
-                    return instructions;
+                default:
+                {
+                    jumpType = JumpType.NonConditional;
+                    label = null;
+                    break;
+                }
+            }
+
+            var instructions = this.FitTemplates(
+                node,
+                result,
+                this.templates[jumpType],
+                label);
+
+            switch (controlFlow)
+            {
+                case ConditionalJump jump:
+                {
+                    return jump.FalseTarget == null ? instructions : instructions.Append(new UnconditionalJumpInstruction(jump.FalseTarget));
                 }
 
                 case FunctionCall call:
                 {
-                    var instructions = this.FitTemplates(node, result, this.nonConditionalJumpDict, null);
-
-                    if (call.TargetAfter != null)
-                    {
-                        instructions.Add(new CallInstruction(call.Func));
-                    }
-
-                    return instructions;
+                    return call.TargetAfter == null ? instructions : instructions.Append(new CallInstruction(call.Func));
                 }
 
                 case UnconditionalJump jmp:
                 {
-                    var instructions = this.FitTemplates(node, result, this.nonConditionalJumpDict, null);
-                    if (jmp.Target != null)
-                    {
-                        instructions.Add(new UnconditionalJumpInstruction(jmp.Target));
-                    }
-
-                    return instructions;
+                    return jmp.Target == null ? instructions : instructions.Append(new UnconditionalJumpInstruction(jmp.Target));
                 }
 
                 case Ret _:
                 {
-                    return this.FitTemplates(node, result, this.nonConditionalJumpDict, null)
-                        .Append(new RetInstruction());
+                    return instructions.Append(new RetInstruction());
                 }
 
                 default:
@@ -94,6 +107,7 @@ namespace KJU.Core.CodeGeneration
             }
 
             var rootPlaceholders = root.Match(template);
+
             if (rootPlaceholders == null)
             {
                 return null;
@@ -102,9 +116,8 @@ namespace KJU.Core.CodeGeneration
             var childrenFits = root.Children()
                 .Zip(
                     template.Children(),
-                    (rootNode, templateNode) => new { RootNode = rootNode, TemplateNode = templateNode })
-                .Select(child => this.Fit(child.TemplateNode, child.RootNode)).ToList();
-
+                    (rootNode, templateNode) => this.Fit(templateNode, rootNode))
+                .ToList();
             if (childrenFits.Any(x => x == null))
             {
                 return null;
@@ -114,36 +127,47 @@ namespace KJU.Core.CodeGeneration
             return rootPlaceholders.Concat(childrenPlaceholders).ToList();
         }
 
-        private IList<Instruction> FitTemplates(
+        private IEnumerable<Instruction> FitTemplates(
             Node node,
             VirtualRegister result,
-            IReadOnlyDictionary<Type, List<InstructionTemplate>> templateDict,
+            IReadOnlyDictionary<ShapeKey, List<InstructionTemplate>> templateDict,
             string label)
         {
-            if (!templateDict.TryGetValue(node.GetType(), out var currentCandidates))
-            {
-                throw new InstructionSelectorException($"No templates for: {node.GetType()}.");
-            }
+            var possibleTemplates = templateDict.TryGetValue(new ShapeKey(node.GetType()), out var value)
+                ? value
+                : new List<InstructionTemplate>();
 
-            var bestMatch = currentCandidates
+            var nullTemplates = templateDict.TryGetValue(new ShapeKey(null), out var extracted)
+                ? extracted
+                : new List<InstructionTemplate>();
+
+            possibleTemplates.AddRange(nullTemplates);
+
+            var bestMatch = possibleTemplates
                 .Select(currentTemplate => new
                     { Template = currentTemplate, Fits = this.Fit(currentTemplate.Shape, node) })
                 .FirstOrDefault(x => x.Fits != null);
+
             if (bestMatch == null)
             {
                 throw new InstructionSelectorException($"No matching template for {node}.");
             }
 
             var fill = new List<object>();
-            var instructions = new List<Instruction>();
+            var childInstructions = Enumerable.Empty<Instruction>();
             foreach (var child in bestMatch.Fits)
             {
                 object currentFill;
-                if (child is Node n)
+                if (child is Node innerNode)
                 {
                     var register = new VirtualRegister();
-                    instructions.AddRange(this.FitTemplates(n, register, this.nonConditionalJumpDict, null));
-                    currentFill = result;
+                    var innerTemplates = this.FitTemplates(
+                        innerNode,
+                        register,
+                        this.templates[JumpType.NonConditional],
+                        null);
+                    childInstructions = childInstructions.Concat(innerTemplates);
+                    currentFill = register;
                 }
                 else
                 {
@@ -153,8 +177,32 @@ namespace KJU.Core.CodeGeneration
                 fill.Add(currentFill);
             }
 
-            instructions.Add(bestMatch.Template.Emit(result, fill, label));
-            return instructions;
+            return childInstructions.Append(bestMatch.Template.Emit(result, fill, label));
+        }
+
+        private class ShapeKey
+        {
+            private readonly Type shapeType;
+
+            public ShapeKey(Type shapeType)
+            {
+                this.shapeType = shapeType;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is ShapeKey other)
+                {
+                    return this.shapeType == other.shapeType;
+                }
+
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return this.shapeType != null ? this.shapeType.GetHashCode() : 0;
+            }
         }
     }
 }

@@ -27,6 +27,19 @@ namespace KJU.Tests.CodeGeneration
         }
 
         [TestMethod]
+        public void NullTest()
+        {
+            InstructionTemplate nullTemplate = new NullTemplate();
+            var template = new RegisterReadTemplate();
+            var templates = new List<InstructionTemplate> { template, nullTemplate };
+            var root = new RegisterRead(new VirtualRegister());
+            var tree = new Tree(root) { ControlFlow = new ConditionalJump(new Label(new Tree(new Core.Intermediate.Node())), null) };
+            var selector = new InstructionSelector(templates);
+            var ins = selector.Select(tree);
+            Assert.AreEqual(2, ins.Count());
+        }
+
+        [TestMethod]
         public void AddTest()
         {
             var templates = new List<InstructionTemplate> { new AddTemplate(), new RegisterReadTemplate() };
@@ -61,6 +74,32 @@ namespace KJU.Tests.CodeGeneration
             public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 return null;
+            }
+        }
+
+        internal class NullTemplate : InstructionTemplate
+        {
+            public NullTemplate()
+                : base(null, 0, true)
+            {
+            }
+
+            public override Instruction Emit(VirtualRegister result, IReadOnlyList<object> fill, string label)
+            {
+                return new NullInstruction();
+            }
+
+            private class NullInstruction : Instruction
+            {
+                public NullInstruction()
+                    : base()
+                {
+                }
+
+                public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+                {
+                    return string.Empty;
+                }
             }
         }
 
