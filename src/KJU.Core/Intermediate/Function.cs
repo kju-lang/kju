@@ -8,7 +8,7 @@ namespace KJU.Core.Intermediate
     using System.Linq;
     using AST.VariableAccessGraph;
 
-    public class Function
+    public class Function : IFunction
     {
         private int stackBytes;
 
