@@ -1,4 +1,2 @@
-# Convert line endings to LF
-* text eol=lf
-
-examples/kju/positive/whitespace_insensitivity/* -text
+# Enable auto-crlf
+* text=auto
