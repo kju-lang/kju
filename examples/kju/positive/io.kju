@@ -1,0 +1,11 @@
+fun write(a: Int): Unit import
+fun read(): Int import
+
+fun kju(): Unit
+{
+	var n: Int = read();
+    while (n > 0) {
+        write(read());
+        n -= 1;
+    };
+}
