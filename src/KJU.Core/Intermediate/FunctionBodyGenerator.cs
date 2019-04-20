@@ -140,7 +140,7 @@ namespace KJU.Core.Intermediate
             argumentRegisters.Reverse();
             VirtualRegister resultRegister = new VirtualRegister();
 
-            callLabel.Tree = this.func.GenerateCall(
+            callLabel.Tree = node.Declaration.IntermediateFunction.GenerateCall(
                 resultRegister,
                 argumentRegisters,
                 after,
