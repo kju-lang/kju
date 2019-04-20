@@ -30,7 +30,7 @@ namespace KJU.Core.AST.ReturnChecker
             {
                 foreach (var declaration in root.ChildrenRecursive().OfType<FunctionDeclaration>())
                 {
-                    if (declaration.ReturnType != BuiltinTypes.UnitType.Instance && !CheckNode(declaration.Body))
+                    if (declaration.ReturnType != BuiltinTypes.UnitType.Instance && !declaration.IsForeign && !CheckNode(declaration.Body))
                     {
                         var message = $"Function '{declaration.Identifier}' is missing return statement";
                         this.diagnostics.Add(new Diagnostic(

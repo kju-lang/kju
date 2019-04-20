@@ -49,6 +49,8 @@ namespace KJU.Core.AST
 
         public InstructionBlock Body { get; set; }
 
+        public bool IsForeign { get; set; }
+
         public Intermediate.Function IntermediateFunction { get; set; }
 
         public static bool ParametersTypesEquals(FunctionDeclaration left, FunctionDeclaration right)
@@ -65,7 +67,10 @@ namespace KJU.Core.AST
 
         public override IEnumerable<Node> Children()
         {
-            return new List<Node>(this.Parameters) { this.Body };
+            if (this.Body != null)
+                return new List<Node>(this.Parameters) { this.Body };
+            else
+                return new List<Node>(this.Parameters);
         }
 
         public override string ToString()

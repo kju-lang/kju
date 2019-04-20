@@ -23,6 +23,7 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.Colon, ":" },
                 { KjuAlphabet.Semicolon, ";" },
                 { KjuAlphabet.If, "if" },
+                { KjuAlphabet.Import, "import" },
                 { KjuAlphabet.Then, "then" },
                 { KjuAlphabet.Else, "else" },
                 { KjuAlphabet.While, "while" },

@@ -55,6 +55,11 @@ namespace KJU.Core.Lexer
         If,
 
         /// <summary>
+        /// import
+        /// </summary>
+        Import,
+
+        /// <summary>
         /// then
         /// </summary>
         Then,

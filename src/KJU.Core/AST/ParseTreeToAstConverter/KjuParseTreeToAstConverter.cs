@@ -294,6 +294,7 @@ namespace KJU.Core.AST
                 string identifier = null;
                 DataType type = null;
                 InstructionBlock body = null;
+                bool isForeign = false;
                 foreach (var child in branch.Children)
                 {
                     switch (child.Category)
@@ -310,6 +311,9 @@ namespace KJU.Core.AST
                         case KjuAlphabet.Block:
                             body = this.BlockToAst((Brunch<KjuAlphabet>)child, diagnostics);
                             break;
+                        case KjuAlphabet.Import:
+                            isForeign = true;
+                            break;
                     }
                 }
 
@@ -318,6 +322,7 @@ namespace KJU.Core.AST
                     type,
                     parameters,
                     body);
+                ast.IsForeign = isForeign;
 
                 return ast;
             }

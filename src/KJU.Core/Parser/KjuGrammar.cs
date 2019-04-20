@@ -27,7 +27,9 @@ namespace KJU.Core.Parser
                 RParen.ToRegex(),
                 Colon.ToRegex(),
                 TypeIdentifier.ToRegex(),
-                KjuAlphabet.Block.ToRegex())
+                Sum(
+                    KjuAlphabet.Block.ToRegex(),
+                    KjuAlphabet.Import.ToRegex()))
         };
 
         public static readonly Rule<KjuAlphabet> Block = new Rule<KjuAlphabet>

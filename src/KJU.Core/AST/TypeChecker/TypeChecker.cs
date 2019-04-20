@@ -147,7 +147,8 @@ namespace KJU.Core.AST.TypeChecker
 
                         fun.Type = UnitType.Instance;
 
-                        this.CheckReturnTypesMatch(fun.Body, fun.ReturnType);
+                        if (!fun.IsForeign)
+                            this.CheckReturnTypesMatch(fun.Body, fun.ReturnType);
                         break;
 
                     case InstructionBlock instruction:

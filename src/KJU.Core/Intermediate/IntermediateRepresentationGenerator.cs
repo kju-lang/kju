@@ -11,6 +11,7 @@ namespace KJU.Core.Intermediate
             return node
                 .ChildrenRecursive()
                 .OfType<AST.FunctionDeclaration>()
+                .Where(fun => !fun.IsForeign)
                 .ToDictionary(
                     decl => decl,
                     decl =>
