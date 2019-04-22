@@ -98,10 +98,12 @@ namespace KJU.Core.Intermediate
                 return new Tree(caller.GenerateWrite(registerVariable, x.Value));
             });
 
-            var descendant = this.GetDescendant(caller);
-
             var linkVariable = new Variable(caller, argumentRegisters[arity]);
-            var readDescendantLinkOperation = caller.GenerateRead(descendant.Link);
+            Node readDescendantLinkOperation;
+            if (caller == this.Parent)
+                readDescendantLinkOperation = new RegisterRead(HardwareRegister.RBP);
+            else
+                readDescendantLinkOperation = caller.GenerateRead(this.GetDescendant(caller).Link);
             var writeLinkOperation = caller.GenerateWrite(linkVariable, readDescendantLinkOperation);
             var writeLinkOperationControlFlow = new FunctionCall(this, onReturn);
             var writeLinkOperationTree = new Tree(writeLinkOperation) { ControlFlow = writeLinkOperationControlFlow };
@@ -246,7 +248,7 @@ namespace KJU.Core.Intermediate
 
         private Function GetDescendant(Function caller)
         {
-            var result = this.Parent != caller ? caller : this;
+            var result = caller;
             while (result.Parent != this.Parent)
             {
                 result = result.Parent;
