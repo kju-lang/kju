@@ -12,6 +12,7 @@ namespace KJU.Core.AST
         public static readonly string TokenCategoryErrorDiagnosticsType = "unexpectedTokenCategory";
         public static readonly string TypeIdentifierErrorDiagnosticsType = "unexpectedTypeIdentifier";
         public static readonly string AstConversionErrorDiagnosticsType = "astConversionError";
+        public static readonly string AssignmentLhsErrorDiagnosticsType = "assignmentLhsError";
 
         private readonly Dictionary<KjuAlphabet, ArithmeticOperationType> symbolToOperationType;
         private readonly Dictionary<KjuAlphabet, ComparisonType> symbolToComparisonType;
@@ -97,6 +98,7 @@ namespace KJU.Core.AST
                         [KjuAlphabet.VariableUse] = this.VariableUseToAst,
                         [KjuAlphabet.Statement] = this.StatementToAst,
                         [KjuAlphabet.Expression] = this.ExpressionToAst,
+                        [KjuAlphabet.ExpressionAssignment] = this.ExpressionAssignmentToAst,
                         [KjuAlphabet.ExpressionOr] = this.ExpressionLogicalOrToAst,
                         [KjuAlphabet.ExpressionAnd] = this.ExpressionLogicalAndToAst,
                         [KjuAlphabet.ExpressionEqualsNotEquals] = this.ExpressionEqualsNotEqualsToAst,
@@ -458,27 +460,12 @@ namespace KJU.Core.AST
                     // Value
                     return new Variable(id);
                 }
-                else if (branch.Children[1].Category == KjuAlphabet.FunctionCall)
+                else
                 {
                     // Function call
                     var arguments =
                         this.FunctionCallArgumentsToAst((Brunch<KjuAlphabet>)branch.Children[1], diagnostics);
                     return new FunctionCall(id, arguments);
-                }
-                else
-                {
-                    // Assignment
-                    var variable = new Variable(id);
-                    var expression = this.ExpressionAtomToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
-                    if (branch.Children[1].Category == KjuAlphabet.Assign)
-                    {
-                        return new Assignment(variable, expression);
-                    }
-                    else
-                    {
-                        var operationType = this.symbolToOperationType[branch.Children[1].Category];
-                        return new CompoundAssignment(variable, operationType, expression);
-                    }
                 }
             }
 
@@ -490,7 +477,45 @@ namespace KJU.Core.AST
 
             private Expression ExpressionToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
-                return this.ExpressionLogicalOrToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                return this.ExpressionAssignmentToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+            }
+
+            private Expression ExpressionAssignmentToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
+            {
+                if (branch.Children.Count == 1)
+                {
+                    return this.ExpressionLogicalOrToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                }
+                else
+                {
+                    var operatorSymbol = branch.Children[1].Category;
+                    var variable = this.ExpressionLogicalOrToAst(
+                        (Brunch<KjuAlphabet>)branch.Children[0],
+                        diagnostics) as AST.Variable;
+                    var rightValue = this.ExpressionAssignmentToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
+
+                    if (variable == null)
+                    {
+                        diagnostics.Add(new Diagnostic(
+                            DiagnosticStatus.Error,
+                            AssignmentLhsErrorDiagnosticsType,
+                            "{0} Left operand of an assignment is not a variable",
+                            new List<Range> { branch.Children[0].InputRange }));
+
+                        throw new ParseTreeToAstConverterException(
+                            "Left operand of an assignment is not a variable");
+                    }
+
+                    if (operatorSymbol == KjuAlphabet.Assign)
+                    {
+                        return new Assignment(variable, rightValue);
+                    }
+                    else
+                    {
+                        var type = this.symbolToOperationType[operatorSymbol];
+                        return new CompoundAssignment(variable, type, rightValue);
+                    }
+                }
             }
 
             private Expression ExpressionLogicalOrToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)

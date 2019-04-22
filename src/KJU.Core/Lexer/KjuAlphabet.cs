@@ -290,6 +290,7 @@ namespace KJU.Core.Lexer
         WhileStatement,
 
         Expression,
+        ExpressionAssignment,
         ExpressionOr,
         ExpressionAnd,
         ExpressionEqualsNotEquals,

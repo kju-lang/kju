@@ -110,15 +110,6 @@ namespace KJU.Core.Parser
             Rhs = Concat(
                 VariableFunctionIdentifier.ToRegex(),
                 Sum(
-                    Concat(
-                        Sum(
-                            Assign.ToRegex(),
-                            PlusAssign.ToRegex(),
-                            MinusAssign.ToRegex(),
-                            StarAssign.ToRegex(),
-                            SlashAssign.ToRegex(),
-                            PercentAssign.ToRegex()),
-                        KjuAlphabet.ExpressionAtom.ToRegex()), // Assigment
                     KjuAlphabet.FunctionCall.ToRegex(), // Function call
                     new EpsilonRegex<KjuAlphabet>())) // Value read
         };
@@ -143,8 +134,19 @@ namespace KJU.Core.Parser
         {
             Name = "Expression",
             Lhs = KjuAlphabet.Expression,
-            Rhs = ExpressionOr.ToRegex()
+            Rhs = KjuAlphabet.ExpressionAssignment.ToRegex()
         };
+
+        public static readonly Rule<KjuAlphabet> ExpressionAssignment =
+            CreateExpressionRule(
+                KjuAlphabet.ExpressionAssignment,
+                KjuAlphabet.ExpressionOr,
+                KjuAlphabet.Assign,
+                KjuAlphabet.PlusAssign,
+                KjuAlphabet.MinusAssign,
+                KjuAlphabet.StarAssign,
+                KjuAlphabet.SlashAssign,
+                KjuAlphabet.PercentAssign);
 
         public static readonly Rule<KjuAlphabet> ExpressionLogicalOr =
             CreateExpressionRule(ExpressionOr, ExpressionAnd, LogicalOr);
@@ -216,11 +218,33 @@ namespace KJU.Core.Parser
             StartSymbol = KjuAlphabet.Kju,
             Rules = new ReadOnlyCollection<Rule<KjuAlphabet>>(new List<Rule<KjuAlphabet>>
             {
-                Kju, Function, Block, Instruction, NotDelimeteredInstruction, FunctionParameter, FunctionCall,
-                IfStatement, WhileStatement, ReturnStatement, VariableDeclaration, VariableUse, Expression,
-                ExpressionLogicalOr, ExpressionLogicalAnd, ExpressionEqualsNotEquals, ExpressionLessThanGreaterThan,
-                ExpressionPlusMinus, ExpressionTimesDivideModulo, ExpressionUnaryOperator, Literal, ExpressionAtom,
-                Statement
+                Kju,
+                Function,
+                FunctionParameter,
+                FunctionCall,
+
+                Block,
+                Instruction,
+                NotDelimeteredInstruction,
+                Statement,
+                IfStatement,
+                WhileStatement,
+                ReturnStatement,
+                VariableDeclaration,
+
+                Expression,
+                ExpressionAssignment,
+                ExpressionLogicalOr,
+                ExpressionLogicalAnd,
+                ExpressionEqualsNotEquals,
+                ExpressionLessThanGreaterThan,
+                ExpressionPlusMinus,
+                ExpressionTimesDivideModulo,
+                ExpressionUnaryOperator,
+                ExpressionAtom,
+
+                VariableUse,
+                Literal,
             })
         };
 

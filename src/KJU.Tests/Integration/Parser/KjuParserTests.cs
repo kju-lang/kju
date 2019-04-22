@@ -44,7 +44,7 @@ namespace KJU.Tests.Integration.Parser
             var tree = KjuCompilerUtils.Parse("fun kju():Unit{var x:Int=2+2;}", null);
             Assert.AreEqual(
                 actual: tree.ToString(),
-                expected: "Kju [FunctionDeclaration [Fun'fun', VariableFunctionIdentifier'kju', LParen'(', RParen')', Colon':', TypeIdentifier'Unit', Block [LBrace'{', Instruction [NotDelimeteredInstruction [Statement [VariableDeclaration [Var'var', VariableFunctionIdentifier'x', Colon':', TypeIdentifier'Int', Assign'=', Expression [ExpressionOr [ExpressionAnd [ExpressionEqualsNotEquals [ExpressionLessThanGreaterThan [ExpressionPlusMinus [ExpressionTimesDivideModulo [ExpressionUnaryOperator [ExpressionAtom [Literal [DecimalLiteral'2']]]], Plus'+', ExpressionPlusMinus [ExpressionTimesDivideModulo [ExpressionUnaryOperator [ExpressionAtom [Literal [DecimalLiteral'2']]]]]]]]]]]]]], Semicolon';'], RBrace'}']]]");
+                expected: "Kju [FunctionDeclaration [Fun'fun', VariableFunctionIdentifier'kju', LParen'(', RParen')', Colon':', TypeIdentifier'Unit', Block [LBrace'{', Instruction [NotDelimeteredInstruction [Statement [VariableDeclaration [Var'var', VariableFunctionIdentifier'x', Colon':', TypeIdentifier'Int', Assign'=', Expression [ExpressionAssignment [ExpressionOr [ExpressionAnd [ExpressionEqualsNotEquals [ExpressionLessThanGreaterThan [ExpressionPlusMinus [ExpressionTimesDivideModulo [ExpressionUnaryOperator [ExpressionAtom [Literal [DecimalLiteral'2']]]], Plus'+', ExpressionPlusMinus [ExpressionTimesDivideModulo [ExpressionUnaryOperator [ExpressionAtom [Literal [DecimalLiteral'2']]]]]]]]]]]]]]], Semicolon';'], RBrace'}']]]");
         }
     }
 }
