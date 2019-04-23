@@ -9,10 +9,10 @@ namespace KJU.Core.AST
 
     public class KjuParseTreeToAstConverter : IParseTreeToAstConverter<KjuAlphabet>
     {
-        public static readonly string TokenCategoryErrorDiagnosticsType = "unexpectedTokenCategory";
-        public static readonly string TypeIdentifierErrorDiagnosticsType = "unexpectedTypeIdentifier";
-        public static readonly string AstConversionErrorDiagnosticsType = "astConversionError";
-        public static readonly string AssignmentLhsErrorDiagnosticsType = "assignmentLhsError";
+        public static readonly string TokenCategoryErrorDiagnosticsType = "ToASTConverter.UnexpectedTokenCategory";
+        public static readonly string TypeIdentifierErrorDiagnosticsType = "ToASTConverter.UnexpectedTypeIdentifier";
+        public static readonly string AstConversionErrorDiagnosticsType = "ToASTConverter.AstConversionError";
+        public static readonly string AssignmentLhsErrorDiagnosticsType = "ToASTConverter.AssignmentLhsError";
 
         private readonly Dictionary<KjuAlphabet, ArithmeticOperationType> symbolToOperationType;
         private readonly Dictionary<KjuAlphabet, ComparisonType> symbolToComparisonType;

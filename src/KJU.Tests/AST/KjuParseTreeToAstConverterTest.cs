@@ -343,6 +343,61 @@ namespace KJU.Tests.AST
             this.TestTemplate(code, expected);
         }
 
+        [TestMethod]
+        public void AssignmentOrder()
+        {
+            string code = @"
+                fun kju (): Unit {
+                    var x: Int;
+                    var y: Int = 0;
+                    x = y + 3;
+                }
+                ";
+            string expected = "P<fun kju Unit<block<var x Int<> | var y Int<int 0> | assign<var x | op +<var y | int 3>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void CompoundAssignmentOrder()
+        {
+            string code = @"
+                fun kju (): Unit {
+                    var x: Int;
+                    x += x + 3;
+                }
+                ";
+            string expected = "P<fun kju Unit<block<var x Int<> | assign +<var x | op +<var x | int 3>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void MultipleAssignments()
+        {
+            string code = @"
+                fun kju (): Unit {
+                    var x: Int;
+                    var y: Int;
+                    x = y = 3 + (y = 0);
+                }
+                ";
+            string expected = "P<fun kju Unit<block<var x Int<> | var y Int<> | assign<var x | assign<var y | op +<int 3 | assign<var y | int 0>>>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void AssignmentLhsNotVariable()
+        {
+            var diag = new Mock<IDiagnostics>();
+            string code = @"
+                fun kju (): Unit {
+                    4 * 6 = 5;
+                }
+                ";
+            Assert.ThrowsException<ParseTreeToAstConverterException>(
+                () => KjuCompilerUtils.GenerateAst(code, diag.Object));
+            MockDiagnostics.Verify(diag, KjuParseTreeToAstConverter.AssignmentLhsErrorDiagnosticsType);
+        }
+
         private void TestTemplate(string code, string expectedAstSerialization)
         {
             var ast = KjuCompilerUtils.GenerateAst(code, this.diagnostics);

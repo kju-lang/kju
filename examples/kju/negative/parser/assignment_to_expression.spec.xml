@@ -1,0 +1,7 @@
+<Spec>
+    <IsPositive>false</IsPositive>
+    <ExpectedMagicStrings>
+        <MagicString>ToASTConverter.AssignmentLhsError</MagicString>
+    </ExpectedMagicStrings>
+</Spec>
+
