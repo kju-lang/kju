@@ -1,0 +1,29 @@
+fun main():Unit{
+	var a:Int = 1;
+	var b:Int = 2;
+	var c:Int = 3;
+	var d:Int = 4;
+	var e:Int = 5;
+	var f:Int = 6;
+	var g:Int = 7;
+	var h:Int = 8;
+	var i:Int = 9;
+	var j:Int = 10;
+	var k:Int = 11;
+	var l:Int = 12;
+	var m:Int = 13;
+	var n:Int = 14;
+	var o:Int = 15;
+	var p:Int = 16;
+	var q:Int = 17;
+	var r:Int = 18;
+	var s:Int = 19;
+	var t:Int = 20;
+	var u:Int = 21;
+	var v:Int = 22;
+	var w:Int = 23;
+	var x:Int = 24;
+	var y:Int = 25;
+	var z:Int = 26;
+	var aa:Int = a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+v+w+x+y+z;
+}
