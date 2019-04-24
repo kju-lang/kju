@@ -20,6 +20,11 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
                 this.CreateCopyGraph(reverseCFG));
         }
 
+        public InterferenceCopyGraphPair GetInterferenceCopyGraphs(IReadOnlyCollection<KeyValuePair<Label, IReadOnlyList<Instruction>>> instructions)
+        {
+            return this.GetInterferenceCopyGraphs(instructions.Select(x => new Tuple<Label, IReadOnlyList<Instruction>>(x.Key, x.Value)).ToList());
+        }
+
         private IReadOnlyDictionary<Instruction, IReadOnlyCollection<Instruction>> GetInstructionCFG(
             IReadOnlyList<Tuple<Label, IReadOnlyList<Instruction>>> instructions)
         {

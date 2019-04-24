@@ -11,9 +11,9 @@ namespace KJU.Core.CodeGeneration.Templates
     using Stack;
     using Unary;
 
-    public static class InstructionsTemplatesFactory
+    public class InstructionsTemplatesFactory
     {
-        public static IReadOnlyList<InstructionTemplate> CreateInstructionTemplates()
+        public IReadOnlyList<InstructionTemplate> CreateInstructionTemplates()
         {
             var powerOf2 = new PowerOf2MultiplicationTemplateFactory().GetTemplates();
             var multiplicationConstant = new MultiplicationByConstantTemplateFactory().GetTemplates();

@@ -9,6 +9,6 @@ namespace KJU.Core.Intermediate
 
         public Tree Tree { get; set; }
 
-        public string Id { get; }
+        public string Id { get; set; }
     }
 }
