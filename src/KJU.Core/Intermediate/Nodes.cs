@@ -378,4 +378,24 @@ namespace KJU.Core.Intermediate
             return null;
         }
     }
+
+    public class ReserveStackMemory : Node
+    {
+        public ReserveStackMemory(Function func)
+        {
+            this.KjuFunction = func;
+        }
+
+        private Function KjuFunction { get; }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is ReserveStackMemory)
+            {
+                return new List<object> { this.KjuFunction };
+            }
+
+            return null;
+        }
+    }
 }

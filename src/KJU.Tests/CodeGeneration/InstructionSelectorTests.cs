@@ -8,6 +8,7 @@ namespace KJU.Tests.CodeGeneration
     using KJU.Core.AST;
     using KJU.Core.CodeGeneration;
     using KJU.Core.CodeGeneration.Templates;
+    using KJU.Core.CodeGeneration.Templates.Stack;
     using KJU.Core.Intermediate;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,6 +25,19 @@ namespace KJU.Tests.CodeGeneration
             var selector = new InstructionSelector(templates);
             var ins = selector.Select(tree);
             Assert.AreEqual(2, ins.Count());
+        }
+
+        [TestMethod]
+        public void StackMemoryTest()
+        {
+            var template = new ReserveStackMemoryTemplate();
+            var templates = new List<InstructionTemplate> { template };
+            var root = new ReserveStackMemory(new Function { StackBytes = 16 });
+            var tree = new Tree(root) { ControlFlow = new Ret() };
+            var selector = new InstructionSelector(templates);
+            var ins = selector.Select(tree);
+            Assert.AreEqual(2, ins.Count());
+            Assert.AreEqual("sub RSP 16", ins.First().ToASM(null));
         }
 
         [TestMethod]

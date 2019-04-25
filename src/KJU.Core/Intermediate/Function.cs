@@ -10,8 +10,6 @@ namespace KJU.Core.Intermediate
 
     public class Function : IFunction
     {
-        private int stackBytes;
-
         public Function(Function parent)
         {
             this.Parent = parent;
@@ -28,6 +26,8 @@ namespace KJU.Core.Intermediate
         public Function Parent { get; set; }
 
         public string MangledName { get; set; }
+
+        public int StackBytes { get; set; }
 
         private static List<ILocation> ArgumentRegisters()
         {
@@ -55,7 +55,7 @@ namespace KJU.Core.Intermediate
 
         public MemoryLocation ReserveStackFrameLocation()
         {
-            return new MemoryLocation(this, -(this.stackBytes += 8));
+            return new MemoryLocation(this, -(this.StackBytes += 8));
         }
 
         // We will use standard x86-64 conventions -> RDI, RSI, RDX, RCX, R8, R9.
@@ -186,6 +186,9 @@ namespace KJU.Core.Intermediate
             var rbpWrite = this.GenerateWrite(rbpVariable, rspRead);
             var writeRbpOperation = new Tree(rbpWrite);
 
+            var reserveStackMemoryNode = new ReserveStackMemory(this);
+            var moveRspOperation = new Tree(reserveStackMemoryNode);
+
             var allArguments = this.Arguments.Append(this.Link);
             var argumentLocations = ArgumentRegisters();
             var argumentsWithLocations = allArguments
@@ -198,7 +201,7 @@ namespace KJU.Core.Intermediate
                 return new Tree(writeOperation);
             });
 
-            var operations = new List<Tree> { pushRbpOperation, writeRbpOperation }
+            var operations = new List<Tree> { pushRbpOperation, writeRbpOperation, moveRspOperation }
                 .Concat(rewriteParametersOperations)
                 .Append(after.Tree)
                 .ToList();

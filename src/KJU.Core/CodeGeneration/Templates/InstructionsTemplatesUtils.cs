@@ -34,5 +34,12 @@ namespace KJU.Core.CodeGeneration.Templates
             var box = (BooleanImmediateValue)fill[position];
             return box.Value;
         }
+
+        public static Function GetFunction(
+            this IReadOnlyList<object> fill,
+            int position)
+        {
+            return (Function)fill[position];
+        }
     }
 }
