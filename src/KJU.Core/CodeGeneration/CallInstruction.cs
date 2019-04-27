@@ -7,6 +7,9 @@ namespace KJU.Core.CodeGeneration
     public class CallInstruction : Instruction
     {
         public CallInstruction(Function function)
+            : base(
+                new List<VirtualRegister> { HardwareRegister.RSP },
+                new List<VirtualRegister> { HardwareRegister.RSP })
         {
             this.Function = function;
         }

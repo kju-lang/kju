@@ -7,6 +7,13 @@
 
     public class RetInstruction : Instruction
     {
+        public RetInstruction()
+            : base(
+                new List<VirtualRegister> { HardwareRegister.RSP },
+                new List<VirtualRegister> { HardwareRegister.RSP })
+        {
+        }
+
         public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
             return "ret\n";
