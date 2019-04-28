@@ -28,6 +28,7 @@ namespace KJU.Core.Compiler
         private readonly IPhase nameResolver = new NameResolver();
         private readonly IPhase typeChecker = new TypeChecker();
         private readonly IPhase returnChecker = new ReturnChecker();
+        private readonly IFunctionToAsmGenerator functionToAsmGenerator = new FunctionToAsmGenerator();
 
         private readonly IntermediateRepresentationGenerator intermediateGenerator =
             new IntermediateRepresentationGenerator();
@@ -60,7 +61,7 @@ namespace KJU.Core.Compiler
                 {
                     var functionDeclaration = entry.Key;
 
-                    asm.AddRange(FunctionToAsmGenerator.ToAsm(functionDeclaration));
+                    asm.AddRange(this.functionToAsmGenerator.ToAsm(functionDeclaration));
                 }
 
                 artifacts.Asm = asm;
