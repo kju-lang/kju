@@ -23,7 +23,7 @@ namespace KJU.Core.CodeGeneration.Templates
             this IReadOnlyList<object> fill,
             int position)
         {
-            var box = (IntegerImmediateValue)fill[position];
+            var box = new IntegerImmediateValue((long)fill[position]);
             return box.Value;
         }
 

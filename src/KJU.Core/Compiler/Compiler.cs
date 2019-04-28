@@ -1,11 +1,13 @@
 namespace KJU.Core.Compiler
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using AST;
     using AST.ReturnChecker;
     using AST.TypeChecker;
+    using CodeGeneration.FunctionToAsmGeneration;
     using Diagnostics;
     using Input;
     using Intermediate;
@@ -26,6 +28,7 @@ namespace KJU.Core.Compiler
         private readonly IPhase nameResolver = new NameResolver();
         private readonly IPhase typeChecker = new TypeChecker();
         private readonly IPhase returnChecker = new ReturnChecker();
+        private readonly IFunctionToAsmGenerator functionToAsmGenerator = new FunctionToAsmGenerator();
 
         private readonly IntermediateRepresentationGenerator intermediateGenerator =
             new IntermediateRepresentationGenerator();
@@ -47,6 +50,25 @@ namespace KJU.Core.Compiler
                 this.returnChecker.Run(ast, diagnostics);
                 VariableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var funcionsIR = this.intermediateGenerator.CreateIR(ast);
+
+               /****************
+                *  Dirty code  *
+                ****************/
+
+                var asm = new List<string>();
+
+                foreach (var entry in funcionsIR)
+                {
+                    var functionDeclaration = entry.Key;
+
+                    asm.AddRange(this.functionToAsmGenerator.ToAsm(functionDeclaration));
+                }
+
+                artifacts.Asm = asm;
+
+               /***********************
+                *  End of dirty code  *
+                ***********************/
 
                 artifacts.Ast = ast;
             }

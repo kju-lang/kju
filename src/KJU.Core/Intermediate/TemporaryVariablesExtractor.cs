@@ -124,6 +124,9 @@ namespace KJU.Core.Intermediate
                     return this.ExtractTemporaryVariables(unaryOperation.Value);
                 case BreakStatement _:
                     return new List<Expression>();
+                case null:
+                    throw new FunctionObjectException(
+                        $"Null AST node. Should this ever happen?");
                 default:
                     throw new FunctionObjectException(
                         $"Unexpected AST node type: {node.GetType()}. This should never happen.");

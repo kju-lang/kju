@@ -37,6 +37,14 @@
                             Extensions.ChangeExtension(filename, "ast.dot"),
                             KJU.Core.Visualization.AstToDotConverter.Convert(artifacts.Ast));
                     }
+
+                    if (options.GenAsm)
+                    {
+                    Console.WriteLine($"{Extensions.ChangeExtension(filename, "asm")}");
+                        System.IO.File.WriteAllLines(
+                            Extensions.ChangeExtension(filename, "asm"),
+                            artifacts.Asm);
+                    }
                 }
                 catch (CompilerException)
                 {
@@ -56,6 +64,9 @@
 
             [Option("gen-ast-dot", Default = false, HelpText = "Generate AST dot graph.")]
             public bool GenAstDot { get; set; }
+
+            [Option("gen-asm", Default = false, HelpText = "Generate asm output.")]
+            public bool GenAsm { get; set; }
         }
     }
 }
