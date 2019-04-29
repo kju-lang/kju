@@ -1,6 +1,8 @@
 #pragma warning disable SA1402 // File may only contain a single class
 namespace KJU.Core.Intermediate
 {
+    using System.Collections.Generic;
+
     public interface ILocation
     {
     }
@@ -47,6 +49,11 @@ namespace KJU.Core.Intermediate
         {
             this.Name = name;
         }
+
+        public static IReadOnlyCollection<HardwareRegister> Values { get; } = new List<HardwareRegister>
+        {
+            RAX, RBX, RCX, RDX, RBP, RSP, RSI, RDI, R8, R9, R10, R11, R12, R13, R14, R15
+        };
 
         public string Name { get; }
 
