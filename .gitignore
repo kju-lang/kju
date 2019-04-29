@@ -1,3 +1,8 @@
+*.dot
+*.pdf
+*.svg
+*.png
+
 # Created by https://www.gitignore.io/api/csharp,vim,visualstudio,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=csharp,vim,visualstudio,visualstudiocode
 

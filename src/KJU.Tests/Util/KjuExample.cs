@@ -32,12 +32,8 @@ namespace KJU.Tests.Util
             this.Path = path;
 
             string fileName = new FileInfo(this.Path).Name;
-            if (Regex.Matches(fileName, @"\.[^.]*$").Count == 0)
-            {
-                throw new ArgumentException($"KJU example path has no extension: {this.Path}");
-            }
 
-            this.specPath = Regex.Replace(this.Path, @"(\.[^.]*)$", ".spec.xml");
+            this.specPath = KJU.Core.Filenames.Extensions.ChangeExtension(this.Path, "spec.xml");
             if (File.Exists(this.specPath))
             {
                 this.spec = XDocument.Load(this.specPath);
@@ -97,7 +93,7 @@ namespace KJU.Tests.Util
         {
             var fileName = new FileInfo(this.Path).Name;
             var result = fileName;
-            result = Regex.Replace(result, @"(\.[^.]*)$", string.Empty);
+            result = KJU.Core.Filenames.Extensions.RemoveExtension(result);
             result = Regex.Replace(result, @"_", " ");
             result = char.ToUpper(result[0]) + result.Substring(1);
             return result;

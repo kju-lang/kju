@@ -5,6 +5,6 @@ namespace KJU.Core.Compiler
 
     public interface ICompiler
     {
-        void RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics);
+        Artifacts RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics);
     }
 }

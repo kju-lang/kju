@@ -48,3 +48,16 @@ $ dotnet test /p:CollectCoverage=true
 ## Documentation
 
 For more documentation visit doc/ folder.
+
+## AST dot graph generation
+
+### Prerequisites
+
+- graphviz installed
+
+### Example procedure
+
+```
+$ dotnet run --project src/KJU.Application --gen-ast-dot sources.kju
+$ dot -T pdf -o sources.ast.pdf sources.ast.dot
+```

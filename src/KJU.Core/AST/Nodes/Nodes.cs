@@ -25,6 +25,11 @@ namespace KJU.Core.AST
         {
             return new List<Node>(this.Functions);
         }
+
+        public override string ToString()
+        {
+            return $"Program";
+        }
     }
 
     public class FunctionDeclaration : Expression
@@ -93,6 +98,11 @@ namespace KJU.Core.AST
         {
             return new List<Node>(this.Instructions);
         }
+
+        public override string ToString()
+        {
+            return $"Instruction Block";
+        }
     }
 
     public class VariableDeclaration : Expression
@@ -119,6 +129,11 @@ namespace KJU.Core.AST
             else
                 return new List<Node>() { this.Value };
         }
+
+        public override string ToString()
+        {
+            return $"var {this.Identifier} : {this.VariableType}";
+        }
     }
 
     public class WhileStatement : Expression
@@ -136,6 +151,11 @@ namespace KJU.Core.AST
         public override IEnumerable<Node> Children()
         {
             return new List<Node>() { this.Condition, this.Body };
+        }
+
+        public override string ToString()
+        {
+            return $"While";
         }
     }
 
@@ -157,6 +177,11 @@ namespace KJU.Core.AST
         public override IEnumerable<Node> Children()
         {
             return new List<Node> { this.Condition, this.ThenBody, this.ElseBody };
+        }
+
+        public override string ToString()
+        {
+            return $"If";
         }
     }
 
@@ -180,6 +205,11 @@ namespace KJU.Core.AST
         {
             return new List<Node>(this.Arguments);
         }
+
+        public override string ToString()
+        {
+            return $"{this.Identifier}()";
+        }
     }
 
     public class ReturnStatement : Expression
@@ -198,16 +228,31 @@ namespace KJU.Core.AST
             else
                 return new List<Node>() { this.Value };
         }
+
+        public override string ToString()
+        {
+            return $"Return";
+        }
     }
 
     public class BreakStatement : Expression
     {
         public WhileStatement EnclosingLoop { get; set; }
+
+        public override string ToString()
+        {
+            return $"Break";
+        }
     }
 
     public class ContinueStatement : Expression
     {
         public WhileStatement EnclosingLoop { get; set; }
+
+        public override string ToString()
+        {
+            return $"Continue";
+        }
     }
 
     public class Variable : Expression
@@ -220,6 +265,11 @@ namespace KJU.Core.AST
         public string Identifier { get; }
 
         public VariableDeclaration Declaration { get; set; }
+
+        public override string ToString()
+        {
+            return $"{this.Identifier}";
+        }
     }
 
     public class BoolLiteral : Expression
@@ -230,6 +280,11 @@ namespace KJU.Core.AST
         }
 
         public bool Value { get; }
+
+        public override string ToString()
+        {
+            return $"{this.Value}";
+        }
     }
 
     public class IntegerLiteral : Expression
@@ -240,12 +295,22 @@ namespace KJU.Core.AST
         }
 
         public long Value { get; }
+
+        public override string ToString()
+        {
+            return $"{this.Value}";
+        }
     }
 
     public class UnitLiteral : Expression
     {
         public UnitLiteral()
         {
+        }
+
+        public override string ToString()
+        {
+            return $"Unit";
         }
     }
 
@@ -267,6 +332,11 @@ namespace KJU.Core.AST
             if (this.Value != null)
                 result.Add(this.Value);
             return result;
+        }
+
+        public override string ToString()
+        {
+            return $"Assignment";
         }
     }
 
@@ -292,6 +362,11 @@ namespace KJU.Core.AST
                 result.Add(this.Value);
             return result;
         }
+
+        public override string ToString()
+        {
+            return $"{this.Operation} Assignment";
+        }
     }
 
     public abstract class BinaryOperation : Expression
@@ -316,6 +391,11 @@ namespace KJU.Core.AST
         }
 
         public ArithmeticOperationType OperationType { get; set; }
+
+        public override string ToString()
+        {
+            return $"{this.OperationType}";
+        }
     }
 
     public class Comparison : BinaryOperation
@@ -328,6 +408,11 @@ namespace KJU.Core.AST
         }
 
         public ComparisonType OperationType { get; set; }
+
+        public override string ToString()
+        {
+            return $"{this.OperationType}";
+        }
     }
 
     public class LogicalBinaryOperation : BinaryOperation
@@ -343,6 +428,11 @@ namespace KJU.Core.AST
         }
 
         public LogicalBinaryOperationType BinaryOperationType { get; set; }
+
+        public override string ToString()
+        {
+            return $"{this.BinaryOperationType}";
+        }
     }
 
     public class UnaryOperation : Expression
@@ -360,6 +450,11 @@ namespace KJU.Core.AST
         public override IEnumerable<Node> Children()
         {
             return new List<Node> { this.Value };
+        }
+
+        public override string ToString()
+        {
+            return $"{this.UnaryOperationType}";
         }
     }
 }

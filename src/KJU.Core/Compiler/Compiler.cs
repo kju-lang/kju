@@ -30,8 +30,10 @@ namespace KJU.Core.Compiler
         private readonly IntermediateRepresentationGenerator intermediateGenerator =
             new IntermediateRepresentationGenerator();
 
-        public void RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics)
+        public Artifacts RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics)
         {
+            var artifacts = new Artifacts();
+
             try
             {
                 var input = inputReader.Read();
@@ -45,6 +47,8 @@ namespace KJU.Core.Compiler
                 this.returnChecker.Run(ast, diagnostics);
                 VariableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var funcionsIR = this.intermediateGenerator.CreateIR(ast);
+
+                artifacts.Ast = ast;
             }
             catch (Exception ex) when (
                 ex is PreprocessorException
@@ -58,6 +62,8 @@ namespace KJU.Core.Compiler
             {
                 throw new CompilerException("Compilation failed.", ex);
             }
+
+            return artifacts;
         }
     }
 }

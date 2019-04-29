@@ -5,16 +5,16 @@ namespace KJU.Core.Compiler
 
     public static class CompilerUtils
     {
-        public static void RunOnFile(this ICompiler compiler, string path, IDiagnostics diag)
+        public static Artifacts RunOnFile(this ICompiler compiler, string path, IDiagnostics diag)
         {
             var fileInputReader = new FileInputReader(path);
-            compiler.RunOnInputReader(fileInputReader, diag);
+            return compiler.RunOnInputReader(fileInputReader, diag);
         }
 
-        public static void RunOnString(this ICompiler compiler, string text, IDiagnostics diag)
+        public static Artifacts RunOnString(this ICompiler compiler, string text, IDiagnostics diag)
         {
             var fileInputReader = new StringInputReader(text);
-            compiler.RunOnInputReader(fileInputReader, diag);
+            return compiler.RunOnInputReader(fileInputReader, diag);
         }
     }
 }
