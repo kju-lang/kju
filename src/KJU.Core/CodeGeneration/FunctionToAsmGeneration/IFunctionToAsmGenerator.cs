@@ -1,10 +1,10 @@
 namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
 {
     using System.Collections.Generic;
-    using Intermediate;
+    using AST;
 
     public interface IFunctionToAsmGenerator
     {
-        IEnumerable<string> ToAsm(IFunction function);
+        IEnumerable<string> ToAsm(FunctionDeclaration functionDeclaration);
     }
 }

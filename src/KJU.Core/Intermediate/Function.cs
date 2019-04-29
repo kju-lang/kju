@@ -7,8 +7,9 @@ namespace KJU.Core.Intermediate
     using System.Diagnostics;
     using System.Linq;
     using AST.VariableAccessGraph;
+    using static HardwareRegisterUtils;
 
-    public class Function : IFunction
+    public class Function
     {
         public Function(Function parent)
         {
@@ -29,18 +30,7 @@ namespace KJU.Core.Intermediate
 
         public int StackBytes { get; set; }
 
-        private static List<ILocation> ArgumentRegisters()
-        {
-            return new List<ILocation>
-            {
-                HardwareRegister.RDI,
-                HardwareRegister.RSI,
-                HardwareRegister.RDX,
-                HardwareRegister.RCX,
-                HardwareRegister.R8,
-                HardwareRegister.R9
-            };
-        }
+        private Dictionary<HardwareRegister, VirtualRegister> CalleeSavedMapping { get; set; }
 
         private static Label ConcatTrees(IReadOnlyList<Tree> trees)
         {
@@ -176,11 +166,20 @@ namespace KJU.Core.Intermediate
 
         public Label GeneratePrologue(Label after)
         {
+            this.CalleeSavedMapping = HardwareRegisterUtils.CalleeSavedRegisters().ToDictionary(
+                register => register,
+                register => new VirtualRegister());
+
+            var calleeSavedRegisterReads = this.CalleeSavedMapping.Select(kvp =>
+            {
+                var hardwareRegisterVariable = new Variable(this, kvp.Key);
+                var virtualRegisterVariable = new Variable(this, kvp.Value);
+                var readOperation = this.GenerateRead(hardwareRegisterVariable);
+                var writeOperation = this.GenerateWrite(virtualRegisterVariable, readOperation);
+                return new Tree(writeOperation);
+            });
             var rbpRegister = HardwareRegister.RBP;
             var rbpVariable = new Variable(this, rbpRegister);
-            var rbpReadOperation = this.GenerateRead(rbpVariable);
-            var rbpPush = new Push(rbpReadOperation);
-            var pushRbpOperation = new Tree(rbpPush);
 
             var rspRegister = HardwareRegister.RSP;
             var rspVariable = new Variable(this, rspRegister);
@@ -203,7 +202,8 @@ namespace KJU.Core.Intermediate
                 return new Tree(writeOperation);
             });
 
-            var operations = new List<Tree> { pushRbpOperation, writeRbpOperation, moveRspOperation }
+            var operations = calleeSavedRegisterReads
+                .Concat(new List<Tree> { writeRbpOperation, moveRspOperation })
                 .Concat(rewriteParametersOperations)
                 .Append(after.Tree)
                 .ToList();
@@ -215,15 +215,20 @@ namespace KJU.Core.Intermediate
             var raxRegister = HardwareRegister.RAX;
             var raxVariable = new Variable(this, raxRegister);
 
-            var writeOperation = this.GenerateWrite(raxVariable, retVal);
-            var rbpRegister = HardwareRegister.RBP;
-            var popRbpOperation = new Pop(rbpRegister);
+            var writeRaxOperation = this.GenerateWrite(raxVariable, retVal);
 
-            var operations = new List<Tree>
+            var calleeSavedRegisterWrites = this.CalleeSavedMapping?.Select(kvp =>
             {
-                new Tree(writeOperation),
-                new Tree(popRbpOperation) { ControlFlow = new Ret() }
-            };
+                var hardwareRegisterVariable = new Variable(this, kvp.Key);
+                var virtualRegisterVariable = new Variable(this, kvp.Value);
+                var readVirtualOperation = this.GenerateRead(virtualRegisterVariable);
+                var writeHardwareOperation = this.GenerateWrite(hardwareRegisterVariable, readVirtualOperation);
+                return new Tree(writeHardwareOperation);
+            }) ?? new List<Tree>();
+
+            var operations = new List<Tree> { new Tree(writeRaxOperation) { ControlFlow = new Ret() } }
+                .Concat(calleeSavedRegisterWrites)
+                .ToList();
 
             return ConcatTrees(operations);
         }

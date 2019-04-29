@@ -1,15 +1,15 @@
 namespace KJU.Core.CodeGeneration
 {
-    using System;
     using System.Collections.Generic;
-    using KJU.Core.Intermediate;
+    using System.Linq;
+    using Intermediate;
 
     public class CallInstruction : Instruction
     {
         public CallInstruction(Function function)
             : base(
                 new List<VirtualRegister> { HardwareRegister.RSP },
-                new List<VirtualRegister> { HardwareRegister.RSP })
+                HardwareRegisterUtils.CallerSavedRegisters().Append(HardwareRegister.RSP).ToList())
         {
             this.Function = function;
         }

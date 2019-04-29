@@ -1,16 +1,14 @@
 ﻿namespace KJU.Core.CodeGeneration
 {
-    using System;
     using System.Collections.Generic;
-    using System.Text;
-    using KJU.Core.Intermediate;
+    using Intermediate;
 
     public class RetInstruction : Instruction
     {
         public RetInstruction()
             : base(
-                new List<VirtualRegister> { HardwareRegister.RSP },
-                new List<VirtualRegister> { HardwareRegister.RSP })
+                HardwareRegisterUtils.CalleeSavedRegisters(),
+                new List<HardwareRegister> { HardwareRegister.RSP })
         {
         }
 
