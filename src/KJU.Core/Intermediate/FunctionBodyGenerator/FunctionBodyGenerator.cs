@@ -2,6 +2,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 {
     using System.Collections.Generic;
     using System.Linq;
+    using TemporaryVariablesExtractor;
 
     public class FunctionBodyGenerator
     {
@@ -33,7 +34,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
                     return new Computation(after);
                 case AST.InstructionBlock expr:
                     return this.ConvertNode(expr, after);
-                case TemporaryVariablesExtractor.BlockWithResult expr:
+                case BlockWithResult expr:
                     return this.ConvertNode(expr, after);
                 case AST.VariableDeclaration expr:
                     return this.ConvertNode(expr, after);
@@ -83,7 +84,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(start);
         }
 
-        private Computation ConvertNode(TemporaryVariablesExtractor.BlockWithResult node, Label after)
+        private Computation ConvertNode(BlockWithResult node, Label after)
         {
             Computation blockResult = this.GenerateExpression(node.Result, after);
             Computation block = this.ConvertNode(node.Body, blockResult.Start);
