@@ -43,6 +43,10 @@ namespace KJU.Core.CodeGeneration
                     case FunctionCall functionCall:
                         labelsToProcess.Push(functionCall.TargetAfter);
                         break;
+                    case Ret ret:
+                        break;
+                    default:
+                        throw new NotSupportedException("unknown control flow instruction" + current.Tree.ControlFlow);
                 }
 
                 order[current] = processedTrees[current.Tree] = treeTable.Count;
