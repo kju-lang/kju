@@ -1,8 +1,8 @@
-namespace KJU.Core.Intermediate
+namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
 {
     using System.Collections.Generic;
     using System.Linq;
-    using KJU.Core.AST;
+    using AST;
 
     internal class TemporaryVariablesExtractor
     {
@@ -125,10 +125,10 @@ namespace KJU.Core.Intermediate
                 case BreakStatement _:
                     return new List<Expression>();
                 case null:
-                    throw new FunctionObjectException(
+                    throw new TemporaryVariablesExtractorException(
                         $"Null AST node. Should this ever happen?");
                 default:
-                    throw new FunctionObjectException(
+                    throw new TemporaryVariablesExtractorException(
                         $"Unexpected AST node type: {node.GetType()}. This should never happen.");
             }
         }
@@ -145,25 +145,6 @@ namespace KJU.Core.Intermediate
             {
                 Type = expression.Type
             };
-        }
-
-        internal class BlockWithResult : Expression
-        {
-            // Helper node: execute body, then 'return' result
-            public BlockWithResult(InstructionBlock body, Expression result)
-            {
-                this.Body = body;
-                this.Result = result;
-            }
-
-            public InstructionBlock Body { get; }
-
-            public Expression Result { get; }
-
-            public override IEnumerable<AST.Node> Children()
-            {
-                return this.Body.Children().Concat(new[] { this.Result as AST.Node });
-            }
         }
     }
 }

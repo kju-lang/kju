@@ -245,7 +245,7 @@ namespace KJU.Core.Intermediate
             var variableAccessGraphGenerator = new VariableAccessGraphGenerator(new AST.CallGraph.CallGraphGenerator());
             var variableModificationGraph = variableAccessGraphGenerator.BuildVariableModificationsPerAstNode(root);
             var variableAccessGraph = variableAccessGraphGenerator.BuildVariableAccessesPerAstNode(root);
-            var extractor = new TemporaryVariablesExtractor(variableModificationGraph, variableAccessGraph);
+            var extractor = new TemporaryVariablesExtractor.TemporaryVariablesExtractor(variableModificationGraph, variableAccessGraph);
             var result = extractor.ExtractTemporaryVariables(root.Body);
             var instructions = result.Concat(root.Body.Instructions).ToList();
             root.Body = new AST.InstructionBlock(instructions);
