@@ -119,7 +119,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         {
             var (orderedTrees, labelToIndexMapping) = new CFGLinearizer().Linearize(cfg);
 
-            var indexToLabelsMapping = new List<HashSet<Label>>();
+            var indexToLabelsMapping = new HashSet<Label>[labelToIndexMapping.Count];
             labelToIndexMapping.ToList().ForEach(kvp =>
             {
                 var (label, index) = (kvp.Key, kvp.Value);
