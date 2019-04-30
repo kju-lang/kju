@@ -1,27 +1,25 @@
-#pragma warning disable SA1201 // A struct should not follow a class
-
-namespace KJU.Core.Intermediate
+namespace KJU.Core.Intermediate.FunctionBodyGenerator
 {
     using System.Collections.Generic;
     using System.Linq;
 
     public class FunctionBodyGenerator
     {
-        private Function func;
+        private readonly Function function;
 
-        private Dictionary<AST.WhileStatement, LoopLabels> loopLabels =
+        private readonly Dictionary<AST.WhileStatement, LoopLabels> loopLabels =
             new Dictionary<AST.WhileStatement, LoopLabels>();
 
-        public FunctionBodyGenerator(Function func)
+        public FunctionBodyGenerator(Function function)
         {
-            this.func = func;
+            this.function = function;
         }
 
         public Label BuildFunctionBody(AST.InstructionBlock body)
         {
-            Label guardEpilogue = this.func.GenerateEpilogue(new UnitImmediateValue());
+            Label guardEpilogue = this.function.GenerateEpilogue(new UnitImmediateValue());
             Computation afterPrologue = this.ConvertNode(body, guardEpilogue);
-            return this.func.GeneratePrologue(afterPrologue.Start);
+            return this.function.GeneratePrologue(afterPrologue.Start);
         }
 
         // Any method that returns `Computation` prepends the created list
@@ -99,7 +97,7 @@ namespace KJU.Core.Intermediate
 
             Label writeLabel = new Label(null);
             Computation value = this.GenerateExpression(node.Value, writeLabel);
-            Node write = this.func.GenerateWrite(node.IntermediateVariable, value.Result);
+            Node write = this.function.GenerateWrite(node.IntermediateVariable, value.Result);
             writeLabel.Tree = new Tree(write, new UnconditionalJump(after));
 
             return new Computation(value.Start);
@@ -144,7 +142,7 @@ namespace KJU.Core.Intermediate
                 resultRegister,
                 argumentRegisters,
                 after,
-                this.func).Tree;
+                this.function).Tree;
             return new Computation(argumentsLabel, new RegisterRead(resultRegister));
         }
 
@@ -154,7 +152,7 @@ namespace KJU.Core.Intermediate
             Computation value = node.Value == null
                 ? new Computation(epilogueLabel, new UnitImmediateValue())
                 : this.GenerateExpression(node.Value, epilogueLabel);
-            epilogueLabel.Tree = this.func.GenerateEpilogue(value.Result).Tree;
+            epilogueLabel.Tree = this.function.GenerateEpilogue(value.Result).Tree;
             return new Computation(value.Start);
         }
 
@@ -183,7 +181,7 @@ namespace KJU.Core.Intermediate
 
         private Computation ConvertNode(AST.Variable node, Label after)
         {
-            return new Computation(after, this.func.GenerateRead(node.Declaration.IntermediateVariable));
+            return new Computation(after, this.function.GenerateRead(node.Declaration.IntermediateVariable));
         }
 
         private Computation ConvertNode(AST.BoolLiteral node, Label after)
@@ -216,7 +214,7 @@ namespace KJU.Core.Intermediate
                 new UnconditionalJump(writeLabel));
 
             writeLabel.Tree = new Tree(
-                this.func.GenerateWrite(variable, readValue),
+                this.function.GenerateWrite(variable, readValue),
                 new UnconditionalJump(after));
 
             return new Computation(value.Start, readValue);
@@ -282,18 +280,5 @@ namespace KJU.Core.Intermediate
             Node result = new UnaryOperation(operand.Result, node.UnaryOperationType);
             return new Computation(operand.Start, result);
         }
-    }
-
-    internal struct LoopLabels
-    {
-        public LoopLabels(Label condition, Label after)
-        {
-            this.Condition = condition;
-            this.After = after;
-        }
-
-        public readonly Label Condition;
-
-        public readonly Label After;
     }
 }

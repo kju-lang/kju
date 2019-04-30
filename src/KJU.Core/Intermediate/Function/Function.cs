@@ -236,7 +236,7 @@ namespace KJU.Core.Intermediate
         public Label GenerateBody(AST.FunctionDeclaration root)
         {
             this.ExtractTemporaryVariables(root);
-            var generator = new FunctionBodyGenerator(this);
+            var generator = new FunctionBodyGenerator.FunctionBodyGenerator(this);
             return generator.BuildFunctionBody(root.Body);
         }
 

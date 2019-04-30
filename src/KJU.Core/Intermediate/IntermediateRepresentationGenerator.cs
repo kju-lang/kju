@@ -16,7 +16,7 @@ namespace KJU.Core.Intermediate
                     decl => decl,
                     decl =>
                         {
-                            var generator = new FunctionBodyGenerator(decl.IntermediateFunction);
+                            var generator = new FunctionBodyGenerator.FunctionBodyGenerator(decl.IntermediateFunction);
                             return generator.BuildFunctionBody(decl.Body);
                         });
         }

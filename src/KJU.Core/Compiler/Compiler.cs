@@ -11,6 +11,7 @@ namespace KJU.Core.Compiler
     using Diagnostics;
     using Input;
     using Intermediate;
+    using KJU.Core.Intermediate.FunctionBodyGenerator;
     using Lexer;
     using Parser;
 
