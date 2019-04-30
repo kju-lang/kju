@@ -1,14 +1,13 @@
-namespace KJU.Tests.Util
+namespace KJU.Tests.Examples
 {
-    using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
-    using System.Text.RegularExpressions;
     using System.Xml.Linq;
     using System.Xml.XPath;
+    using static KJU.Core.Filenames.Extensions;
+    using static System.Text.RegularExpressions.Regex;
 
     public class KjuExample
     {
@@ -18,25 +17,26 @@ namespace KJU.Tests.Util
     <IsDisabled>false</IsDisabled>
     <ExpectedMagicStrings>
     </ExpectedMagicStrings>
+    <Execution>
+        <Input></Input>
+        <ExpectedOutput></ExpectedOutput>
+        <Ends>true</Ends>
+    </Execution>
 </Spec>
 ";
 
-        private string specPath;
+        private readonly XDocument spec;
 
-        private XDocument spec;
-
-        private XDocument defaultSpec;
+        private readonly XDocument defaultSpec;
 
         public KjuExample(string path)
         {
             this.Path = path;
 
-            string fileName = new FileInfo(this.Path).Name;
-
-            this.specPath = KJU.Core.Filenames.Extensions.ChangeExtension(this.Path, "spec.xml");
-            if (File.Exists(this.specPath))
+            var specPath = ChangeExtension(this.Path, "spec.xml");
+            if (File.Exists(specPath))
             {
-                this.spec = XDocument.Load(this.specPath);
+                this.spec = XDocument.Load(specPath);
             }
 
             this.defaultSpec = XDocument.Parse(DefaultSpecText);
@@ -50,7 +50,14 @@ namespace KJU.Tests.Util
 
         public bool IsDisabled => bool.Parse(this.GetProperty("/Spec/IsDisabled"));
 
-        public IEnumerable<string> ExpectedMagicStrings => this.GetPropertyList("/Spec/ExpectedMagicStrings", "MagicString");
+        public string Input => this.GetProperty("/Spec/Execution/Input");
+
+        public bool Ends => bool.Parse(this.GetProperty("/Spec/Execution/Ends"));
+
+        public string ExpectedOutput => this.GetProperty("/Spec/Execution/ExpectedOutput");
+
+        public IEnumerable<string> ExpectedMagicStrings =>
+            this.GetPropertyList("/Spec/ExpectedMagicStrings", "MagicString");
 
         public override string ToString()
         {
@@ -59,9 +66,10 @@ namespace KJU.Tests.Util
 
         private static string GetProperty(string xpath, XNode spec)
         {
-            return ((IEnumerable)spec?.XPathEvaluate(xpath))
-                ?.Cast<XElement>()
-                .Select((x) => x.Value)
+            var evaluation = (IEnumerable)spec?.XPathEvaluate(xpath);
+            return evaluation?
+                .Cast<XElement>()
+                .Select(x => x.Value)
                 .FirstOrDefault();
         }
 
@@ -71,12 +79,10 @@ namespace KJU.Tests.Util
             {
                 return ((IEnumerable)spec?.XPathEvaluate($"{xpath}/{field}"))
                     ?.Cast<XElement>()
-                    .Select((x) => x.Value);
+                    .Select(x => x.Value);
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         private string GetProperty(string xpath)
@@ -92,11 +98,9 @@ namespace KJU.Tests.Util
         private string GetDefaultName()
         {
             var fileName = new FileInfo(this.Path).Name;
-            var result = fileName;
-            result = KJU.Core.Filenames.Extensions.RemoveExtension(result);
-            result = Regex.Replace(result, @"_", " ");
-            result = char.ToUpper(result[0]) + result.Substring(1);
-            return result;
+            var withoutExtension = RemoveExtension(fileName);
+            var withoutUnderscore = Replace(withoutExtension, @"_", " ");
+            return char.ToUpper(withoutUnderscore[0]) + withoutUnderscore.Substring(1);
         }
     }
 }

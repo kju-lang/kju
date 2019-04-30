@@ -1,10 +1,9 @@
-namespace KJU.Tests.Util
+namespace KJU.Tests.Examples
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using KJU.Tests.Util;
+    using Util;
 
     public class KjuExamplesGetter
     {
