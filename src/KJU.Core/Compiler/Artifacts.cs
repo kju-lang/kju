@@ -1,11 +1,18 @@
 namespace KJU.Core.Compiler
 {
     using System.Collections.Generic;
+    using AST;
 
     public class Artifacts
     {
-        public KJU.Core.AST.Node Ast { get; set; }
+        public Artifacts(Node ast, IEnumerable<string> asm)
+        {
+            this.Ast = ast;
+            this.Asm = asm;
+        }
 
-        public IEnumerable<string> Asm { get; set; }
+        public Node Ast { get; }
+
+        public IEnumerable<string> Asm { get; }
     }
 }

@@ -1,8 +1,6 @@
 namespace KJU.Core.Compiler
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using AST;
     using AST.ReturnChecker;
@@ -10,11 +8,10 @@ namespace KJU.Core.Compiler
     using CodeGeneration.FunctionToAsmGeneration;
     using Diagnostics;
     using Input;
-    using Intermediate;
-    using KJU.Core.Intermediate.FunctionBodyGenerator;
-    using KJU.Core.Intermediate.IntermediateRepresentationGenerator;
-    using KJU.Core.Intermediate.NameMangler;
-    using KJU.Core.Intermediate.VariableAndFunctionBuilder;
+    using Intermediate.FunctionBodyGenerator;
+    using Intermediate.IntermediateRepresentationGenerator;
+    using Intermediate.NameMangler;
+    using Intermediate.VariableAndFunctionBuilder;
     using Lexer;
     using Parser;
 
@@ -32,15 +29,17 @@ namespace KJU.Core.Compiler
         private readonly IPhase nameResolver = new NameResolver();
         private readonly IPhase typeChecker = new TypeChecker();
         private readonly IPhase returnChecker = new ReturnChecker();
-        private readonly IFunctionToAsmGenerator functionToAsmGenerator = new FunctionToAsmGenerator();
 
-        private readonly IntermediateRepresentationGenerator intermediateGenerator =
+        private readonly IVariableAndFunctionBuilder variableAndFunctionBuilder =
+            new VariableAndFunctionBuilder(new NameMangler());
+
+        private readonly IIntermediateRepresentationGenerator intermediateGenerator =
             new IntermediateRepresentationGenerator();
+
+        private readonly IFunctionToAsmGenerator functionToAsmGenerator = new FunctionToAsmGeneratorFactory().Generate();
 
         public Artifacts RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics)
         {
-            var artifacts = new Artifacts();
-
             try
             {
                 var input = inputReader.Read();
@@ -52,30 +51,10 @@ namespace KJU.Core.Compiler
                 this.nameResolver.Run(ast, diagnostics);
                 this.typeChecker.Run(ast, diagnostics);
                 this.returnChecker.Run(ast, diagnostics);
-                var nameMangler = new NameMangler();
-                new VariableAndFunctionBuilder(nameMangler).BuildFunctionsAndVariables(ast);
-                var funcionsIR = this.intermediateGenerator.CreateIR(ast);
-
-               /****************
-                *  Dirty code  *
-                ****************/
-
-                var asm = new List<string>();
-
-                foreach (var entry in funcionsIR)
-                {
-                    var functionDeclaration = entry.Key;
-
-                    asm.AddRange(this.functionToAsmGenerator.ToAsm(functionDeclaration));
-                }
-
-                artifacts.Asm = asm;
-
-               /***********************
-                *  End of dirty code  *
-                ***********************/
-
-                artifacts.Ast = ast;
+                this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
+                var functionsIR = this.intermediateGenerator.CreateIR(ast);
+                var asm = functionsIR.Keys.SelectMany(this.functionToAsmGenerator.ToAsm);
+                return new Artifacts(ast, asm);
             }
             catch (Exception ex) when (
                 ex is PreprocessorException
@@ -89,8 +68,6 @@ namespace KJU.Core.Compiler
             {
                 throw new CompilerException("Compilation failed.", ex);
             }
-
-            return artifacts;
         }
     }
 }

@@ -6,6 +6,6 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
 
     public interface IFunctionToAsmGenerator
     {
-        IEnumerable<string> ToAsm(FunctionDeclaration function);
+        IEnumerable<string> ToAsm(FunctionDeclaration functionDeclaration);
     }
 }
