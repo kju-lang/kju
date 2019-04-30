@@ -58,7 +58,7 @@ namespace KJU.Core.Intermediate
             if (arguments.Count > 5)
             {
                 // Temporary solution
-                throw new FunctionObjectException("The function cannot have more than 5 arguments!");
+                throw new NotSupportedException("The function cannot have more than 5 arguments!");
             }
 
             var argumentsVariables = arguments.Select(argument => new
