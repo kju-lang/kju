@@ -7,6 +7,7 @@ namespace KJU.Tests.CodeGeneration
     using System.Text;
     using KJU.Core.AST;
     using KJU.Core.CodeGeneration;
+    using KJU.Core.CodeGeneration.InstructionSelector;
     using KJU.Core.CodeGeneration.Templates;
     using KJU.Core.CodeGeneration.Templates.Stack;
     using KJU.Core.Intermediate;
@@ -23,7 +24,7 @@ namespace KJU.Tests.CodeGeneration
             var root = new RegisterRead(new VirtualRegister());
             var tree = new Tree(root) { ControlFlow = new Ret() };
             var selector = new InstructionSelector(templates);
-            var ins = selector.Select(tree);
+            var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
         }
 
@@ -35,7 +36,7 @@ namespace KJU.Tests.CodeGeneration
             var root = new ReserveStackMemory(new Function { StackBytes = 16 });
             var tree = new Tree(root) { ControlFlow = new Ret() };
             var selector = new InstructionSelector(templates);
-            var ins = selector.Select(tree);
+            var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
             Assert.AreEqual("sub RSP 16", ins.First().ToASM(null));
         }
@@ -49,7 +50,7 @@ namespace KJU.Tests.CodeGeneration
             var root = new RegisterRead(new VirtualRegister());
             var tree = new Tree(root) { ControlFlow = new ConditionalJump(new Label(new Tree(new Core.Intermediate.Node())), null) };
             var selector = new InstructionSelector(templates);
-            var ins = selector.Select(tree);
+            var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
         }
 
@@ -64,7 +65,7 @@ namespace KJU.Tests.CodeGeneration
             var root = new ArithmeticBinaryOperation(ArithmeticOperationType.Addition, v3, node);
             var tree = new Tree(root) { ControlFlow = new Ret() };
             var selector = new InstructionSelector(templates);
-            var ins = selector.Select(tree);
+            var ins = selector.GetInstructions(tree);
             Assert.AreEqual(6, ins.Count());
         }
 

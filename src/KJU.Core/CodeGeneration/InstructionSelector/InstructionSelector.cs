@@ -1,4 +1,4 @@
-namespace KJU.Core.CodeGeneration
+namespace KJU.Core.CodeGeneration.InstructionSelector
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@ namespace KJU.Core.CodeGeneration
     using Intermediate;
     using Templates;
 
-    public class InstructionSelector
+    public class InstructionSelector : IInstructionSelector
     {
         private readonly Dictionary<JumpType, Dictionary<ShapeKey, List<InstructionTemplate>>> templates;
 
@@ -42,7 +42,7 @@ namespace KJU.Core.CodeGeneration
             NonConditional
         }
 
-        public IEnumerable<Instruction> Select(Tree tree)
+        public IEnumerable<Instruction> GetInstructions(Tree tree)
         {
             var node = tree.Root;
             var result = new VirtualRegister();
@@ -76,17 +76,23 @@ namespace KJU.Core.CodeGeneration
             {
                 case ConditionalJump jump:
                 {
-                    return jump.FalseTarget == null ? instructions : instructions.Append(new UnconditionalJumpInstruction(jump.FalseTarget));
+                    return jump.FalseTarget == null
+                        ? instructions
+                        : instructions.Append(new UnconditionalJumpInstruction(jump.FalseTarget));
                 }
 
                 case FunctionCall call:
                 {
-                    return call.TargetAfter == null ? instructions : instructions.Append(new CallInstruction(call.Func));
+                    return call.TargetAfter == null
+                        ? instructions
+                        : instructions.Append(new CallInstruction(call.Func));
                 }
 
                 case UnconditionalJump jmp:
                 {
-                    return jmp.Target == null ? instructions : instructions.Append(new UnconditionalJumpInstruction(jmp.Target));
+                    return jmp.Target == null
+                        ? instructions
+                        : instructions.Append(new UnconditionalJumpInstruction(jmp.Target));
                 }
 
                 case Ret _:
