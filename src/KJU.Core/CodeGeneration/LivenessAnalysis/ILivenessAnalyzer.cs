@@ -7,6 +7,6 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
     public interface ILivenessAnalyzer
     {
         InterferenceCopyGraphPair GetInterferenceCopyGraphs(
-            IReadOnlyList<Tuple<Label, IReadOnlyList<Instruction>>> instructions);
+            IEnumerable<KeyValuePair<Label, IReadOnlyList<Instruction>>> instructions);
     }
 }
