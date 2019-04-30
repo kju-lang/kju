@@ -12,6 +12,7 @@ namespace KJU.Core.Compiler
     using Input;
     using Intermediate;
     using KJU.Core.Intermediate.FunctionBodyGenerator;
+    using KJU.Core.Intermediate.IntermediateRepresentationGenerator;
     using Lexer;
     using Parser;
 

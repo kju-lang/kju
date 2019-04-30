@@ -1,10 +1,10 @@
-namespace KJU.Core.Intermediate
+namespace KJU.Core.Intermediate.IntermediateRepresentationGenerator
 {
     using System.Collections.Generic;
     using System.Linq;
     using AST.Nodes;
 
-    public class IntermediateRepresentationGenerator
+    public class IntermediateRepresentationGenerator : IIntermediateRepresentationGenerator
     {
         public IReadOnlyDictionary<AST.FunctionDeclaration, Label> CreateIR(AST.Node node)
         {
