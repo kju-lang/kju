@@ -6,10 +6,11 @@ namespace KJU.Tests.Examples
     using System.Linq;
     using System.Xml.Linq;
     using System.Xml.XPath;
+    using KJU.Core.Input;
     using static KJU.Core.Filenames.Extensions;
     using static System.Text.RegularExpressions.Regex;
 
-    public class KjuExample
+    public class KjuFileExample : IKjuExample
     {
         private const string DefaultSpecText = @"
 <Spec>
@@ -29,7 +30,7 @@ namespace KJU.Tests.Examples
 
         private readonly XDocument defaultSpec;
 
-        public KjuExample(string path)
+        public KjuFileExample(string path)
         {
             this.Path = path;
 
@@ -41,6 +42,8 @@ namespace KJU.Tests.Examples
 
             this.defaultSpec = XDocument.Parse(DefaultSpecText);
         }
+
+        public IInputReader Program => new FileInputReader(this.Path);
 
         public string Name => this.GetDefaultName();
 

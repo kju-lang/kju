@@ -36,27 +36,27 @@ namespace KJU.Tests.Examples
 
         [DataTestMethod]
         [DynamicData(nameof(Positive))]
-        public void PositiveExamples(KjuExample example)
+        public void PositiveExamples(IKjuExample example)
         {
             var diag = new Mock<IDiagnostics>();
-            Compiler.RunOnFile(example.Path, diag.Object);
+            Compiler.RunOnInputReader(example.Program, diag.Object);
             MockDiagnostics.Verify(diag, example.ExpectedMagicStrings.ToArray());
         }
 
         [DataTestMethod]
         [DynamicData(nameof(Negative))]
-        public void NegativeExamples(KjuExample example)
+        public void NegativeExamples(IKjuExample example)
         {
             var diag = new Mock<IDiagnostics>();
 
-            Assert.ThrowsException<CompilerException>(() => Compiler.RunOnFile(example.Path, diag.Object));
+            Assert.ThrowsException<CompilerException>(() => Compiler.RunOnInputReader(example.Program, diag.Object));
 
             MockDiagnostics.Verify(diag, example.ExpectedMagicStrings.ToArray());
         }
 
         [DataTestMethod]
         [DynamicData(nameof(PositiveDisabled))]
-        public void PositiveDisabledExamples(KjuExample example)
+        public void PositiveDisabledExamples(IKjuExample example)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace KJU.Tests.Examples
 
         [DataTestMethod]
         [DynamicData(nameof(NegativeDisabled))]
-        public void NegativeDisabledExamples(KjuExample example)
+        public void NegativeDisabledExamples(IKjuExample example)
         {
             try
             {

@@ -14,9 +14,9 @@ namespace KJU.Tests.Examples
             this.examplesDir = examplesDir ?? GetDefaultPath();
         }
 
-        public IEnumerable<KjuExample> Examples => Directory
+        public IEnumerable<IKjuExample> Examples => Directory
             .GetFiles(this.examplesDir, "*.kju", SearchOption.AllDirectories)
-            .Select(path => new KjuExample(path));
+            .Select(path => new KjuFileExample(path));
 
         private static string GetDefaultPath()
         {
