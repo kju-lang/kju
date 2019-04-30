@@ -13,6 +13,8 @@ namespace KJU.Core.Compiler
     using Intermediate;
     using KJU.Core.Intermediate.FunctionBodyGenerator;
     using KJU.Core.Intermediate.IntermediateRepresentationGenerator;
+    using KJU.Core.Intermediate.NameMangler;
+    using KJU.Core.Intermediate.VariableAndFunctionBuilder;
     using Lexer;
     using Parser;
 
@@ -50,7 +52,8 @@ namespace KJU.Core.Compiler
                 this.nameResolver.Run(ast, diagnostics);
                 this.typeChecker.Run(ast, diagnostics);
                 this.returnChecker.Run(ast, diagnostics);
-                VariableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
+                var nameMangler = new NameMangler();
+                new VariableAndFunctionBuilder(nameMangler).BuildFunctionsAndVariables(ast);
                 var funcionsIR = this.intermediateGenerator.CreateIR(ast);
 
                /****************
