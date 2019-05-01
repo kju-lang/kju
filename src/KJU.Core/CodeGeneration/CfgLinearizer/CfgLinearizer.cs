@@ -1,11 +1,11 @@
-namespace KJU.Core.CodeGeneration.CFGLinearizer
+namespace KJU.Core.CodeGeneration.CfgLinearizer
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Intermediate;
 
-    public class CFGLinearizer
+    public class CfgLinearizer
     {
         public Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<Label, int>> Linearize(Label cfg)
         {
@@ -40,7 +40,7 @@ namespace KJU.Core.CodeGeneration.CFGLinearizer
                             !order.ContainsKey(conditionalJump.TrueTarget))
                         {
                             FlipConditionalJumpTargets(current.Tree);
-                            newConditionalJump = conditionalJump;
+                            newConditionalJump = (ConditionalJump)current.Tree.ControlFlow;
                         }
                         else
                         {
@@ -56,7 +56,13 @@ namespace KJU.Core.CodeGeneration.CFGLinearizer
                     case Ret _:
                         break;
                     default:
-                        throw new NotSupportedException($"Unknown control flow instruction: {current.Tree.ControlFlow}");
+                        if (current.Tree.ControlFlow != null)
+                        {
+                            throw new NotSupportedException(
+                                $"Unknown control flow instruction: {current.Tree.ControlFlow}");
+                        }
+
+                        break;
                 }
 
                 order[current] = processedTrees[current.Tree] = treeTable.Count;
