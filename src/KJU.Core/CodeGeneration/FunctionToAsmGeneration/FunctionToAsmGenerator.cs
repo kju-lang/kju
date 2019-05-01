@@ -9,6 +9,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     using InstructionSelector;
     using Intermediate;
     using Intermediate.FunctionBodyGenerator;
+    using KJU.Core.Intermediate.Function;
     using LivenessAnalysis;
     using RegisterAllocation;
 

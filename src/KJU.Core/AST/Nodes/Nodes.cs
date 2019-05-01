@@ -6,6 +6,7 @@ namespace KJU.Core.AST
     using System.Collections.Generic;
     using System.Linq;
     using Intermediate;
+    using KJU.Core.Intermediate.Function;
 
     public class Expression : Node
     {
@@ -56,7 +57,7 @@ namespace KJU.Core.AST
 
         public bool IsForeign { get; set; }
 
-        public Intermediate.Function IntermediateFunction { get; set; }
+        public Function IntermediateFunction { get; set; }
 
         public static bool ParametersTypesEquals(FunctionDeclaration left, FunctionDeclaration right)
         {

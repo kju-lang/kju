@@ -14,9 +14,9 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void UnconditionalJumpTest()
         {
-            var start = new Tree(null);
+            var start = new Tree(null, new UnconditionalJump(null));
             var startLabel = new Label(start);
-            var end = new Tree(null);
+            var end = new Tree(null, new UnconditionalJump(null));
             var endLabel = new Label(end);
             start.ControlFlow = new UnconditionalJump(endLabel);
             end.ControlFlow = new UnconditionalJump(startLabel);
@@ -34,9 +34,9 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void FunctionCallTest()
         {
-            var start = new Tree(null);
+            var start = new Tree(null, new UnconditionalJump(null));
             var startLabel = new Label(start);
-            var end = new Tree(null);
+            var end = new Tree(null, new UnconditionalJump(null));
             var endLabel = new Label(end);
             start.ControlFlow = new FunctionCall(null, endLabel);
             end.ControlFlow = new FunctionCall(null, startLabel);
@@ -58,7 +58,7 @@ namespace KJU.Tests.Intermediate
             var labels = new List<Label>();
             for (int i = 0; i < 3; i++)
             {
-                trees.Add(new Tree(null));
+                trees.Add(new Tree(null, new UnconditionalJump(null)));
                 labels.Add(new Label(trees[i]));
             }
 
@@ -89,9 +89,9 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void DoubleLabelTest()
         {
-            var t1 = new Tree(null);
-            var t2 = new Tree(null);
-            var t3 = new Tree(new IntegerImmediateValue(0), new Ret());
+            var t1 = new Tree(null, new UnconditionalJump(null));
+            var t2 = new Tree(null, new UnconditionalJump(null));
+            var t3 = new Tree(new IntegerImmediateValue(0), new UnconditionalJump(null));
 
             var l1 = new Label(t1);
             var l2 = new Label(t2);

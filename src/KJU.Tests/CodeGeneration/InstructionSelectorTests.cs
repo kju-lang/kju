@@ -11,6 +11,7 @@ namespace KJU.Tests.CodeGeneration
     using KJU.Core.CodeGeneration.Templates;
     using KJU.Core.CodeGeneration.Templates.Stack;
     using KJU.Core.Intermediate;
+    using KJU.Core.Intermediate.Function;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -22,7 +23,7 @@ namespace KJU.Tests.CodeGeneration
             var template = new RegisterReadTemplate();
             var templates = new List<InstructionTemplate> { template };
             var root = new RegisterRead(new VirtualRegister());
-            var tree = new Tree(root) { ControlFlow = new Ret() };
+            var tree = new Tree(root, new Ret());
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
@@ -34,7 +35,7 @@ namespace KJU.Tests.CodeGeneration
             var template = new ReserveStackMemoryTemplate();
             var templates = new List<InstructionTemplate> { template };
             var root = new ReserveStackMemory(new Function { StackBytes = 16 });
-            var tree = new Tree(root) { ControlFlow = new Ret() };
+            var tree = new Tree(root, new Ret());
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
@@ -48,7 +49,9 @@ namespace KJU.Tests.CodeGeneration
             var template = new RegisterReadTemplate();
             var templates = new List<InstructionTemplate> { template, nullTemplate };
             var root = new RegisterRead(new VirtualRegister());
-            var tree = new Tree(root) { ControlFlow = new ConditionalJump(new Label(new Tree(new Core.Intermediate.Node())), null) };
+            var trueTarget = new Label(new Tree(new UnitImmediateValue(), new UnconditionalJump(null)));
+            var controlFlow = new ConditionalJump(trueTarget, null);
+            var tree = new Tree(root, controlFlow);
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
@@ -63,7 +66,7 @@ namespace KJU.Tests.CodeGeneration
             var v3 = new RegisterRead(new VirtualRegister());
             var node = new ArithmeticBinaryOperation(ArithmeticOperationType.Addition, v1, v2);
             var root = new ArithmeticBinaryOperation(ArithmeticOperationType.Addition, v3, node);
-            var tree = new Tree(root) { ControlFlow = new Ret() };
+            var tree = new Tree(root, new Ret());
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);
             Assert.AreEqual(6, ins.Count());

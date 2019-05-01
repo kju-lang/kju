@@ -65,13 +65,13 @@ namespace KJU.Core.Intermediate
 
     public class MemoryLocation : ILocation
     {
-        public MemoryLocation(Function function, int offset)
+        public MemoryLocation(Function.Function function, int offset)
         {
             this.Function = function;
             this.Offset = offset;
         }
 
-        public Function Function { get; }
+        public Function.Function Function { get; }
 
         public int Offset { get; }
     }

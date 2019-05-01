@@ -55,9 +55,6 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
                         break;
                     case Ret _:
                         break;
-                    case null:
-                        current.Tree.ControlFlow = new Ret();
-                        break;
                     default:
                         throw new NotSupportedException(
                             $"Unknown control flow instruction: {current.Tree.ControlFlow}");

@@ -2,11 +2,6 @@ namespace KJU.Core.Intermediate
 {
     public class Tree
     {
-        public Tree(Node root)
-        {
-            this.Root = root;
-        }
-
         public Tree(Node root, ControlFlowInstruction controlFlow)
         {
             this.Root = root;

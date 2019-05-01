@@ -7,7 +7,7 @@ namespace KJU.Core.Intermediate
     using System.Collections.Generic;
     using AST;
 
-    public class Node
+    public abstract class Node
     {
         public virtual List<Node> Children()
         {
@@ -403,12 +403,12 @@ namespace KJU.Core.Intermediate
 
     public class ReserveStackMemory : Node
     {
-        public ReserveStackMemory(Function func)
+        public ReserveStackMemory(Function.Function func)
         {
             this.KjuFunction = func;
         }
 
-        private Function KjuFunction { get; }
+        private Function.Function KjuFunction { get; }
 
         public override List<object> Match(Node template)
         {

@@ -1,6 +1,7 @@
 namespace KJU.Tests.Intermediate
 {
     using KJU.Core.Intermediate;
+    using KJU.Core.Intermediate.Function;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]

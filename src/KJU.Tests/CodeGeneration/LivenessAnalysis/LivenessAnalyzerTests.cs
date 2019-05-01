@@ -8,6 +8,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
     using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using KJU.Core.CodeGeneration.LivenessAnalysis;
     using KJU.Core.Intermediate;
+    using KJU.Core.Intermediate.Function;
     using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -37,7 +38,8 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             var instructions = new List<CodeBlock>();
 
-            var block = new List<Instruction>() {
+            var block = new List<Instruction>()
+            {
                 this.GetDefinition(aReg),
                 this.GetDefinition(bReg),
                 this.GetDefinition(cReg),
@@ -63,7 +65,8 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             var instructions = new List<CodeBlock>();
 
-            var block = new List<Instruction>() {
+            var block = new List<Instruction>()
+            {
                 this.GetDefinition(aReg),
                 this.GetDefinition(bReg),
                 this.GetOperation(aReg, bReg, outReg)
@@ -122,7 +125,8 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             var instructions = new List<CodeBlock>();
 
-            this.AddRetBlock(instructions, this.GetLabel(), new List<Instruction>() {
+            this.AddRetBlock(instructions, this.GetLabel(), new List<Instruction>()
+            {
                 this.GetDefinition(reg),
                 this.GetOperation(reg, reg, reg)
             });
@@ -143,16 +147,19 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var bLabel = this.GetLabel();
             var cLabel = this.GetLabel();
 
-            var aBlock = new List<Instruction>() {
+            var aBlock = new List<Instruction>()
+            {
                 this.GetDefinition(aReg)
             };
 
-            var bBlock = new List<Instruction>() {
+            var bBlock = new List<Instruction>()
+            {
                 this.GetDefinition(bReg),
                 this.GetOperation(aReg, aReg, bReg)
             };
 
-            var cBlock = new List<Instruction>() {
+            var cBlock = new List<Instruction>()
+            {
                 this.GetDefinition(cReg),
                 this.GetOperation(cReg, cReg, aReg)
             };
@@ -185,12 +192,14 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             var afterLabel = this.GetLabel();
 
-            var beforeBlock = new List<Instruction>() {
+            var beforeBlock = new List<Instruction>()
+            {
                 this.GetDefinition(aReg),
                 this.GetDefinition(bReg)
             };
 
-            var afterBlock = new List<Instruction>() {
+            var afterBlock = new List<Instruction>()
+            {
                 this.GetOperation(aReg, bReg, outReg)
             };
 
@@ -221,7 +230,8 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             var label = this.GetLabel();
 
-            var block = new List<Instruction>() {
+            var block = new List<Instruction>()
+            {
                 this.GetOperation(aReg, aReg, outReg),
                 this.GetDefinition(aReg),
                 this.GetDefinition(bReg),
@@ -268,23 +278,27 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var rightLabel = this.GetLabel();
             var tailLabel = this.GetLabel();
 
-            var headBlock = new List<Instruction>() {
+            var headBlock = new List<Instruction>()
+            {
                 this.GetDefinition(aReg)
             };
 
-            var leftBlock = new List<Instruction>() {
+            var leftBlock = new List<Instruction>()
+            {
                 this.GetOperation(aReg, aReg, bReg),
                 this.GetOperation(bReg, bReg, aReg),
                 this.GetOperation(aReg, aReg, bReg),
                 this.GetOperation(bReg, bReg, aReg)
             };
 
-            var rightBlock = new List<Instruction>() {
+            var rightBlock = new List<Instruction>()
+            {
                 this.GetDefinition(cReg),
                 this.GetDefinition(cReg)
             };
 
-            var tailBlock = new List<Instruction>() {
+            var tailBlock = new List<Instruction>()
+            {
                 this.GetOperation(aReg, dReg, cReg),
                 this.GetDefinition(cReg)
             };
@@ -326,9 +340,11 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             return new InstructionMock(
                 new List<VirtualRegister> { lhs, rhs },
                 new List<VirtualRegister> { result },
-                new List<Tuple<VirtualRegister, VirtualRegister>> {
+                new List<Tuple<VirtualRegister, VirtualRegister>>
+                {
                     new Tuple<VirtualRegister, VirtualRegister>(lhs, result),
-                    new Tuple<VirtualRegister, VirtualRegister>(rhs, result) });
+                    new Tuple<VirtualRegister, VirtualRegister>(rhs, result)
+                });
         }
 
         private void AddRetBlock(
@@ -369,14 +385,18 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var result = new LivenessAnalyzer().GetInterferenceCopyGraphs(instructions);
 
             Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(
-                expectedInterferenceGraph.ToDictionary(t => t.Key, t => (IReadOnlyCollection<VirtualRegister>)t.Value), result.InterferenceGraph));
+                expectedInterferenceGraph.ToDictionary(t => t.Key, t => (IReadOnlyCollection<VirtualRegister>)t.Value),
+                result.InterferenceGraph));
 
             Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(
-                expectedCopyGraph.ToDictionary(t => t.Key, t => (IReadOnlyCollection<VirtualRegister>)t.Value), result.CopyGraph));
+                expectedCopyGraph.ToDictionary(t => t.Key, t => (IReadOnlyCollection<VirtualRegister>)t.Value),
+                result.CopyGraph));
         }
 
         private void AddEdge(
-            Dictionary<VirtualRegister, List<VirtualRegister>> graph, VirtualRegister register1, VirtualRegister register2)
+            Dictionary<VirtualRegister, List<VirtualRegister>> graph,
+            VirtualRegister register1,
+            VirtualRegister register2)
         {
             graph[register1].Add(register2);
             graph[register2].Add(register1);
@@ -384,10 +404,11 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
         private Label GetLabel()
         {
-            return new Label(new Tree(null));
+            return new Label(new Tree(null, new UnconditionalJump(null)));
         }
 
-        private Dictionary<VirtualRegister, List<VirtualRegister>> GetEmptyGraph(IReadOnlyCollection<VirtualRegister> registers)
+        private Dictionary<VirtualRegister, List<VirtualRegister>> GetEmptyGraph(
+            IReadOnlyCollection<VirtualRegister> registers)
         {
             return registers.ToDictionary(register => register, register => new List<VirtualRegister>());
         }

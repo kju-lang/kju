@@ -2,6 +2,7 @@ namespace KJU.Core.CodeGeneration.Templates
 {
     using System.Collections.Generic;
     using Intermediate;
+    using KJU.Core.Intermediate.Function;
 
     public static class InstructionsTemplatesUtils
     {

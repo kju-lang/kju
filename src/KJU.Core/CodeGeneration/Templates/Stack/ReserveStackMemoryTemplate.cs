@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using Intermediate;
+    using KJU.Core.Intermediate.Function;
 
     public class ReserveStackMemoryTemplate : InstructionTemplate
     {

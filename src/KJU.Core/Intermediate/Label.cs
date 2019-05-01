@@ -4,7 +4,7 @@ namespace KJU.Core.Intermediate
     {
         public Label(Tree tree)
         {
-            this.Tree = tree ?? new Tree(null);
+            this.Tree = tree;
         }
 
         public string Id { get; set; }

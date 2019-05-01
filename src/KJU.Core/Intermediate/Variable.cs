@@ -2,7 +2,7 @@ namespace KJU.Core.Intermediate
 {
     public class Variable
     {
-        public Variable(Function owner, ILocation location)
+        public Variable(Function.Function owner, ILocation location)
         {
             this.Owner = owner;
             this.Location = location;
@@ -12,7 +12,7 @@ namespace KJU.Core.Intermediate
         {
         }
 
-        public Function Owner { get; set; }
+        public Function.Function Owner { get; set; }
 
         public ILocation Location { get; set; }
     }

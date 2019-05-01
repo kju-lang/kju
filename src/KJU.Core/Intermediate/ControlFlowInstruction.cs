@@ -40,13 +40,13 @@ namespace KJU.Core.Intermediate
 
     public class FunctionCall : ControlFlowInstruction
     {
-        public FunctionCall(Function func, Label targetAfter)
+        public FunctionCall(Function.Function func, Label targetAfter)
         {
             this.Func = func;
             this.TargetAfter = targetAfter;
         }
 
-        public Function Func { get; }
+        public Function.Function Func { get; }
 
         public Label TargetAfter { get; }
 

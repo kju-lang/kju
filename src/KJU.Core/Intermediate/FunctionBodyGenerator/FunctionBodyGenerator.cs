@@ -6,12 +6,12 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
     public class FunctionBodyGenerator
     {
-        private readonly Function function;
+        private readonly Function.Function function;
 
         private readonly Dictionary<AST.WhileStatement, LoopLabels> loopLabels =
             new Dictionary<AST.WhileStatement, LoopLabels>();
 
-        public FunctionBodyGenerator(Function function)
+        public FunctionBodyGenerator(Function.Function function)
         {
             this.function = function;
         }

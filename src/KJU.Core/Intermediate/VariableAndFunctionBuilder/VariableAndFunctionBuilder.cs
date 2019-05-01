@@ -16,16 +16,16 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
             this.TraverseTree(root);
         }
 
-        private void TraverseTree(AST.Node node, Function parent = null)
+        private void TraverseTree(AST.Node node, Function.Function parent = null)
         {
-            Function newParent;
+            Function.Function newParent;
 
             switch (node)
             {
                 case AST.FunctionDeclaration functionDeclaration:
                 {
                     var mangledName = this.nameMangler.GetMangledName(functionDeclaration, parent?.MangledName);
-                    var function = new Function(parent)
+                    var function = new Function.Function(parent)
                     {
                         MangledName = mangledName
                     };

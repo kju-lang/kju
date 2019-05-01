@@ -3,6 +3,7 @@ namespace KJU.Core.CodeGeneration
     using System.Collections.Generic;
     using System.Linq;
     using Intermediate;
+    using KJU.Core.Intermediate.Function;
 
     public class CallInstruction : Instruction
     {
