@@ -5,118 +5,137 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using FunctionToAsmGeneration;
     using Intermediate;
-    using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
-    using KJU.Core.Util;
+    using Util;
+    using ControlFlowGraph =
+        System.Collections.Generic.IReadOnlyDictionary<Instruction,
+            System.Collections.Generic.IReadOnlyCollection<Instruction>>;
 
     public class LivenessAnalyzer : ILivenessAnalyzer
     {
-        public InterferenceCopyGraphPair GetInterferenceCopyGraphs(IReadOnlyList<Tuple<Label, IReadOnlyList<Instruction>>> instructions)
+        public InterferenceCopyGraphPair GetInterferenceCopyGraphs(
+            IReadOnlyList<CodeBlock> instructions)
         {
-            var cfg = this.GetInstructionCFG(instructions);
+            var cfg = GetInstructionCFG(instructions);
             var reverseCFG = GraphReverser.ReverseGraph(cfg);
-            var liveness = this.GetLivenessSets(reverseCFG);
-            return new InterferenceCopyGraphPair(
-                this.CreateInterferenceGraph(reverseCFG, liveness),
-                this.CreateCopyGraph(reverseCFG));
+            var liveness = GetLivenessSets(reverseCFG);
+            var interferenceGraph = CreateInterferenceGraph(reverseCFG, liveness);
+            var copyGraph = CreateCopyGraph(reverseCFG);
+            return new InterferenceCopyGraphPair(interferenceGraph, copyGraph);
         }
 
-        public InterferenceCopyGraphPair GetInterferenceCopyGraphs(IReadOnlyList<CodeBlock> instructions)
+        private static ControlFlowGraph GetInstructionCFG(
+            IReadOnlyList<CodeBlock> codeBlocks)
         {
-            return this.GetInterferenceCopyGraphs(instructions.Select(x => new Tuple<Label, IReadOnlyList<Instruction>>(x.Label, x.Instructions)).ToList());
-        }
+            var labelToFirstInstruction = codeBlocks
+                .ToDictionary(codeBlock => codeBlock.Label, codeBlock => codeBlock.Instructions[0]);
 
-        private IReadOnlyDictionary<Instruction, IReadOnlyCollection<Instruction>> GetInstructionCFG(
-            IReadOnlyList<Tuple<Label, IReadOnlyList<Instruction>>> instructions)
-        {
-            var cfg = new Dictionary<Instruction, HashSet<Instruction>>();
-            var labelToFirstInstruction = new Dictionary<Label, Instruction>();
-            instructions.ToList().ForEach(basicBlock =>
+            var cfg = codeBlocks.SelectMany(codeBlock => codeBlock.Instructions)
+                .ToDictionary(instruction => instruction, _ => new HashSet<Instruction>());
+
+            for (int i = 0; i < codeBlocks.Count; i++)
             {
-                var (lab, instructionBlock) = basicBlock;
-                instructionBlock.ToList().ForEach(instr => cfg.Add(instr, new HashSet<Instruction>()));
-                labelToFirstInstruction.Add(lab, instructionBlock[0]);
-            });
-            for (int i = 0; i < instructions.Count; i++)
-            {
-                var (label, instructionBlock) = instructions[i];
-                for (int k = 0; k < instructionBlock.Count - 1; k++)
-                    cfg[instructionBlock[k]].Add(instructionBlock[k + 1]);
+                var codeBlock = codeBlocks[i];
+                var label = codeBlock.Label;
+                var instructions = codeBlock.Instructions;
+                instructions
+                    .Zip(instructions.Skip(1), (current, next) => new { Current = current, Next = next })
+                    .ToList()
+                    .ForEach(x => cfg[x.Current].Add(x.Next));
 
                 bool connectedWithNext;
-                var lastInstruction = instructionBlock[instructionBlock.Count - 1];
+                var lastInstruction = instructions[instructions.Count - 1];
                 switch (label.Tree.ControlFlow)
                 {
                     case UnconditionalJump unconditionalJump:
                         connectedWithNext = unconditionalJump.Target == null;
                         if (unconditionalJump.Target != null)
+                        {
                             cfg[lastInstruction].Add(labelToFirstInstruction[unconditionalJump.Target]);
+                        }
+
                         break;
                     case ConditionalJump conditionalJump:
                         cfg[lastInstruction].Add(labelToFirstInstruction[conditionalJump.TrueTarget]);
                         connectedWithNext = conditionalJump.FalseTarget == null;
                         if (conditionalJump.FalseTarget != null)
+                        {
                             cfg[lastInstruction].Add(labelToFirstInstruction[conditionalJump.FalseTarget]);
+                        }
+
                         break;
                     case FunctionCall functionCall:
                         connectedWithNext = functionCall.TargetAfter == null;
                         if (functionCall.TargetAfter != null)
+                        {
                             cfg[lastInstruction].Add(labelToFirstInstruction[functionCall.TargetAfter]);
+                        }
+
                         break;
                     case Ret _:
                         connectedWithNext = false;
                         break;
                     default:
-                        throw new Exception("unexpected ControlFlow type");
+                        throw new Exception("Unexpected ControlFlow type");
                 }
 
-                if (connectedWithNext && i + 1 < instructions.Count)
-                    cfg[lastInstruction].Add(labelToFirstInstruction[instructions[i + 1].Item1]);
+                if (connectedWithNext && i + 1 < codeBlocks.Count)
+                {
+                    cfg[lastInstruction].Add(labelToFirstInstruction[codeBlocks[i + 1].Label]);
+                }
             }
 
-            return cfg
-                .ToDictionary(elem => elem.Key, elem => (IReadOnlyCollection<Instruction>)elem.Value);
+            return cfg.ToDictionary(
+                elem => elem.Key,
+                elem => (IReadOnlyCollection<Instruction>)elem.Value);
         }
 
-        private IReadOnlyDictionary<Instruction, InstructionLiveness> GetLivenessSets(
-            IReadOnlyDictionary<Instruction, IReadOnlyCollection<Instruction>> reverseCFG)
+        private static IReadOnlyDictionary<Instruction, Liveness> GetLivenessSets(
+            ControlFlowGraph reverseCFG)
         {
-            var liveness = new Dictionary<Instruction, InstructionLiveness>();
-            var instructionToProcess = new Queue<Tuple<Instruction, IEnumerable<VirtualRegister>>>();
-            reverseCFG.Keys.ToList().ForEach(instr =>
+            var liveness = reverseCFG.Keys.ToDictionary(instr => instr, instr =>
             {
-                liveness.Add(instr, new InstructionLiveness(instr.Uses, instr.Defines));
-                reverseCFG[instr].ToList().ForEach(preInstr => instructionToProcess.
-                    Enqueue(new Tuple<Instruction, IEnumerable<VirtualRegister>>(preInstr, liveness[instr].InLiveness)));
+                var inLiveness = new HashSet<VirtualRegister>(instr.Uses);
+                var outLiveness = new HashSet<VirtualRegister>(instr.Defines);
+                return new Liveness(inLiveness, outLiveness);
             });
 
-            while (instructionToProcess.Count > 0)
+            var initialInstructions = reverseCFG
+                .SelectMany(
+                    kvp => kvp.Value
+                        .ToList()
+                        .Select(preInstr => new InstructionLiveness(preInstr, liveness[kvp.Key].InLiveness)));
+
+            var instructionsToProcess = new Queue<InstructionLiveness>(initialInstructions);
+
+            while (instructionsToProcess.Count > 0)
             {
-                var (instruction, vrToCheck) = instructionToProcess.Dequeue();
+                var currentLiveness = instructionsToProcess.Dequeue();
+                var instruction = currentLiveness.Instruction;
+                var vrToCheck = currentLiveness.Liveness;
                 var newVrs = vrToCheck.Where(vr => !liveness[instruction].OutLiveness.Contains(vr)).ToList();
                 if (newVrs.Count == 0)
+                {
                     continue;
+                }
 
                 liveness[instruction].OutLiveness.UnionWith(newVrs);
                 liveness[instruction].InLiveness.UnionWith(newVrs);
-                reverseCFG[instruction].ToList().ForEach(preInstr => instructionToProcess.
-                    Enqueue(new Tuple<Instruction, IEnumerable<VirtualRegister>>(preInstr, newVrs)));
+                reverseCFG[instruction].ToList().ForEach(preInstr =>
+                    instructionsToProcess.Enqueue(
+                        new InstructionLiveness(preInstr, new HashSet<VirtualRegister>(newVrs))));
             }
 
             return liveness;
         }
 
-        private IReadOnlyDictionary<VirtualRegister, IReadOnlyCollection<VirtualRegister>> CreateInterferenceGraph(
-            IReadOnlyDictionary<Instruction, IReadOnlyCollection<Instruction>> reverseCFG, IReadOnlyDictionary<Instruction, InstructionLiveness> liveness)
+        private static IReadOnlyDictionary<VirtualRegister, IReadOnlyCollection<VirtualRegister>>
+            CreateInterferenceGraph(
+                ControlFlowGraph reverseCFG,
+                IReadOnlyDictionary<Instruction, Liveness> liveness)
         {
-            var interferenceGraph = new Dictionary<VirtualRegister, HashSet<VirtualRegister>>();
-            reverseCFG.Keys.ToList().ForEach(instr =>
-            {
-                instr.Uses.ToList().Where(vr => !interferenceGraph.ContainsKey(vr)).Distinct()
-                    .ToList().ForEach(vr => interferenceGraph.Add(vr, new HashSet<VirtualRegister>()));
-                instr.Defines.ToList().Where(vr => !interferenceGraph.ContainsKey(vr)).Distinct()
-                    .ToList().ForEach(vr => interferenceGraph.Add(vr, new HashSet<VirtualRegister>()));
-            });
+            var interferenceGraph = GetEmptyGraph(reverseCFG);
 
             foreach (var instruction in reverseCFG.Keys)
             {
@@ -124,60 +143,46 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
                 {
                     foreach (var outLiveVr in liveness[instruction].OutLiveness)
                     {
-                        interferenceGraph[vr].Add(outLiveVr);
-                        interferenceGraph[outLiveVr].Add(vr);
+                        if (vr != outLiveVr)
+                        {
+                            interferenceGraph[vr].Add(outLiveVr);
+                            interferenceGraph[outLiveVr].Add(vr);
+                        }
                     }
                 }
             }
-
-            interferenceGraph.Keys.ToList().ForEach(vr => interferenceGraph[vr].Remove(vr));
 
             return interferenceGraph
                 .ToDictionary(elem => elem.Key, elem => (IReadOnlyCollection<VirtualRegister>)elem.Value);
         }
 
-        private IReadOnlyDictionary<VirtualRegister, IReadOnlyCollection<VirtualRegister>> CreateCopyGraph(
-            IReadOnlyDictionary<Instruction, IReadOnlyCollection<Instruction>> reverseCFG)
+        private static IReadOnlyDictionary<VirtualRegister, IReadOnlyCollection<VirtualRegister>> CreateCopyGraph(
+            ControlFlowGraph reverseCFG)
         {
-            var copyGraph = new Dictionary<VirtualRegister, HashSet<VirtualRegister>>();
+            var copyGraph = GetEmptyGraph(reverseCFG);
+
             reverseCFG.Keys.ToList().ForEach(instr =>
             {
-                instr.Uses.ToList().Where(vr => !copyGraph.ContainsKey(vr)).Distinct()
-                    .ToList().ForEach(vr => copyGraph.Add(vr, new HashSet<VirtualRegister>()));
-                instr.Defines.ToList().Where(vr => !copyGraph.ContainsKey(vr)).Distinct()
-                    .ToList().ForEach(vr => copyGraph.Add(vr, new HashSet<VirtualRegister>()));
-            });
-            reverseCFG.Keys.ToList().ForEach(instr =>
-            {
-                instr.Copies.ToList().ForEach(pair =>
+                instr.Copies.Where(x => x.Item1 != x.Item2).ToList().ForEach(pair =>
                 {
                     var (item1, item2) = pair;
                     copyGraph[item1].Add(item2);
                     copyGraph[item2].Add(item1);
                 });
             });
-            copyGraph.Keys.ToList().ForEach(vr => copyGraph[vr].Remove(vr));
             return copyGraph
-                .ToDictionary(elem => elem.Key, elem => (IReadOnlyCollection<VirtualRegister>)elem.Value);
+                .ToDictionary(
+                    elem => elem.Key,
+                    elem => (IReadOnlyCollection<VirtualRegister>)elem.Value);
         }
 
-        private class InstructionLiveness
+        private static Dictionary<VirtualRegister, HashSet<VirtualRegister>> GetEmptyGraph(
+            ControlFlowGraph reverseCFG)
         {
-            public InstructionLiveness()
-            {
-                this.InLiveness = new HashSet<VirtualRegister>();
-                this.OutLiveness = new HashSet<VirtualRegister>();
-            }
-
-            public InstructionLiveness(IReadOnlyCollection<VirtualRegister> inLiveness, IReadOnlyCollection<VirtualRegister> outLiveness)
-            {
-                this.InLiveness = new HashSet<VirtualRegister>(inLiveness);
-                this.OutLiveness = new HashSet<VirtualRegister>(outLiveness);
-            }
-
-            public HashSet<VirtualRegister> InLiveness { get; }
-
-            public HashSet<VirtualRegister> OutLiveness { get; }
+            return reverseCFG.Keys
+                .SelectMany(instr => instr.Uses.Concat(instr.Defines))
+                .Distinct()
+                .ToDictionary(vr => vr, _ => new HashSet<VirtualRegister>());
         }
     }
 }

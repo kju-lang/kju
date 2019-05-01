@@ -1,7 +1,9 @@
 namespace KJU.Core.CodeGeneration.LivenessAnalysis
 {
+    using System;
     using System.Collections.Generic;
-    using FunctionToAsmGeneration;
+    using Intermediate;
+    using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
 
     public interface ILivenessAnalyzer
     {

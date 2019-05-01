@@ -6,6 +6,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
     using System.Collections.Generic;
     using System.Linq;
     using KJU.Core.CodeGeneration;
+    using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using KJU.Core.CodeGeneration.LivenessAnalysis;
     using KJU.Core.Intermediate;
     using KJU.Tests.Util;
@@ -17,10 +18,9 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
         [TestMethod]
         public void TestEmpty()
         {
-            var registers = new List<VirtualRegister>();
-            var emptyGraph = this.GetEmptyGraph(registers);
+            var emptyGraph = this.GetEmptyGraph(new List<VirtualRegister>());
 
-            var instructions = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructions = new List<CodeBlock>();
 
             this.CheckAnswer(instructions, emptyGraph, emptyGraph);
 
@@ -36,7 +36,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var bReg = new VirtualRegister();
             var cReg = new VirtualRegister();
 
-            var instructions = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructions = new List<CodeBlock>();
 
             var block = new List<Instruction>() {
                 this.GetDefinition(aReg),
@@ -62,7 +62,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var bReg = new VirtualRegister();
             var outReg = new VirtualRegister();
 
-            var instructions = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructions = new List<CodeBlock>();
 
             var block = new List<Instruction>() {
                 this.GetDefinition(aReg),
@@ -92,9 +92,10 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var bReg = new VirtualRegister();
             var outReg = new VirtualRegister();
 
-            var instructions = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructions = new List<CodeBlock>();
 
-            var block = new List<Instruction>() {
+            var block = new List<Instruction>
+            {
                 this.GetDefinition(aReg),
                 this.GetDefinition(bReg),
                 this.GetOperation(bReg, bReg, outReg),
@@ -104,7 +105,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             this.AddRetBlock(instructions, this.GetLabel(), block);
 
-            var registers = new List<VirtualRegister>() { aReg, bReg, outReg };
+            var registers = new List<VirtualRegister> { aReg, bReg, outReg };
 
             var interferenceGraph = this.GetEmptyGraph(registers);
             var copyGraph = this.GetEmptyGraph(registers);
@@ -120,7 +121,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
         {
             var reg = new VirtualRegister();
 
-            var instructions = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructions = new List<CodeBlock>();
 
             this.AddRetBlock(instructions, this.GetLabel(), new List<Instruction>() {
                 this.GetDefinition(reg),
@@ -157,7 +158,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
                 this.GetOperation(cReg, cReg, aReg)
             };
 
-            var instructions = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructions = new List<CodeBlock>();
 
             this.AddConditionalJumpBlock(instructions, aLabel, aBlock, bLabel, cLabel);
             this.AddRetBlock(instructions, bLabel, bBlock);
@@ -194,7 +195,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
                 this.GetOperation(aReg, bReg, outReg)
             };
 
-            var instructions = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructions = new List<CodeBlock>();
 
             this.AddFunctionCallBlock(instructions, this.GetLabel(), beforeBlock, afterLabel);
             this.AddRetBlock(instructions, afterLabel, afterBlock);
@@ -236,7 +237,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             /* Behavior when there is no loop */
 
-            var instructionsWithoutLoop = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructionsWithoutLoop = new List<CodeBlock>();
             this.AddRetBlock(instructionsWithoutLoop, label, block);
 
             var interferenceGraphWithoutLoop = this.GetEmptyGraph(registers);
@@ -245,7 +246,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             /* Different behavior when there is a loop */
 
-            var instructionsWithLoop = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructionsWithLoop = new List<CodeBlock>();
             this.AddUnconditionalJumpBlock(instructionsWithLoop, label, block, label);
 
             var interferenceGraphWithLoop = this.GetEmptyGraph(registers);
@@ -289,7 +290,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
                 this.GetDefinition(cReg)
             };
 
-            var instructions = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
+            var instructions = new List<CodeBlock>();
 
             this.AddConditionalJumpBlock(instructions, this.GetLabel(), headBlock, leftLabel, rightLabel);
             this.AddUnconditionalJumpBlock(instructions, leftLabel, leftBlock, tailLabel);
@@ -332,37 +333,37 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
         }
 
         private void AddRetBlock(
-            List<Tuple<Label, IReadOnlyList<Instruction>>> instructions, Label label, List<Instruction> block)
+            List<CodeBlock> instructions, Label label, List<Instruction> block)
         {
             block.Add(new RetInstructionMock());
             label.Tree.ControlFlow = new Ret();
 
-            instructions.Add(new Tuple<Label, IReadOnlyList<Instruction>>(label, block));
+            instructions.Add(new CodeBlock(label, block));
         }
 
         private void AddConditionalJumpBlock(
-            List<Tuple<Label, IReadOnlyList<Instruction>>> instructions, Label label, List<Instruction> block, Label firstTarget, Label secondTarget)
+            List<CodeBlock> instructions, Label label, List<Instruction> block, Label firstTarget, Label secondTarget)
         {
             label.Tree.ControlFlow = new ConditionalJump(firstTarget, secondTarget);
-            instructions.Add(new Tuple<Label, IReadOnlyList<Instruction>>(label, block));
+            instructions.Add(new CodeBlock(label, block));
         }
 
         private void AddUnconditionalJumpBlock(
-            List<Tuple<Label, IReadOnlyList<Instruction>>> instructions, Label label, List<Instruction> block, Label target)
+            List<CodeBlock> instructions, Label label, List<Instruction> block, Label target)
         {
             label.Tree.ControlFlow = new UnconditionalJump(target);
-            instructions.Add(new Tuple<Label, IReadOnlyList<Instruction>>(label, block));
+            instructions.Add(new CodeBlock(label, block));
         }
 
         private void AddFunctionCallBlock(
-            List<Tuple<Label, IReadOnlyList<Instruction>>> instructions, Label label, List<Instruction> block, Label target)
+            List<CodeBlock> instructions, Label label, List<Instruction> block, Label target)
         {
             label.Tree.ControlFlow = new FunctionCall(new Function(), target);
-            instructions.Add(new Tuple<Label, IReadOnlyList<Instruction>>(label, block));
+            instructions.Add(new CodeBlock(label, block));
         }
 
         private void CheckAnswer(
-            IReadOnlyList<Tuple<Label, IReadOnlyList<Instruction>>> instructions,
+            IReadOnlyList<CodeBlock> instructions,
             Dictionary<VirtualRegister, List<VirtualRegister>> expectedInterferenceGraph,
             Dictionary<VirtualRegister, List<VirtualRegister>> expectedCopyGraph)
         {
