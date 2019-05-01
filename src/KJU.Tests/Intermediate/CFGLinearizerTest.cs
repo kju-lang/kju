@@ -2,14 +2,14 @@ namespace KJU.Tests.Intermediate
 {
     using System.Collections.Generic;
     using System.Linq;
-    using KJU.Core.CodeGeneration.CFGLinearizer;
+    using KJU.Core.CodeGeneration.CfgLinearizer;
     using KJU.Core.Intermediate;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class CFGLinearizerTest
+    public class CfgLinearizerTest
     {
-        private CFGLinearizer linearizer = new CFGLinearizer();
+        private CfgLinearizer linearizer = new CfgLinearizer();
 
         [TestMethod]
         public void UnconditionalJumpTest()

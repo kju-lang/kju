@@ -5,7 +5,7 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
     using System.Linq;
     using Intermediate;
 
-    public class CfgLinearizer
+    public class CfgLinearizer : ICfgLinearizer
     {
         public Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<Label, int>> Linearize(Label cfg)
         {

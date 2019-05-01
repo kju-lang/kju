@@ -5,6 +5,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     using System.Collections.Generic;
     using System.Linq;
     using AST;
+    using CfgLinearizer;
     using InstructionSelector;
     using Intermediate;
     using Intermediate.FunctionBodyGenerator;
@@ -19,14 +20,14 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         private readonly IRegisterAllocator registerAllocator;
         private readonly IInstructionSelector instructionSelector;
         private readonly ILabelIdGenerator labelIdGenerator;
-        private readonly CFGLinearizer.CFGLinearizer cfgLinearizer;
+        private readonly ICfgLinearizer cfgLinearizer;
 
         public FunctionToAsmGenerator(
             ILivenessAnalyzer livenessAnalyzer,
             IRegisterAllocator registerAllocator,
             IInstructionSelector instructionSelector,
             ILabelIdGenerator labelIdGenerator,
-            CFGLinearizer.CFGLinearizer cfgLinearizer)
+            ICfgLinearizer cfgLinearizer)
         {
             this.livenessAnalyzer = livenessAnalyzer;
             this.registerAllocator = registerAllocator;
@@ -64,6 +65,11 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         private (RegisterAllocationResult, IReadOnlyList<CodeBlock>) Allocate(
             Function function, IReadOnlyList<CodeBlock> instructionSequence)
         {
+            instructionSequence.ToList().ForEach(block =>
+            {
+                block.Label.Id = this.labelIdGenerator.GenerateLabelId();
+            });
+
             for (var iteration = 0; iteration < AllocationTriesBound; ++iteration)
             {
                 var interferenceCopyGraphPair = this.livenessAnalyzer.GetInterferenceCopyGraphs(instructionSequence);
@@ -118,7 +124,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 .Where(spilled.Contains)
                 .SelectMany(register =>
                 {
-                    var id = spilledRegisterToIndexMapping[register];
+                    var id = spilledRegisterToIndexMapping[register] + 1;
                     var registerVariable = new Intermediate.Variable(function, register);
                     var memoryLocation = new MemoryLocation(function, function.StackBytes + (8 * id));
                     var memoryVariable = new Intermediate.Variable(function, memoryLocation);
@@ -131,7 +137,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 .Where(spilled.Contains)
                 .SelectMany(register =>
                 {
-                    var id = spilledRegisterToIndexMapping[register];
+                    var id = spilledRegisterToIndexMapping[register] + 1;
                     var registerVariable = new Intermediate.Variable(function, register);
                     var memoryLocation = new MemoryLocation(function, function.StackBytes + (8 * id));
                     var memoryVariable = new Intermediate.Variable(function, memoryLocation);
