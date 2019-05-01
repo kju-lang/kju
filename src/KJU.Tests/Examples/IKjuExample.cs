@@ -2,6 +2,7 @@ namespace KJU.Tests.Examples
 {
     using System.Collections.Generic;
     using KJU.Core.Input;
+    using KJU.Tests.Examples.OutputChecker;
 
     public interface IKjuExample
     {
@@ -17,7 +18,9 @@ namespace KJU.Tests.Examples
 
         bool Ends { get; }
 
-        string ExpectedOutput { get; }
+        long Timeout { get; }
+
+        IOutputChecker OutputChecker { get; }
 
         IEnumerable<string> ExpectedMagicStrings { get; }
     }

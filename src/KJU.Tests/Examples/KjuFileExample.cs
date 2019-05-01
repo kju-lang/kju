@@ -7,6 +7,7 @@ namespace KJU.Tests.Examples
     using System.Xml.Linq;
     using System.Xml.XPath;
     using KJU.Core.Input;
+    using KJU.Tests.Examples.OutputChecker;
     using static KJU.Core.Filenames.Extensions;
     using static System.Text.RegularExpressions.Regex;
 
@@ -20,7 +21,7 @@ namespace KJU.Tests.Examples
     </ExpectedMagicStrings>
     <Execution>
         <Input></Input>
-        <ExpectedOutput></ExpectedOutput>
+        <NormalizeOutput>true</NormalizeOutput>
         <Ends>true</Ends>
     </Execution>
 </Spec>
@@ -57,10 +58,17 @@ namespace KJU.Tests.Examples
 
         public bool Ends => bool.Parse(this.GetProperty("/Spec/Execution/Ends"));
 
-        public string ExpectedOutput => this.GetProperty("/Spec/Execution/ExpectedOutput");
+        public long Timeout { get; } = 10 * 1000;
+
+        public IOutputChecker OutputChecker =>
+            this.ExpectedOutput != null
+                ? (IOutputChecker)new ExactOutputChecker(this.ExpectedOutput)
+                : new AcceptAllChecker();
 
         public IEnumerable<string> ExpectedMagicStrings =>
             this.GetPropertyList("/Spec/ExpectedMagicStrings", "MagicString");
+
+        private string ExpectedOutput => this.GetProperty("/Spec/Execution/ExpectedOutput");
 
         public override string ToString()
         {
