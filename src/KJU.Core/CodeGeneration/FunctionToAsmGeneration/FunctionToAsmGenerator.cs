@@ -19,14 +19,14 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         private readonly IRegisterAllocator registerAllocator;
         private readonly IInstructionSelector instructionSelector;
         private readonly ILabelIdGenerator labelIdGenerator;
-        private readonly CFGLinearizer cfgLinearizer;
+        private readonly CFGLinearizer.CFGLinearizer cfgLinearizer;
 
         public FunctionToAsmGenerator(
             ILivenessAnalyzer livenessAnalyzer,
             IRegisterAllocator registerAllocator,
             IInstructionSelector instructionSelector,
             ILabelIdGenerator labelIdGenerator,
-            CFGLinearizer cfgLinearizer)
+            CFGLinearizer.CFGLinearizer cfgLinearizer)
         {
             this.livenessAnalyzer = livenessAnalyzer;
             this.registerAllocator = registerAllocator;

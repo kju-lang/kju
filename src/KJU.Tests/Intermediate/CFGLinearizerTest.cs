@@ -2,7 +2,7 @@ namespace KJU.Tests.Intermediate
 {
     using System.Collections.Generic;
     using System.Linq;
-    using KJU.Core.CodeGeneration;
+    using KJU.Core.CodeGeneration.CFGLinearizer;
     using KJU.Core.Intermediate;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -89,14 +89,14 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void DoubleLabelTest()
         {
-            Tree t1 = new Tree(null);
-            Tree t2 = new Tree(null);
-            Tree t3 = new Tree(new IntegerImmediateValue(0));
+            var t1 = new Tree(null);
+            var t2 = new Tree(null);
+            var t3 = new Tree(new IntegerImmediateValue(0));
 
-            Label l1 = new Label(t1);
-            Label l2 = new Label(t2);
-            Label l3a = new Label(t3);
-            Label l3b = new Label(t3);
+            var l1 = new Label(t1);
+            var l2 = new Label(t2);
+            var l3a = new Label(t3);
+            var l3b = new Label(t3);
 
             t1.ControlFlow = new ConditionalJump(l2, l3a);
             t2.ControlFlow = new UnconditionalJump(l3b);
