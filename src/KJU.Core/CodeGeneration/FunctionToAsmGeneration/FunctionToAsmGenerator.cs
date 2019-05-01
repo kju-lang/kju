@@ -134,7 +134,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     var memoryVariable = new Intermediate.Variable(function, memoryLocation);
                     var readOperation = function.GenerateRead(registerVariable);
                     var writeOperation = function.GenerateWrite(memoryVariable, readOperation);
-                    return this.instructionSelector.GetInstructions(new Tree(writeOperation));
+                    return this.instructionSelector.GetInstructions(new Tree(writeOperation, new UnconditionalJump(null)));
                 });
 
             var auxiliaryWrites = instruction.Defines
@@ -147,7 +147,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     var memoryVariable = new Intermediate.Variable(function, memoryLocation);
                     var readOperation = function.GenerateRead(memoryVariable);
                     var writeOperation = function.GenerateWrite(registerVariable, readOperation);
-                    return this.instructionSelector.GetInstructions(new Tree(writeOperation));
+                    return this.instructionSelector.GetInstructions(new Tree(writeOperation, new UnconditionalJump(null)));
                 });
 
             return auxiliaryReads.Append(instruction).Concat(auxiliaryWrites);

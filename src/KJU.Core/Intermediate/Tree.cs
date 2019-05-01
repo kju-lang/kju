@@ -16,5 +16,10 @@ namespace KJU.Core.Intermediate
         public Node Root { get; set; }
 
         public ControlFlowInstruction ControlFlow { get; set; }
+
+        public override string ToString()
+        {
+            return $"Tree{{Root: {this.Root}, ControlFlowInstruction: {this.ControlFlow?.ToString() ?? "null!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"}}}";
+        }
     }
 }

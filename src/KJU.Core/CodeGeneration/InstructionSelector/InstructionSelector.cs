@@ -209,6 +209,11 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
             {
                 return this.shapeType != null ? this.shapeType.GetHashCode() : 0;
             }
+
+            public override string ToString()
+            {
+                return this.shapeType.ToString();
+            }
         }
     }
 }

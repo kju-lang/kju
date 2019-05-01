@@ -127,14 +127,15 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
                 argumentRegisters,
                 (argument, register) => new { Argument = argument, Register = register });
 
-            Label argumentsLabel = argumentsAndRegisters.Aggregate(callLabel, (next, x) =>
-            {
-                Label writeLabel = new Label(null);
-                Computation argValue = this.GenerateExpression(x.Argument, writeLabel);
-                Node write = new RegisterWrite(x.Register, argValue.Result);
-                writeLabel.Tree = new Tree(write, new UnconditionalJump(next));
-                return argValue.Start;
-            });
+            Label argumentsLabel = argumentsAndRegisters
+                .Aggregate(callLabel, (next, x) =>
+                {
+                    Label writeLabel = new Label(null);
+                    Computation argValue = this.GenerateExpression(x.Argument, writeLabel);
+                    Node write = new RegisterWrite(x.Register, argValue.Result);
+                    writeLabel.Tree = new Tree(write, new UnconditionalJump(next));
+                    return argValue.Start;
+                });
 
             argumentRegisters.Reverse();
             VirtualRegister resultRegister = new VirtualRegister();

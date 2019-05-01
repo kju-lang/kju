@@ -36,7 +36,8 @@ namespace KJU.Core.Compiler
         private readonly IIntermediateRepresentationGenerator intermediateGenerator =
             new IntermediateRepresentationGenerator();
 
-        private readonly IFunctionToAsmGenerator functionToAsmGenerator = new FunctionToAsmGeneratorFactory().Generate();
+        private readonly IFunctionToAsmGenerator
+            functionToAsmGenerator = new FunctionToAsmGeneratorFactory().Generate();
 
         public Artifacts RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics)
         {
@@ -53,7 +54,7 @@ namespace KJU.Core.Compiler
                 this.returnChecker.Run(ast, diagnostics);
                 this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var functionsIR = this.intermediateGenerator.CreateIR(ast);
-                var asm = functionsIR.Keys.SelectMany(this.functionToAsmGenerator.ToAsm);
+                var asm = functionsIR.Keys.SelectMany(this.functionToAsmGenerator.ToAsm).ToList();
                 return new Artifacts(ast, asm);
             }
             catch (Exception ex) when (

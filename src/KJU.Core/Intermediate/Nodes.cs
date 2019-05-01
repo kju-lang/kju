@@ -3,8 +3,9 @@
 
 namespace KJU.Core.Intermediate
 {
+    using System;
     using System.Collections.Generic;
-    using KJU.Core.AST;
+    using AST;
 
     public class Node
     {
@@ -16,6 +17,11 @@ namespace KJU.Core.Intermediate
         public virtual List<object> Match(Node template)
         {
             return null;
+        }
+
+        public override string ToString()
+        {
+            return $"{this.GetType().Name}{{Children: {{{string.Join(", ", this.Children())}}} }}";
         }
     }
 
@@ -68,6 +74,7 @@ namespace KJU.Core.Intermediate
 
         public override List<object> Match(Node template)
         {
+            Console.WriteLine($"{this} trying to match: {template}");
             if (template is BooleanImmediateValue b)
             {
                 if (b.TemplateValue == null)
@@ -84,6 +91,11 @@ namespace KJU.Core.Intermediate
             }
 
             return null;
+        }
+
+        public override string ToString()
+        {
+            return $"BooleanImmediateValue{{Value:{this.Value}, TemplateValue: {this.TemplateValue}}}";
         }
     }
 
@@ -164,12 +176,12 @@ namespace KJU.Core.Intermediate
 
         public override List<object> Match(Node template)
         {
-            if (template is RegisterRead)
-            {
-                return new List<object> { this.Register };
-            }
+            return template is RegisterRead ? new List<object> { this.Register } : null;
+        }
 
-            return null;
+        public override string ToString()
+        {
+            return $"RegisterRead{{{this.Register}}}";
         }
     }
 
@@ -198,6 +210,11 @@ namespace KJU.Core.Intermediate
             }
 
             return null;
+        }
+
+        public override string ToString()
+        {
+            return $"RegisterWrite{{{this.Register} = {this.Value}}}";
         }
     }
 
@@ -300,6 +317,11 @@ namespace KJU.Core.Intermediate
             }
 
             return null;
+        }
+
+        public override string ToString()
+        {
+            return $"Comparison{{{this.Lhs} {this.Type} {this.Rhs}}}";
         }
     }
 

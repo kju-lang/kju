@@ -13,6 +13,11 @@ namespace KJU.Core.Intermediate
         }
 
         public Label Target { get; }
+
+        public override string ToString()
+        {
+            return $"UnconditionalJump{{Target: {this.Target}}}";
+        }
     }
 
     public class ConditionalJump : ControlFlowInstruction
@@ -26,6 +31,11 @@ namespace KJU.Core.Intermediate
         public Label TrueTarget { get; }
 
         public Label FalseTarget { get; }
+
+        public override string ToString()
+        {
+            return $"ConditionalJump{{TrueTarget: {this.TrueTarget}, FalseTarget: {this.FalseTarget}}}";
+        }
     }
 
     public class FunctionCall : ControlFlowInstruction
@@ -39,9 +49,18 @@ namespace KJU.Core.Intermediate
         public Function Func { get; }
 
         public Label TargetAfter { get; }
+
+        public override string ToString()
+        {
+            return $"FunctionCall{{Function: {this.Func}, TargetAfter: {this.TargetAfter}}}";
+        }
     }
 
     public class Ret : ControlFlowInstruction
     {
+        public override string ToString()
+        {
+            return "Ret";
+        }
     }
 }
