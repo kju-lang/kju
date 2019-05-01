@@ -5,108 +5,54 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     using System.Collections.Generic;
     using System.Linq;
     using AST;
+    using InstructionSelector;
     using Intermediate;
+    using Intermediate.FunctionBodyGenerator;
     using LivenessAnalysis;
     using RegisterAllocation;
-    using Templates;
 
-    public static class FunctionToAsmGenerator
+    public class FunctionToAsmGenerator : IFunctionToAsmGenerator
     {
         private const int AllocationTriesBound = 5;
 
-        public static IEnumerable<string> ToAsm(FunctionDeclaration functionDeclaration)
+        private readonly ILivenessAnalyzer livenessAnalyzer;
+        private readonly IRegisterAllocator registerAllocator;
+        private readonly IInstructionSelector instructionSelector;
+        private readonly ILabelIdGenerator labelIdGenerator;
+        private readonly CFGLinearizer cfgLinearizer;
+
+        public FunctionToAsmGenerator(
+            ILivenessAnalyzer livenessAnalyzer,
+            IRegisterAllocator registerAllocator,
+            IInstructionSelector instructionSelector,
+            ILabelIdGenerator labelIdGenerator,
+            CFGLinearizer cfgLinearizer)
         {
-            var iFunction = functionDeclaration.IntermediateFunction;
+            this.livenessAnalyzer = livenessAnalyzer;
+            this.registerAllocator = registerAllocator;
+            this.instructionSelector = instructionSelector;
+            this.labelIdGenerator = labelIdGenerator;
+            this.cfgLinearizer = cfgLinearizer;
+        }
+
+        public IEnumerable<string> ToAsm(FunctionDeclaration functionDeclaration)
+        {
+            var function = functionDeclaration.IntermediateFunction;
             var cfg = FunctionCfg(functionDeclaration);
-            var instructionSequence = InstructionSequence(cfg);
+            var (allocation, instructionSequence) = this.Allocate(function, this.InstructionSequence(cfg));
+            return ConstructResult(instructionSequence, allocation, function);
+        }
 
-            var templates = InstructionsTemplatesFactory.CreateInstructionTemplates();
-            var instructionSelector = new InstructionSelector(templates);
-
-            var livenessAnalyzer = new LivenessAnalyzer();
-            var registerAllocator = new RegisterAllocator();
-
-            RegisterAllocationResult allocation = null;
-
-            for (var iteration = 0; iteration < AllocationTriesBound; ++iteration)
+        private static IEnumerable<string> ConstructResult(
+            IEnumerable<CodeBlock> instructionSequence,
+            RegisterAllocationResult allocation,
+            Function function)
+        {
+            return instructionSequence.SelectMany(codeBlock =>
             {
-                var interferenceCopyGraphPair = livenessAnalyzer.GetInterferenceCopyGraphs(instructionSequence);
-                var allocationResult = registerAllocator.Allocate(interferenceCopyGraphPair, HardwareRegister.Values);
-                var spilled = allocationResult.Spilled.ToList();
-
-                if (spilled.Count == 0)
-                {
-                    allocation = allocationResult;
-                    break;
-                }
-
-                var spilledRegisterToIndexMapping = new Dictionary<VirtualRegister, int>();
-                for (var i = 0; i < spilled.Count; ++i)
-                {
-                    spilledRegisterToIndexMapping.Add(spilled[i], i);
-                }
-
-                var newInstructionSequence = new List<Tuple<Label, IReadOnlyList<Instruction>>>();
-
-                foreach (var (label, block) in instructionSequence)
-                {
-                    var modifiedBlock = new List<Instruction>();
-                    foreach (var instruction in block)
-                    {
-                        var auxiliaryReads = instruction.Uses
-                            .Where(register => spilled.Contains(register))
-                            .SelectMany(register =>
-                            {
-                                var id = spilledRegisterToIndexMapping[register];
-                                var registerVariable = new Intermediate.Variable(iFunction, register);
-                                var memoryLocation = new MemoryLocation(iFunction, iFunction.StackBytes + (8 * id));
-                                var memoryVariable = new Intermediate.Variable(iFunction, memoryLocation);
-                                var readOperation = iFunction.GenerateRead(registerVariable);
-                                var writeOperation = iFunction.GenerateWrite(memoryVariable, readOperation);
-                                return instructionSelector.Select(new Tree(writeOperation));
-                            });
-
-                        var auxiliaryWrites = instruction.Defines
-                            .Where(register => spilled.Contains(register))
-                            .SelectMany(register =>
-                            {
-                                var id = spilledRegisterToIndexMapping[register];
-                                var registerVariable = new Intermediate.Variable(iFunction, register);
-                                var memoryLocation = new MemoryLocation(iFunction, iFunction.StackBytes + (8 * id));
-                                var memoryVariable = new Intermediate.Variable(iFunction, memoryLocation);
-                                var readOperation = iFunction.GenerateRead(memoryVariable);
-                                var writeOperation = iFunction.GenerateWrite(registerVariable, readOperation);
-                                return instructionSelector.Select(new Tree(writeOperation));
-                            });
-
-                        modifiedBlock.AddRange(auxiliaryReads);
-                        modifiedBlock.Add(instruction);
-                        modifiedBlock.AddRange(auxiliaryWrites);
-                    }
-
-                    var newLabelBlockPair = Tuple.Create(label, (IReadOnlyList<Instruction>)modifiedBlock);
-                    newInstructionSequence.Add(newLabelBlockPair);
-                }
-
-                instructionSequence = newInstructionSequence;
-                iFunction.StackBytes += 8 * spilled.Count;
-            }
-
-            if (allocation == null)
-            {
-                throw new FunctionToAsmGeneratorException(
-                    $"Cannot allocate registers without spills after {AllocationTriesBound} times");
-            }
-
-            yield return $"{iFunction.MangledName}:{Environment.NewLine}";
-            foreach (var (label, block) in instructionSequence)
-            {
-                yield return $"{label.Id}:{Environment.NewLine}";
-                foreach (var instruction in block)
-                {
-                    yield return instruction.ToASM(allocation.Allocation);
-                }
-            }
+                return codeBlock.Instructions.Select(instruction => instruction.ToASM(allocation.Allocation))
+                    .Prepend($"{codeBlock.Label.Id}:{Environment.NewLine}");
+            }).Prepend($"{function.MangledName}:{Environment.NewLine}");
         }
 
         private static Label FunctionCfg(FunctionDeclaration functionDeclaration)
@@ -115,37 +61,109 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             return bodyGenerator.BuildFunctionBody(functionDeclaration.Body);
         }
 
-        private static IReadOnlyList<Tuple<Label, IReadOnlyList<Instruction>>> InstructionSequence (Label cfg)
+        private (RegisterAllocationResult, IReadOnlyList<CodeBlock>) Allocate(
+            Function function, IReadOnlyList<CodeBlock> instructionSequence)
         {
-            var (orderedTrees, labelToIndexMapping) = new CFGLinearizer().Linearize(cfg);
-
-            var indexToLabelsMapping = new HashSet<Label>[labelToIndexMapping.Count];
-            labelToIndexMapping.ToList().ForEach(kvp =>
+            for (var iteration = 0; iteration < AllocationTriesBound; ++iteration)
             {
-                var (label, index) = (kvp.Key, kvp.Value);
-                if (indexToLabelsMapping[index] == null)
+                var interferenceCopyGraphPair = this.livenessAnalyzer.GetInterferenceCopyGraphs(instructionSequence);
+                var allocationResult =
+                    this.registerAllocator.Allocate(interferenceCopyGraphPair, HardwareRegister.Values);
+                var spilled = new HashSet<VirtualRegister>(allocationResult.Spilled);
+
+                if (spilled.Count == 0)
                 {
-                    indexToLabelsMapping[index] = new HashSet<Label>();
+                    return (allocationResult, instructionSequence);
                 }
 
-                indexToLabelsMapping[index].Add(label);
-            });
+                instructionSequence = this.PushSpilledOnStack(spilled, instructionSequence, function);
+            }
+
+            throw new FunctionToAsmGeneratorException(
+                $"Cannot allocate registers without spills after {AllocationTriesBound} times");
+        }
+
+        private IReadOnlyList<CodeBlock> PushSpilledOnStack(
+            ICollection<VirtualRegister> spilled,
+            IEnumerable<CodeBlock> instructionSequence,
+            Function function)
+        {
+            var spilledRegisterToIndexMapping = spilled
+                .Select((register, index) => new { Register = register, Index = index })
+                .ToDictionary(x => x.Register, x => x.Index);
+
+            var result = instructionSequence.Select(codeBlock =>
+            {
+                var modifiedInstructions = codeBlock.Instructions.SelectMany(instruction =>
+                    this.GetModifiedInstruction(
+                        instruction,
+                        spilled,
+                        spilledRegisterToIndexMapping,
+                        function)).ToList();
+
+                return new CodeBlock(codeBlock.Label, modifiedInstructions);
+            }).ToList();
+
+            function.StackBytes += 8 * spilled.Count;
+            return result;
+        }
+
+        private IEnumerable<Instruction> GetModifiedInstruction(
+            Instruction instruction,
+            ICollection<VirtualRegister> spilled,
+            IReadOnlyDictionary<VirtualRegister, int> spilledRegisterToIndexMapping,
+            Function function)
+        {
+            var auxiliaryReads = instruction.Uses
+                .Where(spilled.Contains)
+                .SelectMany(register =>
+                {
+                    var id = spilledRegisterToIndexMapping[register];
+                    var registerVariable = new Intermediate.Variable(function, register);
+                    var memoryLocation = new MemoryLocation(function, function.StackBytes + (8 * id));
+                    var memoryVariable = new Intermediate.Variable(function, memoryLocation);
+                    var readOperation = function.GenerateRead(registerVariable);
+                    var writeOperation = function.GenerateWrite(memoryVariable, readOperation);
+                    return this.instructionSelector.GetInstructions(new Tree(writeOperation));
+                });
+
+            var auxiliaryWrites = instruction.Defines
+                .Where(spilled.Contains)
+                .SelectMany(register =>
+                {
+                    var id = spilledRegisterToIndexMapping[register];
+                    var registerVariable = new Intermediate.Variable(function, register);
+                    var memoryLocation = new MemoryLocation(function, function.StackBytes + (8 * id));
+                    var memoryVariable = new Intermediate.Variable(function, memoryLocation);
+                    var readOperation = function.GenerateRead(memoryVariable);
+                    var writeOperation = function.GenerateWrite(registerVariable, readOperation);
+                    return this.instructionSelector.GetInstructions(new Tree(writeOperation));
+                });
+
+            return auxiliaryReads.Append(instruction).Concat(auxiliaryWrites);
+        }
+
+        private IReadOnlyList<CodeBlock> InstructionSequence(Label cfg)
+        {
+            var (orderedTrees, labelToIndexMapping) = this.cfgLinearizer.Linearize(cfg);
+
+            var indexToLabelsMapping =
+                labelToIndexMapping
+                    .GroupBy(kvp => kvp.Value, kvp => kvp.Key)
+                    .ToDictionary(x => x.Key, x => new HashSet<Label>(x));
 
             var nopInstruction = new NopInstruction();
             var nopInstructionBlock = new List<Instruction> { nopInstruction } as IReadOnlyList<Instruction>;
 
-            var templates = InstructionsTemplatesFactory.CreateInstructionTemplates();
-            var instructionSelector = new InstructionSelector(templates);
-
             return orderedTrees.SelectMany((tree, index) =>
             {
                 var labelsWithNops = indexToLabelsMapping[index]
-                    .Select(label => Tuple.Create(label, nopInstructionBlock));
+                    .Select(label => new CodeBlock(label, nopInstructionBlock));
 
                 var auxiliaryLabel = new Label(tree);
-                var block = instructionSelector.Select(tree).ToList() as IReadOnlyList<Instruction>;
+                var block = this.instructionSelector.GetInstructions(tree).ToList() as IReadOnlyList<Instruction>;
 
-                var labelBlockTuple = Tuple.Create(auxiliaryLabel, block);
+                var labelBlockTuple = new CodeBlock(auxiliaryLabel, block);
 
                 return labelsWithNops.Append(labelBlockTuple);
             }).ToList();

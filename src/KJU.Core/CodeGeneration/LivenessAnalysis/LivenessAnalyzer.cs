@@ -6,6 +6,7 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
     using System.Collections.Generic;
     using System.Linq;
     using Intermediate;
+    using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using KJU.Core.Util;
 
     public class LivenessAnalyzer : ILivenessAnalyzer
@@ -20,9 +21,9 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
                 this.CreateCopyGraph(reverseCFG));
         }
 
-        public InterferenceCopyGraphPair GetInterferenceCopyGraphs(IEnumerable<KeyValuePair<Label, IReadOnlyList<Instruction>>> instructions)
+        public InterferenceCopyGraphPair GetInterferenceCopyGraphs(IReadOnlyList<CodeBlock> instructions)
         {
-            return this.GetInterferenceCopyGraphs(instructions.Select(x => new Tuple<Label, IReadOnlyList<Instruction>>(x.Key, x.Value)).ToList());
+            return this.GetInterferenceCopyGraphs(instructions.Select(x => new Tuple<Label, IReadOnlyList<Instruction>>(x.Label, x.Instructions)).ToList());
         }
 
         private IReadOnlyDictionary<Instruction, IReadOnlyCollection<Instruction>> GetInstructionCFG(

@@ -5,19 +5,21 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
 
     public class FunctionToAsmGeneratorFactory
     {
-        public FunctionToAsmGenerator Generate()
+        public IFunctionToAsmGenerator Generate()
         {
             var livenessAnalyzer = new LivenessAnalyzer();
             var registerAllocator = new RegisterAllocator();
-            var instructionsTemplatesFactory = new CodeGeneration.Templates.InstructionsTemplatesFactory();
+            var instructionsTemplatesFactory = new Templates.InstructionsTemplatesFactory();
             var instructionTemplates = instructionsTemplatesFactory.CreateInstructionTemplates();
             var instructionSelector = new InstructionSelector.InstructionSelector(instructionTemplates);
             var labelIdGuidGenerator = new LabelIdGuidGenerator();
+            var cfgLinearizer = new CFGLinearizer();
             return new FunctionToAsmGenerator(
                 livenessAnalyzer,
                 registerAllocator,
                 instructionSelector,
-                labelIdGuidGenerator);
+                labelIdGuidGenerator,
+                cfgLinearizer);
         }
     }
 }
