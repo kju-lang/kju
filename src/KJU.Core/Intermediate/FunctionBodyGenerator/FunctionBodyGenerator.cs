@@ -1,5 +1,6 @@
 namespace KJU.Core.Intermediate.FunctionBodyGenerator
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using TemporaryVariablesExtractor;
@@ -94,68 +95,76 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
         private Computation ConvertNode(AST.VariableDeclaration node, Label after)
         {
-            if (node.Value == null) return new Computation(after);
+            if (node.Value == null)
+            {
+                return new Computation(after);
+            }
 
-            Label writeLabel = new Label(null);
-            Computation value = this.GenerateExpression(node.Value, writeLabel);
-            Node write = this.function.GenerateWrite(node.IntermediateVariable, value.Result);
-            writeLabel.Tree = new Tree(write, new UnconditionalJump(after));
-
-            return new Computation(value.Start);
+            var result = Label.WithLabel(writeLabel =>
+            {
+                Computation value = this.GenerateExpression(node.Value, writeLabel);
+                Node write = this.function.GenerateWrite(node.IntermediateVariable, value.Result);
+                return (new Tree(write, new UnconditionalJump(after)), value);
+            });
+            return new Computation(result.Start);
         }
 
         private Computation ConvertNode(AST.IfStatement node, Label after)
         {
-            Computation thenBody = this.ConvertNode(node.ThenBody, after);
-            Computation elseBody = this.ConvertNode(node.ElseBody, after);
-            Label testLabel = new Label(null);
-
-            Computation condition = this.GenerateExpression(node.Condition, testLabel);
-            testLabel.Tree = new Tree(condition.Result, new ConditionalJump(thenBody.Start, elseBody.Start));
-            return new Computation(condition.Start);
+            var thenBody = this.ConvertNode(node.ThenBody, after);
+            var elseBody = this.ConvertNode(node.ElseBody, after);
+            var result = Label.WithLabel(testLabel =>
+            {
+                var condition = this.GenerateExpression(node.Condition, testLabel);
+                return (new Tree(condition.Result, new ConditionalJump(thenBody.Start, elseBody.Start)), condition);
+            });
+            return new Computation(result.Start);
         }
 
         private Computation ConvertNode(AST.FunctionCall node, Label after)
         {
-            Label callLabel = new Label(null);
-            List<VirtualRegister> argumentRegisters = Enumerable
+            var resultRegister = new VirtualRegister();
+            var argumentRegisters = Enumerable
                 .Range(0, node.Arguments.Count)
                 .Select(i => new VirtualRegister())
                 .ToList();
+            var callArguments = argumentRegisters.ToList();
+            callArguments.Reverse();
+            var callLabel = node.Declaration.IntermediateFunction.GenerateCall(
+                resultRegister,
+                callArguments,
+                after,
+                this.function);
 
             var argumentsAndRegisters = node.Arguments.Reverse().Zip(
                 argumentRegisters,
                 (argument, register) => new { Argument = argument, Register = register });
 
-            Label argumentsLabel = argumentsAndRegisters
+            var argumentsLabel = argumentsAndRegisters
                 .Aggregate(callLabel, (next, x) =>
                 {
-                    Label writeLabel = new Label(null);
-                    Computation argValue = this.GenerateExpression(x.Argument, writeLabel);
-                    Node write = new RegisterWrite(x.Register, argValue.Result);
-                    writeLabel.Tree = new Tree(write, new UnconditionalJump(next));
-                    return argValue.Start;
+                    var result = Label.WithLabel(writeLabel =>
+                    {
+                        var argValue = this.GenerateExpression(x.Argument, writeLabel);
+                        Node write = new RegisterWrite(x.Register, argValue.Result);
+                        return (new Tree(write, new UnconditionalJump(next)), argValue);
+                    });
+                    return result.Start;
                 });
 
-            argumentRegisters.Reverse();
-            VirtualRegister resultRegister = new VirtualRegister();
-
-            callLabel.Tree = node.Declaration.IntermediateFunction.GenerateCall(
-                resultRegister,
-                argumentRegisters,
-                after,
-                this.function).Tree;
             return new Computation(argumentsLabel, new RegisterRead(resultRegister));
         }
 
         private Computation ConvertNode(AST.ReturnStatement node, Label after)
         {
-            Label epilogueLabel = new Label(null);
-            Computation value = node.Value == null
-                ? new Computation(epilogueLabel, new UnitImmediateValue())
-                : this.GenerateExpression(node.Value, epilogueLabel);
-            epilogueLabel.Tree = this.function.GenerateEpilogue(value.Result).Tree;
-            return new Computation(value.Start);
+            var result = Label.WithLabel(epilogueLabel =>
+            {
+                Computation value = node.Value == null
+                    ? new Computation(epilogueLabel, new UnitImmediateValue())
+                    : this.GenerateExpression(node.Value, epilogueLabel);
+                return (this.function.GenerateEpilogue(value.Result).Tree, value);
+            });
+            return new Computation(result.Start);
         }
 
         private Computation ConvertNode(AST.WhileStatement node, Label after)
@@ -201,22 +210,20 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
         private Computation ConvertNode(AST.Assignment node, Label after)
         {
-            Variable variable = node.Lhs.Declaration.IntermediateVariable;
-            Label copyLabel = new Label(null);
-            Label writeLabel = new Label(null);
+            var variable = node.Lhs.Declaration.IntermediateVariable;
+            var (value, readValue) = Label.WithLabel(copyLabel =>
+            {
+                var innerValue = this.GenerateExpression(node.Value, copyLabel);
+                var tmpRegister = new VirtualRegister();
+                var innerReadValue = new RegisterRead(tmpRegister);
+                var writeLabel = new Label(new Tree(
+                    this.function.GenerateWrite(variable, innerReadValue),
+                    new UnconditionalJump(after)));
 
-            Computation value = this.GenerateExpression(node.Value, copyLabel);
-            VirtualRegister tmpRegister = new VirtualRegister();
-            RegisterRead readValue = new RegisterRead(tmpRegister);
-
-            copyLabel.Tree = new Tree(
-                new RegisterWrite(tmpRegister, value.Result),
-                new UnconditionalJump(writeLabel));
-
-            writeLabel.Tree = new Tree(
-                this.function.GenerateWrite(variable, readValue),
-                new UnconditionalJump(after));
-
+                return (new Tree(
+                    new RegisterWrite(tmpRegister, innerValue.Result),
+                    new UnconditionalJump(writeLabel)), (innerValue, innerReadValue));
+            });
             return new Computation(value.Start, readValue);
         }
 
@@ -249,27 +256,35 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
         private Computation ConvertNode(AST.LogicalBinaryOperation node, Label after)
         {
-            VirtualRegister result = new VirtualRegister();
-            bool shortResultValue = node.BinaryOperationType == AST.LogicalBinaryOperationType.Or;
+            var result = new VirtualRegister();
+            var shortResultValue = node.BinaryOperationType == AST.LogicalBinaryOperationType.Or;
             Node writeShortResult = new RegisterWrite(result, new BooleanImmediateValue(shortResultValue));
-            Label shortLabel = new Label(new Tree(writeShortResult, new UnconditionalJump(after)));
+            var shortLabel = new Label(new Tree(writeShortResult, new UnconditionalJump(after)));
 
-            Label longLabel = new Label(null);
-            Computation rhs = this.GenerateExpression(node.RightValue, longLabel);
-            longLabel.Tree = new Tree(new RegisterWrite(result, rhs.Result), new UnconditionalJump(after));
-
-            Label testLabel = new Label(null);
-            Computation lhs = this.GenerateExpression(node.LeftValue, testLabel);
-
-            switch (node.BinaryOperationType)
+            var rhs = Label.WithLabel(longLabel =>
             {
-                case AST.LogicalBinaryOperationType.And:
-                    testLabel.Tree = new Tree(lhs.Result, new ConditionalJump(rhs.Start, shortLabel));
-                    break;
-                case AST.LogicalBinaryOperationType.Or:
-                    testLabel.Tree = new Tree(lhs.Result, new ConditionalJump(shortLabel, rhs.Start));
-                    break;
-            }
+                var innerRhs = this.GenerateExpression(node.RightValue, longLabel);
+                return (new Tree(new RegisterWrite(result, innerRhs.Result), new UnconditionalJump(after)), innerRhs);
+            });
+
+            var lhs = Label.WithLabel(testLabel =>
+            {
+                var innerLhs = this.GenerateExpression(node.LeftValue, testLabel);
+                Tree tree;
+                switch (node.BinaryOperationType)
+                {
+                    case AST.LogicalBinaryOperationType.And:
+                        tree = new Tree(innerLhs.Result, new ConditionalJump(rhs.Start, shortLabel));
+                        break;
+                    case AST.LogicalBinaryOperationType.Or:
+                        tree = new Tree(innerLhs.Result, new ConditionalJump(shortLabel, rhs.Start));
+                        break;
+                    default:
+                        throw new Exception($"Unknown operation: {node.BinaryOperationType}");
+                }
+
+                return (tree, innerLhs);
+            });
 
             return new Computation(lhs.Start, new RegisterRead(result));
         }

@@ -14,8 +14,8 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void UnconditionalJumpTest()
         {
-            var startLabel = new Label(null);
             var endLabel = new Label(null);
+            var startLabel = new Label(null);
             var start = new Tree(null, new UnconditionalJump(endLabel));
             var end = new Tree(null, new UnconditionalJump(startLabel));
             startLabel.Tree = start;
@@ -90,19 +90,12 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void DoubleLabelTest()
         {
-            var l1 = new Label(null);
-            var l2 = new Label(null);
-            var l3a = new Label(null);
-            var l3b = new Label(null);
-
-            var t1 = new Tree(null, new ConditionalJump(l2, l3a));
-            var t2 = new Tree(null, new UnconditionalJump(l3b));
             var t3 = new Tree(new IntegerImmediateValue(0), new Ret());
+            var l3a = new Label(t3);
+            var l3b = new Label(t3);
 
-            l1.Tree = t1;
-            l2.Tree = t2;
-            l3a.Tree = t3;
-            l3b.Tree = t3;
+            var l2 = new Label(new Tree(null, new UnconditionalJump(l3b)));
+            var l1 = new Label(new Tree(null, new ConditionalJump(l2, l3a)));
 
             var output = this.linearizer.Linearize(l1);
             var intTreeCount = output.Item1.Count(x => x.Root is IntegerImmediateValue);

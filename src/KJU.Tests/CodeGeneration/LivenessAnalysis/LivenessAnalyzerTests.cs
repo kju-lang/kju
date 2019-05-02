@@ -222,7 +222,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var bReg = new VirtualRegister();
             var outReg = new VirtualRegister();
 
-            var block = new List<Instruction>()
+            var block = new List<Instruction>
             {
                 this.GetOperation(aReg, aReg, outReg),
                 this.GetDefinition(aReg),
