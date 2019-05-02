@@ -24,7 +24,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             this.CheckAnswer(instructions, emptyGraph, emptyGraph);
 
-            this.AddRetBlock(instructions, this.GetLabel(), new List<Instruction>());
+            this.AddRetBlock(instructions, new List<Instruction>());
 
             this.CheckAnswer(instructions, emptyGraph, emptyGraph);
         }
@@ -48,7 +48,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
                 this.GetDefinition(cReg)
             };
 
-            this.AddRetBlock(instructions, this.GetLabel(), block);
+            this.AddRetBlock(instructions, block);
 
             var registers = new List<VirtualRegister>() { aReg, bReg, cReg };
             var emptyGraph = this.GetEmptyGraph(registers);
@@ -72,7 +72,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
                 this.GetOperation(aReg, bReg, outReg)
             };
 
-            this.AddRetBlock(instructions, this.GetLabel(), block);
+            this.AddRetBlock(instructions, block);
 
             var registers = new List<VirtualRegister>() { aReg, bReg, outReg };
 
@@ -105,7 +105,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
                 this.GetOperation(aReg, aReg, outReg)
             };
 
-            this.AddRetBlock(instructions, this.GetLabel(), block);
+            this.AddRetBlock(instructions, block);
 
             var registers = new List<VirtualRegister> { aReg, bReg, outReg };
 
@@ -125,7 +125,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             var instructions = new List<CodeBlock>();
 
-            this.AddRetBlock(instructions, this.GetLabel(), new List<Instruction>()
+            this.AddRetBlock(instructions, new List<Instruction>()
             {
                 this.GetDefinition(reg),
                 this.GetOperation(reg, reg, reg)
@@ -142,10 +142,6 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var aReg = new VirtualRegister();
             var bReg = new VirtualRegister();
             var cReg = new VirtualRegister();
-
-            var aLabel = this.GetLabel();
-            var bLabel = this.GetLabel();
-            var cLabel = this.GetLabel();
 
             var aBlock = new List<Instruction>()
             {
@@ -165,10 +161,10 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             };
 
             var instructions = new List<CodeBlock>();
+            var bLabel = this.AddRetBlock(instructions, bBlock);
+            var cLabel = this.AddRetBlock(instructions, cBlock);
 
-            this.AddConditionalJumpBlock(instructions, aLabel, aBlock, bLabel, cLabel);
-            this.AddRetBlock(instructions, bLabel, bBlock);
-            this.AddRetBlock(instructions, cLabel, cBlock);
+            var aLabel = this.AddConditionalJumpBlock(instructions, aBlock, bLabel, cLabel);
 
             var registers = new List<VirtualRegister>() { aReg, bReg, cReg };
 
@@ -190,8 +186,6 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var bReg = new VirtualRegister();
             var outReg = new VirtualRegister();
 
-            var afterLabel = this.GetLabel();
-
             var beforeBlock = new List<Instruction>()
             {
                 this.GetDefinition(aReg),
@@ -205,8 +199,8 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             var instructions = new List<CodeBlock>();
 
-            this.AddFunctionCallBlock(instructions, this.GetLabel(), beforeBlock, afterLabel);
-            this.AddRetBlock(instructions, afterLabel, afterBlock);
+            var afterLabel = this.AddRetBlock(instructions, afterBlock);
+            this.AddFunctionCallBlock(instructions, beforeBlock, afterLabel);
 
             var registers = new List<VirtualRegister>() { aReg, bReg, outReg };
 
@@ -228,8 +222,6 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var bReg = new VirtualRegister();
             var outReg = new VirtualRegister();
 
-            var label = this.GetLabel();
-
             var block = new List<Instruction>()
             {
                 this.GetOperation(aReg, aReg, outReg),
@@ -247,7 +239,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             /* Behavior when there is no loop */
 
             var instructionsWithoutLoop = new List<CodeBlock>();
-            this.AddRetBlock(instructionsWithoutLoop, label, block);
+            var label = this.AddRetBlock(instructionsWithoutLoop, block);
 
             var interferenceGraphWithoutLoop = this.GetEmptyGraph(registers);
 
@@ -256,7 +248,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             /* Different behavior when there is a loop */
 
             var instructionsWithLoop = new List<CodeBlock>();
-            this.AddUnconditionalJumpBlock(instructionsWithLoop, label, block, label);
+            this.AddUnconditionalJumpBlock(instructionsWithLoop, block, label);
 
             var interferenceGraphWithLoop = this.GetEmptyGraph(registers);
 
@@ -273,10 +265,6 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             var bReg = new VirtualRegister();
             var cReg = new VirtualRegister();
             var dReg = new VirtualRegister();
-
-            var leftLabel = this.GetLabel();
-            var rightLabel = this.GetLabel();
-            var tailLabel = this.GetLabel();
 
             var headBlock = new List<Instruction>()
             {
@@ -305,10 +293,10 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             var instructions = new List<CodeBlock>();
 
-            this.AddConditionalJumpBlock(instructions, this.GetLabel(), headBlock, leftLabel, rightLabel);
-            this.AddUnconditionalJumpBlock(instructions, leftLabel, leftBlock, tailLabel);
-            this.AddUnconditionalJumpBlock(instructions, rightLabel, rightBlock, tailLabel);
-            this.AddRetBlock(instructions, tailLabel, tailBlock);
+            var tailLabel = this.AddRetBlock(instructions, tailBlock);
+            var leftLabel = this.AddUnconditionalJumpBlock(instructions, leftBlock, tailLabel);
+            var rightLabel = this.AddUnconditionalJumpBlock(instructions, rightBlock, tailLabel);
+            this.AddConditionalJumpBlock(instructions, headBlock, leftLabel, rightLabel);
 
             var registers = new List<VirtualRegister>() { aReg, bReg, cReg, dReg };
 
@@ -347,34 +335,37 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
                 });
         }
 
-        private void AddRetBlock(
-            List<CodeBlock> instructions, Label label, List<Instruction> block)
+        private Label AddRetBlock(
+            ICollection<CodeBlock> instructions, List<Instruction> block)
         {
             block.Add(new RetInstructionMock());
-            label.Tree.ControlFlow = new Ret();
-
+            var label = this.GetLabel(new Ret());
             instructions.Add(new CodeBlock(label, block));
+            return label;
         }
 
-        private void AddConditionalJumpBlock(
-            List<CodeBlock> instructions, Label label, List<Instruction> block, Label firstTarget, Label secondTarget)
+        private Label AddConditionalJumpBlock(
+            ICollection<CodeBlock> instructions, List<Instruction> block, Label firstTarget, Label secondTarget)
         {
-            label.Tree.ControlFlow = new ConditionalJump(firstTarget, secondTarget);
+            var label = this.GetLabel(new ConditionalJump(firstTarget, secondTarget));
             instructions.Add(new CodeBlock(label, block));
+            return label;
         }
 
-        private void AddUnconditionalJumpBlock(
-            List<CodeBlock> instructions, Label label, List<Instruction> block, Label target)
+        private Label AddUnconditionalJumpBlock(
+            List<CodeBlock> instructions, List<Instruction> block, Label target)
         {
-            label.Tree.ControlFlow = new UnconditionalJump(target);
-            instructions.Add(new CodeBlock(label, block));
+            var result = this.GetLabel(new UnconditionalJump(target));
+            instructions.Add(new CodeBlock(result, block));
+            return result;
         }
 
-        private void AddFunctionCallBlock(
-            List<CodeBlock> instructions, Label label, List<Instruction> block, Label target)
+        private Label AddFunctionCallBlock(
+            List<CodeBlock> instructions, List<Instruction> block, Label target)
         {
-            label.Tree.ControlFlow = new FunctionCall(new Function(), target);
+            var label = this.GetLabel(new FunctionCall(new Function(), target));
             instructions.Add(new CodeBlock(label, block));
+            return label;
         }
 
         private void CheckAnswer(
@@ -402,9 +393,9 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             graph[register2].Add(register1);
         }
 
-        private Label GetLabel()
+        private Label GetLabel(ControlFlowInstruction controlFlow)
         {
-            return new Label(new Tree(null, new UnconditionalJump(null)));
+            return new Label(new Tree(null, controlFlow));
         }
 
         private Dictionary<VirtualRegister, List<VirtualRegister>> GetEmptyGraph(

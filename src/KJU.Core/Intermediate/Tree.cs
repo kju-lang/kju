@@ -8,9 +8,9 @@ namespace KJU.Core.Intermediate
             this.ControlFlow = controlFlow;
         }
 
-        public Node Root { get; set; }
+        public Node Root { get; }
 
-        public ControlFlowInstruction ControlFlow { get; set; }
+        public ControlFlowInstruction ControlFlow { get; }
 
         public override string ToString()
         {
