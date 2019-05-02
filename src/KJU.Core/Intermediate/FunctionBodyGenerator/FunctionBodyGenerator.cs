@@ -160,11 +160,9 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
         private Computation ConvertNode(AST.WhileStatement node, Label after)
         {
             Label testLabel = new Label(null);
-            Label conditionLabel = new Label(null);
-            this.loopLabels.Add(node, new LoopLabels(conditionLabel, after));
-
             Computation condition = this.GenerateExpression(node.Condition, testLabel);
-            condition.ReplaceStartLabel(conditionLabel);
+            this.loopLabels.Add(node, new LoopLabels(condition.Start, after));
+
             Computation body = this.ConvertNode(node.Body, condition.Start);
             testLabel.Tree = new Tree(condition.Result, new ConditionalJump(body.Start, after));
             return new Computation(condition.Start);
@@ -235,7 +233,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
         private Computation ConvertNode(AST.ArithmeticOperation node, Label after)
         {
             Computation rhs = this.GenerateExpression(node.RightValue, after);
-            Computation lhs = this.GenerateExpression(node.RightValue, rhs.Start);
+            Computation lhs = this.GenerateExpression(node.LeftValue, rhs.Start);
             Node result = new ArithmeticBinaryOperation(node.OperationType, lhs.Result, rhs.Result);
             return new Computation(lhs.Start, result);
         }
@@ -243,7 +241,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
         private Computation ConvertNode(AST.Comparison node, Label after)
         {
             Computation rhs = this.GenerateExpression(node.RightValue, after);
-            Computation lhs = this.GenerateExpression(node.RightValue, rhs.Start);
+            Computation lhs = this.GenerateExpression(node.LeftValue, rhs.Start);
             Node result = new Comparison(lhs.Result, rhs.Result, node.OperationType);
             return new Computation(lhs.Start, result);
         }

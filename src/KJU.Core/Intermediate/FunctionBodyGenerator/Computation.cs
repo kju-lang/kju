@@ -16,11 +16,5 @@ namespace KJU.Core.Intermediate
         public Label Start { get; private set; }
 
         public Node Result { get; }
-
-        public void ReplaceStartLabel(Label newStart)
-        {
-            newStart.Tree = this.Start.Tree;
-            this.Start = newStart;
-        }
     }
 }
