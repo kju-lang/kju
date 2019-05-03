@@ -6,7 +6,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     {
         public string GenerateLabelId()
         {
-            return Guid.NewGuid().ToString("N");
+            return $".{Guid.NewGuid():N}";
         }
     }
 }
