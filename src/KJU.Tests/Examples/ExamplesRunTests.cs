@@ -32,7 +32,11 @@ namespace KJU.Tests.Examples
         [TestInitialize]
         public void TestInit()
         {
-            Directory.Delete(TestsDirectory, true);
+            if (Directory.Exists(TestsDirectory))
+            {
+                Directory.Delete(TestsDirectory, true);
+            }
+
             Directory.CreateDirectory(TestsDirectory);
         }
 
