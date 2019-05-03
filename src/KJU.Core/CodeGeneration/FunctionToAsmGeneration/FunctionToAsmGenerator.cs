@@ -73,8 +73,12 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             for (var iteration = 0; iteration < AllocationTriesBound; ++iteration)
             {
                 var interferenceCopyGraphPair = this.livenessAnalyzer.GetInterferenceCopyGraphs(instructionSequence);
+                var allowedHardwareRegisters = HardwareRegister
+                    .Values
+                    .Where(register => register != HardwareRegister.RSP)
+                    .ToList();
                 var allocationResult =
-                    this.registerAllocator.Allocate(interferenceCopyGraphPair, HardwareRegister.Values);
+                    this.registerAllocator.Allocate(interferenceCopyGraphPair, allowedHardwareRegisters);
                 var spilled = new HashSet<VirtualRegister>(allocationResult.Spilled);
 
                 if (spilled.Count == 0)
