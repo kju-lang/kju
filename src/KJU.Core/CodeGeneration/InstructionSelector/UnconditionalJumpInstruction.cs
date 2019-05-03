@@ -13,9 +13,9 @@ namespace KJU.Core.CodeGeneration
 
         public Label Label { get; }
 
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
-            return $"jmp {this.Label.Id}";
+            yield return $"jmp {this.Label.Id}";
         }
     }
 }

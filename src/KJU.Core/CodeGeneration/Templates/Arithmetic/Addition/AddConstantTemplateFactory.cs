@@ -84,19 +84,17 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Addition
                 this.result = result;
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var inputHardware = this.input.ToHardware(registerAssignment);
                 var resultHardware = this.result.ToHardware(registerAssignment);
 
-                var builder = new StringBuilder();
                 if (resultHardware != inputHardware)
                 {
-                    builder.AppendLine($"mov {resultHardware}, {inputHardware}");
+                    yield return $"mov {resultHardware}, {inputHardware}";
                 }
 
-                builder.Append($"add {resultHardware}, {this.constant}");
-                return builder.ToString();
+                yield return $"add {resultHardware}, {this.constant}";
             }
         }
     }

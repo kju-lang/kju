@@ -12,9 +12,9 @@
         {
         }
 
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
-            return "ret";
+            yield return "ret";
         }
     }
 }

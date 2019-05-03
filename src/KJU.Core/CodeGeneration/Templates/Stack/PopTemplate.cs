@@ -30,10 +30,10 @@ namespace KJU.Core.CodeGeneration.Templates.Stack
                 this.register = register;
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var hardwareRegister = this.register.ToHardware(registerAssignment);
-                return $"pop {hardwareRegister}";
+                yield return $"pop {hardwareRegister}";
             }
         }
     }

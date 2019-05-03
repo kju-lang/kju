@@ -34,11 +34,11 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
                 this.value = value;
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var writeTo = this.result.ToHardware(registerAssignment);
                 var valueInt = this.value ? 1 : 0;
-                return $"mov {writeTo}, {valueInt}";
+                yield return $"mov {writeTo}, {valueInt}";
             }
         }
     }

@@ -1,8 +1,6 @@
 namespace KJU.Core.CodeGeneration.Templates.Comparison
 {
-    using System;
     using System.Collections.Generic;
-    using System.Text;
     using AST;
     using Intermediate;
 
@@ -28,17 +26,15 @@ namespace KJU.Core.CodeGeneration.Templates.Comparison
             this.operationType = operationType;
         }
 
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
             var lhsHardware = this.lhs.ToHardware(registerAssignment);
             var rhsHardware = this.rhs.ToHardware(registerAssignment);
             var resultHardware = this.result.ToHardware(registerAssignment);
-            var builder = new StringBuilder();
 
-            builder.AppendLine($"cmp {lhsHardware}, {rhsHardware}");
-            builder.AppendLine($"{this.OperationTypeInstruction()} {resultHardware.ToEightBitsVersion()}");
-            builder.Append($"and {resultHardware}, 1");
-            return builder.ToString();
+            yield return $"cmp {lhsHardware}, {rhsHardware}";
+            yield return $"{this.OperationTypeInstruction()} {resultHardware.ToEightBitsVersion()}";
+            yield return $"and {resultHardware}, 1";
         }
 
         private string OperationTypeInstruction()

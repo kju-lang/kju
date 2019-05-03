@@ -48,29 +48,26 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                 this.result = result;
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var lhsHardware = this.lhs.ToHardware(registerAssignment);
                 var rhsHardware = this.rhs.ToHardware(registerAssignment);
                 var resultHardware = this.result.ToHardware(registerAssignment);
                 var rax = HardwareRegister.RAX;
                 var rdx = HardwareRegister.RDX;
-                var builder = new StringBuilder();
+
                 if (rax != lhsHardware)
                 {
-                    builder.AppendLine($"mov {rax}, {lhsHardware}");
+                    yield return $"mov {rax}, {lhsHardware}";
                 }
 
-                builder.AppendLine($"mov {rdx}, 0");
+                yield return $"mov {rdx}, 0";
+                yield return $"idiv {rhsHardware}";
 
-                builder.Append($"idiv {rhsHardware}");
                 if (rdx != resultHardware)
                 {
-                    builder.AppendLine();
-                    builder.Append($"mov {resultHardware}, {rdx}");
+                    yield return $"mov {resultHardware}, {rdx}";
                 }
-
-                return builder.ToString();
             }
         }
     }

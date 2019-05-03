@@ -51,7 +51,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         {
             return instructionSequence.SelectMany(codeBlock =>
             {
-                return codeBlock.Instructions.Select(instruction => instruction.ToASM(allocation.Allocation))
+                return codeBlock.Instructions.SelectMany(instruction => instruction.ToASM(allocation.Allocation))
                     .Prepend($"{codeBlock.Label.Id}:{Environment.NewLine}");
             }).Prepend($"{function.MangledName}:{Environment.NewLine}");
         }

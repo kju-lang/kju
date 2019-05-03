@@ -1,8 +1,6 @@
 namespace KJU.Core.CodeGeneration.Templates
 {
-    using System;
     using System.Collections.Generic;
-    using System.Text;
     using Intermediate;
 
     public class ConditionalJumpTemplate : InstructionTemplate
@@ -30,15 +28,12 @@ namespace KJU.Core.CodeGeneration.Templates
                 this.label = label;
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var hardwareRegister = this.register.ToHardware(registerAssignment);
 
-                var builder = new StringBuilder();
-                builder.AppendLine($"test {hardwareRegister}, {hardwareRegister}");
-                builder.Append($"jz {this.label}");
-
-                return builder.ToString();
+                yield return $"test {hardwareRegister}, {hardwareRegister}";
+                yield return $"jz {this.label}";
             }
         }
     }

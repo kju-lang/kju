@@ -5,9 +5,9 @@ namespace KJU.Core.CodeGeneration
 
     public class NopInstruction : Instruction
     {
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
-            return string.Empty;
+            yield break;
         }
     }
 }

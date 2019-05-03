@@ -27,11 +27,12 @@
 
             private Function KjuFunction { get; }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(
+                IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var hardwareRegister = HardwareRegister.RSP;
 
-                return $"sub {hardwareRegister}, {this.KjuFunction.StackBytes}";
+                yield return $"sub {hardwareRegister}, {this.KjuFunction.StackBytes}";
             }
         }
     }

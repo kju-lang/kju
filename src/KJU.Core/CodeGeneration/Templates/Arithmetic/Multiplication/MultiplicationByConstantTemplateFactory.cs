@@ -85,17 +85,18 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Multiplication
                 this.result = result;
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var inputHardware = this.input.ToHardware(registerAssignment);
                 var resultHardware = this.result.ToHardware(registerAssignment);
                 if (this.constant != (int)this.constant)
                 {
-                    return $"mov {resultHardware}, {this.constant}{Environment.NewLine}" +
-                           $"imul {resultHardware}, {inputHardware}";
+                    yield return $"mov {resultHardware}, {this.constant}";
+                    yield return $"imul {resultHardware}, {inputHardware}";
+                    yield break;
                 }
 
-                return $"imul {resultHardware}, {inputHardware}, {this.constant}";
+                yield return $"imul {resultHardware}, {inputHardware}, {this.constant}";
             }
         }
     }

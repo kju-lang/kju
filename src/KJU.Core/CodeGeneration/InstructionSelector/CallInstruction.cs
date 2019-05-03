@@ -16,9 +16,9 @@ namespace KJU.Core.CodeGeneration
 
         public Function Function { get; }
 
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
-            return $"call {this.Function.MangledName}";
+            yield return $"call {this.Function.MangledName}";
         }
     }
 }

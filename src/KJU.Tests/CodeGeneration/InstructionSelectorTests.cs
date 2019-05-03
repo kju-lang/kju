@@ -38,7 +38,7 @@ namespace KJU.Tests.CodeGeneration
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
-            Assert.AreEqual("sub RSP, 16", ins.First().ToASM(null));
+            Assert.AreEqual("sub RSP, 16", ins.First().ToASM(null).First());
         }
 
         [TestMethod]
@@ -86,9 +86,9 @@ namespace KJU.Tests.CodeGeneration
                 this.from = from;
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
-                return null;
+                yield break;
             }
         }
 
@@ -111,9 +111,9 @@ namespace KJU.Tests.CodeGeneration
                 {
                 }
 
-                public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+                public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
                 {
-                    return string.Empty;
+                    yield break;
                 }
             }
         }
@@ -152,7 +152,7 @@ namespace KJU.Tests.CodeGeneration
                     this.result = result;
                 }
 
-                public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+                public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
                 {
                     var lhsHardware = this.lhs.ToHardware(registerAssignment);
                     var rhsHardware = this.rhs.ToHardware(registerAssignment);
@@ -162,14 +162,12 @@ namespace KJU.Tests.CodeGeneration
                         (lhsHardware, rhsHardware) = (rhsHardware, lhsHardware);
                     }
 
-                    var builder = new StringBuilder();
                     if (!resultHardware.Equals(lhsHardware))
                     {
-                        builder.AppendLine($"mov {resultHardware}, {lhsHardware}");
+                        yield return $"mov {resultHardware}, {lhsHardware}";
                     }
 
-                    builder.Append($"add {resultHardware}, {rhsHardware}");
-                    return builder.ToString();
+                    yield return $"add {resultHardware}, {rhsHardware}";
                 }
             }
         }

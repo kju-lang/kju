@@ -34,7 +34,7 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
             this.operationType = operationType;
         }
 
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
             var registerHardware = this.register.ToHardware(registerAssignment);
             var resultHardware = this.result.ToHardware(registerAssignment);
@@ -42,13 +42,15 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
             switch (this.operationType)
             {
                 case LogicalBinaryOperationType.Or:
-                    return this.constant
+                    yield return this.constant
                         ? $"mov {resultHardware}, 1"
                         : $"mov {resultHardware}, {registerHardware}";
+                    break;
                 case LogicalBinaryOperationType.And:
-                    return !this.constant
+                    yield return !this.constant
                         ? $"mov {resultHardware}, 0"
                         : $"mov {resultHardware}, {registerHardware}";
+                    break;
                 default:
                     throw new InstructionException("Something wrong with the type of the operation.");
             }

@@ -25,11 +25,15 @@ namespace KJU.Core.CodeGeneration.Templates.ReadWrite
             this.from = from;
         }
 
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
             var toHardware = this.to.ToHardware(registerAssignment);
             var fromHardware = this.from.ToHardware(registerAssignment);
-            return toHardware == fromHardware ? string.Empty : $"mov {toHardware}, {fromHardware}";
+
+            if (toHardware != fromHardware)
+            {
+                yield return $"mov {toHardware}, {fromHardware}";
+            }
         }
     }
 }

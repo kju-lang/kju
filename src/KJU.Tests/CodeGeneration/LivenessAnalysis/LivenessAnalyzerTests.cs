@@ -1,5 +1,4 @@
 #pragma warning disable SA1118  // Parameter must not span multiple lines
-
 namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 {
     using System;
@@ -403,7 +402,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             {
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 throw new NotImplementedException();
             }

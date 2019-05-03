@@ -34,11 +34,11 @@ namespace KJU.Core.CodeGeneration.Templates.ReadWrite
                 this.memoryLocation = memoryLocation;
             }
 
-            public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var toHardware = this.result.ToHardware(registerAssignment);
                 var fromHardware = this.memoryLocation.ToHardware(registerAssignment);
-                return $"mov {toHardware}, [{fromHardware}]";
+                yield return $"mov {toHardware}, [{fromHardware}]";
             }
         }
     }

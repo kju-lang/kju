@@ -36,7 +36,7 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
             this.operationType = operationType;
         }
 
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
             var lhsHardware = this.lhs.ToHardware(registerAssignment);
             var rhsHardware = this.rhs.ToHardware(registerAssignment);
@@ -46,14 +46,12 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
                 (lhsHardware, rhsHardware) = (rhsHardware, lhsHardware);
             }
 
-            var builder = new StringBuilder();
             if (resultHardware != lhsHardware)
             {
-                builder.AppendLine($"mov {resultHardware}, {lhsHardware}");
+                yield return $"mov {resultHardware}, {lhsHardware}";
             }
 
-            builder.Append($"{this.OperationTypeInstruction()} {resultHardware}, {rhsHardware}");
-            return builder.ToString();
+            yield return $"{this.OperationTypeInstruction()} {resultHardware}, {rhsHardware}";
         }
 
         private string OperationTypeInstruction()

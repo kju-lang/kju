@@ -31,26 +31,23 @@ namespace KJU.Core.CodeGeneration.Templates.Unary
             this.type = type;
         }
 
-        public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+        public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
             var inputHardware = this.input.ToHardware(registerAssignment);
             var resultHardware = this.input.ToHardware(registerAssignment);
 
-            var builder = new StringBuilder();
             if (inputHardware != resultHardware)
-                builder.AppendLine($"mov {resultHardware} {inputHardware}");
+                yield return $"mov {resultHardware} {inputHardware}";
 
             switch (this.type)
             {
                 case UnaryOperationType.Not:
-                    builder.Append($"xor {resultHardware}, 1");
+                    yield return $"xor {resultHardware}, 1";
                     break;
                 case UnaryOperationType.Minus:
-                    builder.Append($"neg {resultHardware}");
+                    yield return $"neg {resultHardware}";
                     break;
             }
-
-            return builder.ToString();
         }
     }
 }
