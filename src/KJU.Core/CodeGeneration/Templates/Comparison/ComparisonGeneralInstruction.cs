@@ -37,7 +37,7 @@ namespace KJU.Core.CodeGeneration.Templates.Comparison
 
             builder.AppendLine($"cmp {lhsHardware}, {rhsHardware}");
             builder.AppendLine($"{this.OperationTypeInstruction()} {resultHardware.ToEightBitsVersion()}");
-            builder.AppendLine($"and {resultHardware}, 1");
+            builder.Append($"and {resultHardware}, 1");
             return builder.ToString();
         }
 
