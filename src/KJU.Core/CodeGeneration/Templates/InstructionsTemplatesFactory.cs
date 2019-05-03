@@ -38,7 +38,9 @@ namespace KJU.Core.CodeGeneration.Templates
 
                 new PushTemplate(),
                 new PopTemplate(),
-                new ReserveStackMemoryTemplate()
+                new ReserveStackMemoryTemplate(),
+
+                new ConditionalJumpTemplate()
             };
 
             templates.AddRange(comparisonTemplates);
