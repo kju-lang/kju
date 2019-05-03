@@ -55,6 +55,16 @@ namespace KJU.Core.Compiler
                 this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var functionsIR = this.intermediateGenerator.CreateIR(ast);
                 var asm = functionsIR.Keys.SelectMany(this.functionToAsmGenerator.ToAsm).ToList();
+                asm = asm.Prepend(@"
+global _start
+section .text
+
+_start:
+call _ZN3KJU3kjuEv
+mov RAX, 60       
+mov RDI, 0       
+syscall          
+").ToList();
                 return new Artifacts(ast, asm);
             }
             catch (Exception ex) when (

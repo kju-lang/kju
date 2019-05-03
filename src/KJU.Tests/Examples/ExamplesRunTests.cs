@@ -29,8 +29,8 @@ namespace KJU.Tests.Examples
             .Where(example => example.Executable)
             .Select(example => new object[] { example });
 
-        [TestInitialize]
-        public void TestInit()
+        [ClassInitialize]
+        public static void TestInit(TestContext ignored)
         {
             if (Directory.Exists(TestsDirectory))
             {

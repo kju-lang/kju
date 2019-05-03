@@ -14,12 +14,19 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void UnconditionalJumpTest()
         {
-            var endLabel = new Label(null);
-            var startLabel = new Label(null);
-            var start = new Tree(null, new UnconditionalJump(endLabel));
-            var end = new Tree(null, new UnconditionalJump(startLabel));
-            startLabel.Tree = start;
-            endLabel.Tree = end;
+            var labels = Label.WithLabel(sL =>
+            {
+                var outerEL = Label.WithLabel(eL =>
+                {
+                    var endTree = new Tree(null, new UnconditionalJump(sL));
+                    return (endTree, eL);
+                });
+                var startTree = new Tree(null, new UnconditionalJump(outerEL));
+                return (startTree, new List<Label> { sL, outerEL });
+            });
+
+            var startLabel = labels[0];
+            var endLabel = labels[1];
             var output = this.linearizer.Linearize(startLabel);
             var treeTable = output.Item1;
             var order = output.Item2;
@@ -33,12 +40,19 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void FunctionCallTest()
         {
-            var startLabel = new Label(null);
-            var endLabel = new Label(null);
-            var start = new Tree(null, new FunctionCall(null, endLabel));
-            var end = new Tree(null, new FunctionCall(null, startLabel));
-            startLabel.Tree = start;
-            endLabel.Tree = end;
+            var labels = Label.WithLabel(sL =>
+            {
+                var outerEL = Label.WithLabel(eL =>
+                {
+                    var endTree = new Tree(null, new FunctionCall(null, sL));
+                    return (endTree, eL);
+                });
+                var startTree = new Tree(null, new FunctionCall(null, outerEL));
+                return (startTree, new List<Label> { sL, outerEL });
+            });
+
+            var startLabel = labels[0];
+            var endLabel = labels[1];
 
             var output = this.linearizer.Linearize(startLabel);
             var treeTable = output.Item1;
@@ -53,19 +67,21 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void ConditionalJumpTest()
         {
-            var labels = Enumerable.Range(0, 3).Select(_ => new Label(null)).ToList();
-
-            var trees = new List<Tree>
+            var labels = Label.WithLabel(l0 =>
             {
-                new Tree(null, new ConditionalJump(labels[2], labels[1])),
-                new Tree(null, new ConditionalJump(labels[2], labels[0])),
-                new Tree(null, new ConditionalJump(labels[1], labels[2])),
-            };
-
-            labels
-                .Zip(trees, (label, tree) => new { Label = label, Tree = tree })
-                .ToList()
-                .ForEach(x => x.Label.Tree = x.Tree);
+                var labels12 = Label.WithLabel(l1 =>
+                {
+                    var label2 = Label.WithLabel(l2 =>
+                    {
+                        var tree2 = new Tree(null, new ConditionalJump(l1, l2));
+                        return (tree2, l2);
+                    });
+                    var tree1 = new Tree(null, new ConditionalJump(label2, l0));
+                    return (tree1, new List<Label> { l1, label2 });
+                });
+                var tree0 = new Tree(null, new ConditionalJump(labels12[1], labels12[0]));
+                return (tree0, new List<Label> { l0, labels12[0], labels12[1] });
+            });
 
             var output = this.linearizer.Linearize(labels[0]);
             var treeTable = output.Item1;
