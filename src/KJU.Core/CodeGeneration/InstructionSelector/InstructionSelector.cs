@@ -55,6 +55,11 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
                 {
                     jumpType = JumpType.Conditional;
                     label = jump.TrueTarget.Id;
+                    if (label == null)
+                    {
+                        throw new InstructionSelectorException("Label is null.");
+                    }
+
                     break;
                 }
 
