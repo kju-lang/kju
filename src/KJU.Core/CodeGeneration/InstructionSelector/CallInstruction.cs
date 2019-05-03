@@ -9,7 +9,7 @@ namespace KJU.Core.CodeGeneration
         public CallInstruction(Function function)
             : base(
                 new List<VirtualRegister> { HardwareRegister.RSP },
-                HardwareRegisterUtils.CallerSavedRegisters().Append(HardwareRegister.RSP).ToList())
+                HardwareRegisterUtils.CallerSavedRegisters.Append(HardwareRegister.RSP).ToList())
         {
             this.Function = function;
         }

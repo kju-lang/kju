@@ -7,17 +7,25 @@ namespace KJU.Core.Intermediate
     using System.Diagnostics;
     using System.Linq;
     using AST.VariableAccessGraph;
+    using static CFGUtils;
     using static HardwareRegisterUtils;
 
     public class Function
     {
+        private Dictionary<HardwareRegister, VirtualRegister> calleeSavedMapping;
+
         public Function(Function parent)
+            : this()
         {
             this.Parent = parent;
         }
 
         public Function()
         {
+            // RBP is handled separately, since it has a set place on the stack frame
+            this.calleeSavedMapping = HardwareRegisterUtils.CalleeSavedRegisters
+                .Where(reg => reg != HardwareRegister.RBP)
+                .ToDictionary(register => register, register => new VirtualRegister());
         }
 
         public Variable Link { get; set; }
@@ -30,17 +38,9 @@ namespace KJU.Core.Intermediate
 
         public int StackBytes { get; set; }
 
-        private Dictionary<HardwareRegister, VirtualRegister> CalleeSavedMapping { get; set; }
-
-        private static Label ConcatTrees(IReadOnlyList<Tree> trees)
+        private int StackArgumentsCount
         {
-            var treesReversed = trees.Reverse().ToList();
-            var treesDropped = treesReversed.Skip(1);
-            treesDropped
-                .Zip(treesReversed, (modified, target) => new { Modified = modified, Target = target })
-                .ToList()
-                .ForEach(x => { x.Modified.ControlFlow = new UnconditionalJump(new Label(x.Target)); });
-            return new Label(trees[0]);
+            get { return Math.Max(0, this.Arguments.Count + 1 - ArgumentRegisters.Count); }
         }
 
         public MemoryLocation ReserveStackFrameLocation()
@@ -49,61 +49,116 @@ namespace KJU.Core.Intermediate
         }
 
         // We will use standard x86-64 conventions -> RDI, RSI, RDX, RCX, R8, R9.
+        // TODO: instruction templates covering hw register modifications
         public Label GenerateCall(
             VirtualRegister result,
             List<VirtualRegister> arguments,
             Label onReturn,
             Function caller)
         {
-            if (arguments.Count > 5)
+            var savedRsp = new VirtualRegister();
+
+            IEnumerable<Node> preCall = this.RspAlignmentNodes(savedRsp)
+                .Concat(this.PassArguments(caller, arguments))
+                .Append(new ClearDF());
+
+            IEnumerable<Node> postCall = new List<Node>
             {
-                // Temporary solution
-                throw new NotSupportedException("The function cannot have more than 5 arguments!");
+                RegisterCopy(result, HardwareRegister.RAX),
+                RegisterCopy(HardwareRegister.RSP, savedRsp),
+            };
+
+            Tree call = new Tree(
+                new UnitImmediateValue(),
+                new FunctionCall(this, MakeTreeChain(postCall, onReturn)));
+
+            return MakeTreeChain(preCall, call);
+        }
+
+        public Label GeneratePrologue(Label after)
+        {
+            var operations = new List<Node>()
+            {
+                new Push(new RegisterRead(HardwareRegister.RBP)),
+                RegisterCopy(HardwareRegister.RBP, HardwareRegister.RSP),
+                new ReserveStackMemory(this),
+            }
+                .Concat(this.calleeSavedMapping.Select(kvp => RegisterCopy(kvp.Value, kvp.Key)))
+                .Concat(this.RetrieveArguments());
+
+            return MakeTreeChain(operations, after);
+        }
+
+        public Label GenerateEpilogue(Node retVal)
+        {
+            var operations = this.calleeSavedMapping
+                .Select(kvp => RegisterCopy(kvp.Key, kvp.Value))
+                .Append(new RegisterWrite(HardwareRegister.RAX, retVal))
+                .Append(RegisterCopy(HardwareRegister.RSP, HardwareRegister.RBP))
+                .Append(new Pop(HardwareRegister.RBP))
+                .Append(new ClearDF());
+
+            Tree ret = new Tree(new UnitImmediateValue(), new Ret());
+            return MakeTreeChain(operations, ret);
+        }
+
+        private Function GetCallingSibling(Function caller)
+        {
+            var result = caller;
+            while (result.Parent != this.Parent)
+            {
+                result = result.Parent;
             }
 
-            var argumentsVariables = arguments.Select(argument => new
+            return result;
+        }
+
+        private IEnumerable<Node> RspAlignmentNodes(VirtualRegister savedRsp)
+        {
+            return new List<Node>
             {
-                ArgumentValue = caller.GenerateRead(new Variable(caller, argument)),
-                ArgumentCopyVariable = new Variable(caller, new VirtualRegister()),
-            }).ToList();
+                RegisterCopy(savedRsp, HardwareRegister.RSP),
+                new AlignStackPointer(offsetByQword: this.StackArgumentsCount % 2 == 1),
+            };
+        }
 
-            var writeArgumentsOperations = argumentsVariables.Select(x =>
-            {
-                var writeOperation = caller.GenerateWrite(x.ArgumentCopyVariable, x.ArgumentValue);
-                return new Tree(writeOperation);
-            });
+        // Argument position on wrt. stack frame (if needed):
+        //
+        //        |             ...            |
+        //        | (i+7)th argument           | rbp + 16 + 8i
+        //        |             ...            |
+        //        | 7th argument               | rbp + 16
+        //        | return stack pointer value | rbp + 8
+        // rbp -> | previous rbp value         |
+        //
+        // Static link is the last argument, either in register or on stack.
 
-            var argumentsValueTrees =
-                argumentsVariables.Select(x => caller.GenerateRead(x.ArgumentCopyVariable));
+        private IEnumerable<Node> PassArguments(Function caller, IEnumerable<VirtualRegister> argRegisters)
+        {
+            Node readStaticLink = caller == this.Parent
+                ? new RegisterRead(HardwareRegister.RBP)
+                : caller.GenerateRead(this.GetCallingSibling(caller).Link);
 
-            var arity = this.Arguments.Count;
-            var argumentRegisters = ArgumentRegisters();
-            var registersAndValues = argumentRegisters.Zip(
-                argumentsValueTrees,
-                (register, value) => new { Register = register, Value = value });
+            var values = argRegisters
+                .Select(argVR => new RegisterRead(argVR))
+                .Append(readStaticLink);
 
-            var registerWriteOperations = registersAndValues.Select(x =>
-            {
-                var registerVariable = new Variable(caller, x.Register);
-                return new Tree(caller.GenerateWrite(registerVariable, x.Value));
-            });
+            return Enumerable.Concat<Node>(
+                values.Zip(ArgumentRegisters, (value, hwReg) => new RegisterWrite(hwReg, value)),
+                values.Skip(ArgumentRegisters.Count).Reverse().Select(value => new Push(value)));
+        }
 
-            var linkVariable = new Variable(caller, argumentRegisters[arity]);
-            Node readDescendantLinkOperation;
-            if (caller == this.Parent)
-                readDescendantLinkOperation = new RegisterRead(HardwareRegister.RBP);
-            else
-                readDescendantLinkOperation = caller.GenerateRead(this.GetDescendant(caller).Link);
-            var writeLinkOperation = caller.GenerateWrite(linkVariable, readDescendantLinkOperation);
-            var writeLinkOperationControlFlow = new FunctionCall(this, onReturn);
-            var writeLinkOperationTree = new Tree(writeLinkOperation) { ControlFlow = writeLinkOperationControlFlow };
+        private IEnumerable<Node> RetrieveArguments()
+        {
+            Func<int, Node> readNthStackArg = n => new MemoryRead(OffsetAddress(HardwareRegister.RBP, n + 2));
 
-            var operations = writeArgumentsOperations
-                .Concat(registerWriteOperations)
-                .Append(writeLinkOperationTree)
-                .ToList();
+            var values = Enumerable.Concat<Node>(
+                ArgumentRegisters.Select(reg => new RegisterRead(reg)),
+                Enumerable.Range(0, this.StackArgumentsCount).Select(readNthStackArg));
 
-            return ConcatTrees(operations);
+            return this.Arguments
+                .Append(this.Link)
+                .Zip(values, this.GenerateWrite);
         }
 
         public Node GenerateRead(Variable v)
@@ -164,75 +219,6 @@ namespace KJU.Core.Intermediate
             }
         }
 
-        public Label GeneratePrologue(Label after)
-        {
-            this.CalleeSavedMapping = HardwareRegisterUtils.CalleeSavedRegisters().ToDictionary(
-                register => register,
-                register => new VirtualRegister());
-
-            var calleeSavedRegisterReads = this.CalleeSavedMapping.Select(kvp =>
-            {
-                var hardwareRegisterVariable = new Variable(this, kvp.Key);
-                var virtualRegisterVariable = new Variable(this, kvp.Value);
-                var readOperation = this.GenerateRead(hardwareRegisterVariable);
-                var writeOperation = this.GenerateWrite(virtualRegisterVariable, readOperation);
-                return new Tree(writeOperation);
-            });
-            var rbpRegister = HardwareRegister.RBP;
-            var rbpVariable = new Variable(this, rbpRegister);
-
-            var rspRegister = HardwareRegister.RSP;
-            var rspVariable = new Variable(this, rspRegister);
-            var rspRead = this.GenerateRead(rspVariable);
-            var rbpWrite = this.GenerateWrite(rbpVariable, rspRead);
-            var writeRbpOperation = new Tree(rbpWrite);
-
-            var reserveStackMemoryNode = new ReserveStackMemory(this);
-            var moveRspOperation = new Tree(reserveStackMemoryNode);
-
-            var allArguments = this.Arguments.Append(this.Link);
-            var argumentLocations = ArgumentRegisters();
-            var argumentsWithLocations = allArguments
-                .Zip(argumentLocations, (argument, location) => new { argument, location });
-            var rewriteParametersOperations = argumentsWithLocations.Select(x =>
-            {
-                var variable = new Variable(this, x.location);
-                var readOperation = this.GenerateRead(variable);
-                var writeOperation = this.GenerateWrite(x.argument, readOperation);
-                return new Tree(writeOperation);
-            });
-
-            var operations = calleeSavedRegisterReads
-                .Concat(new List<Tree> { writeRbpOperation, moveRspOperation })
-                .Concat(rewriteParametersOperations)
-                .Append(after.Tree)
-                .ToList();
-            return ConcatTrees(operations);
-        }
-
-        public Label GenerateEpilogue(Node retVal)
-        {
-            var raxRegister = HardwareRegister.RAX;
-            var raxVariable = new Variable(this, raxRegister);
-
-            var writeRaxOperation = this.GenerateWrite(raxVariable, retVal);
-
-            var calleeSavedRegisterWrites = this.CalleeSavedMapping?.Select(kvp =>
-            {
-                var hardwareRegisterVariable = new Variable(this, kvp.Key);
-                var virtualRegisterVariable = new Variable(this, kvp.Value);
-                var readVirtualOperation = this.GenerateRead(virtualRegisterVariable);
-                var writeHardwareOperation = this.GenerateWrite(hardwareRegisterVariable, readVirtualOperation);
-                return new Tree(writeHardwareOperation);
-            }) ?? new List<Tree>();
-
-            var operations = new List<Tree> { new Tree(writeRaxOperation) { ControlFlow = new Ret() } }
-                .Concat(calleeSavedRegisterWrites)
-                .ToList();
-
-            return ConcatTrees(operations);
-        }
-
         public Label GenerateBody(AST.FunctionDeclaration root)
         {
             this.ExtractTemporaryVariables(root);
@@ -249,17 +235,6 @@ namespace KJU.Core.Intermediate
             var result = extractor.ExtractTemporaryVariables(root.Body);
             var instructions = result.Concat(root.Body.Instructions).ToList();
             root.Body = new AST.InstructionBlock(instructions);
-        }
-
-        private Function GetDescendant(Function caller)
-        {
-            var result = caller;
-            while (result.Parent != this.Parent)
-            {
-                result = result.Parent;
-            }
-
-            return result;
         }
     }
 }

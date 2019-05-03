@@ -4,9 +4,8 @@ namespace KJU.Core.Intermediate
 
     public static class HardwareRegisterUtils
     {
-        public static IReadOnlyList<HardwareRegister> ArgumentRegisters()
-        {
-            return new List<HardwareRegister>
+        private static IReadOnlyList<HardwareRegister> argumentRegisters =
+            new List<HardwareRegister>
             {
                 HardwareRegister.RDI,
                 HardwareRegister.RSI,
@@ -15,11 +14,9 @@ namespace KJU.Core.Intermediate
                 HardwareRegister.R8,
                 HardwareRegister.R9
             };
-        }
 
-        public static IReadOnlyCollection<HardwareRegister> CallerSavedRegisters()
-        {
-            return new List<HardwareRegister>
+        private static IReadOnlyCollection<HardwareRegister> callerSavedRegisters =
+            new List<HardwareRegister>
             {
                 HardwareRegister.RAX,
                 HardwareRegister.RCX,
@@ -31,11 +28,9 @@ namespace KJU.Core.Intermediate
                 HardwareRegister.R10,
                 HardwareRegister.R11,
             };
-        }
 
-        public static IReadOnlyCollection<HardwareRegister> CalleeSavedRegisters()
-        {
-            return new List<HardwareRegister>
+        private static IReadOnlyCollection<HardwareRegister> calleeSavedRegisters =
+            new List<HardwareRegister>
             {
                 HardwareRegister.RBX,
                 HardwareRegister.RSP,
@@ -45,11 +40,9 @@ namespace KJU.Core.Intermediate
                 HardwareRegister.R14,
                 HardwareRegister.R15,
             };
-        }
 
-        public static string ToEightBitsVersion(this HardwareRegister register)
-        {
-            var registerToEightBitsVersionMapping = new Dictionary<HardwareRegister, string>
+        private static Dictionary<HardwareRegister, string> registerToEightBitsVersionMapping =
+            new Dictionary<HardwareRegister, string>
             {
                 [HardwareRegister.RAX] = "AL",
                 [HardwareRegister.RBX] = "BL",
@@ -69,6 +62,14 @@ namespace KJU.Core.Intermediate
                 [HardwareRegister.R15] = "R15B"
             };
 
+        public static IReadOnlyList<HardwareRegister> ArgumentRegisters { get => argumentRegisters; }
+
+        public static IReadOnlyCollection<HardwareRegister> CallerSavedRegisters { get => callerSavedRegisters; }
+
+        public static IReadOnlyCollection<HardwareRegister> CalleeSavedRegisters { get => calleeSavedRegisters; }
+
+        public static string ToEightBitsVersion(this HardwareRegister register)
+        {
             return registerToEightBitsVersionMapping[register];
         }
     }

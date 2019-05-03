@@ -7,7 +7,7 @@
     {
         public RetInstruction()
             : base(
-                HardwareRegisterUtils.CalleeSavedRegisters(),
+                HardwareRegisterUtils.CalleeSavedRegisters,
                 new List<HardwareRegister> { HardwareRegister.RSP })
         {
         }

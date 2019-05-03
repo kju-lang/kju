@@ -398,4 +398,27 @@ namespace KJU.Core.Intermediate
             return null;
         }
     }
+
+    public class AlignStackPointer : Node
+    {
+        public AlignStackPointer(bool offsetByQword)
+        {
+            this.OffsetByQword = offsetByQword;
+        }
+
+        public bool OffsetByQword { get; }
+
+        public override List<object> Match(Node template)
+        {
+            return template is AlignStackPointer ? new List<object> { this.OffsetByQword } : null;
+        }
+    }
+
+    public class ClearDF : Node
+    {
+        public override List<object> Match(Node template)
+        {
+            return template is ClearDF ? new List<object>() : null;
+        }
+    }
 }

@@ -39,6 +39,8 @@ namespace KJU.Core.CodeGeneration.Templates
                 new PushTemplate(),
                 new PopTemplate(),
                 new ReserveStackMemoryTemplate(),
+                new AlignStackPointerTemplate(),
+                new ClearDFTemplate(),
 
                 new ConditionalJumpTemplate()
             };
