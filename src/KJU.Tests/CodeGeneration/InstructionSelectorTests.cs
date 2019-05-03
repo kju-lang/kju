@@ -38,7 +38,7 @@ namespace KJU.Tests.CodeGeneration
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
-            Assert.AreEqual("sub RSP 16", ins.First().ToASM(null));
+            Assert.AreEqual("sub RSP, 16", ins.First().ToASM(null));
         }
 
         [TestMethod]
@@ -165,10 +165,10 @@ namespace KJU.Tests.CodeGeneration
                     var builder = new StringBuilder();
                     if (!resultHardware.Equals(lhsHardware))
                     {
-                        builder.AppendLine($"mov {resultHardware} {lhsHardware}");
+                        builder.AppendLine($"mov {resultHardware}, {lhsHardware}");
                     }
 
-                    builder.AppendLine($"add {resultHardware} {rhsHardware}");
+                    builder.Append($"add {resultHardware}, {rhsHardware}");
                     return builder.ToString();
                 }
             }
