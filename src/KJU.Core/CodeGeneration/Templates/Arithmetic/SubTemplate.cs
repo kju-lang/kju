@@ -52,10 +52,10 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                 var builder = new StringBuilder();
                 if (resultHardware != lhsHardware)
                 {
-                    builder.AppendLine($"mov {resultHardware} {lhsHardware}");
+                    builder.AppendLine($"mov {resultHardware}, {lhsHardware}");
                 }
 
-                builder.AppendLine($"sub {resultHardware} {rhsHardware}");
+                builder.Append($"sub {resultHardware}, {rhsHardware}");
                 return builder.ToString();
             }
         }

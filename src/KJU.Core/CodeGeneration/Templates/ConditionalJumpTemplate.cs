@@ -35,8 +35,8 @@ namespace KJU.Core.CodeGeneration.Templates
                 var hardwareRegister = this.register.ToHardware(registerAssignment);
 
                 var builder = new StringBuilder();
-                builder.AppendLine($"test {hardwareRegister} {hardwareRegister}");
-                builder.AppendLine($"jz {this.label}");
+                builder.AppendLine($"test {hardwareRegister}, {hardwareRegister}");
+                builder.Append($"jz {this.label}");
 
                 return builder.ToString();
             }

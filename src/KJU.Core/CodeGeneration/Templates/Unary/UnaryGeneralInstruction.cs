@@ -43,10 +43,10 @@ namespace KJU.Core.CodeGeneration.Templates.Unary
             switch (this.type)
             {
                 case UnaryOperationType.Not:
-                    builder.AppendLine($"xor {resultHardware} 1");
+                    builder.Append($"xor {resultHardware}, 1");
                     break;
                 case UnaryOperationType.Minus:
-                    builder.AppendLine($"neg {resultHardware}");
+                    builder.Append($"neg {resultHardware}");
                     break;
             }
 

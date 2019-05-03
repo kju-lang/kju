@@ -37,7 +37,7 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
             public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var writeTo = this.result.ToHardware(registerAssignment);
-                return $"mov {writeTo} {this.value}\n";
+                return $"mov {writeTo}, {this.value}";
             }
         }
     }

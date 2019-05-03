@@ -38,7 +38,7 @@ namespace KJU.Core.CodeGeneration.Templates.ReadWrite
             {
                 var toHardware = this.result.ToHardware(registerAssignment);
                 var fromHardware = this.memoryLocation.ToHardware(registerAssignment);
-                return $"mov {toHardware} [{fromHardware}]\n";
+                return $"mov {toHardware}, [{fromHardware}]";
             }
         }
     }

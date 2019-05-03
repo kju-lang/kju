@@ -58,15 +58,16 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                 var builder = new StringBuilder();
                 if (rax != lhsHardware)
                 {
-                    builder.AppendLine($"mov {rax} {lhsHardware}");
+                    builder.AppendLine($"mov {rax}, {lhsHardware}");
                 }
 
-                builder.AppendLine($"mov {rdx} 0");
+                builder.AppendLine($"mov {rdx}, 0");
 
-                builder.AppendLine($"idiv {rhsHardware}");
+                builder.Append($"idiv {rhsHardware}");
                 if (rax != resultHardware)
                 {
-                    builder.AppendLine($"mov {resultHardware} {rax}");
+                    builder.AppendLine();
+                    builder.Append($"mov {resultHardware}, {rax}");
                 }
 
                 return builder.ToString();

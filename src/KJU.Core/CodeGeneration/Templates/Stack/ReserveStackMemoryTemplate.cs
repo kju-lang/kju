@@ -31,7 +31,7 @@
             {
                 var hardwareRegister = HardwareRegister.RSP;
 
-                return $"sub {hardwareRegister} {this.KjuFunction.StackBytes}";
+                return $"sub {hardwareRegister}, {this.KjuFunction.StackBytes}";
             }
         }
     }

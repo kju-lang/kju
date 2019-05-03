@@ -91,11 +91,11 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Multiplication
                 var resultHardware = this.result.ToHardware(registerAssignment);
                 if (this.constant != (int)this.constant)
                 {
-                    return $"mov {resultHardware} {this.constant}\n" +
-                           $"imul {resultHardware} {inputHardware}";
+                    return $"mov {resultHardware}, {this.constant}{Environment.NewLine}" +
+                           $"imul {resultHardware}, {inputHardware}";
                 }
 
-                return $"imul {resultHardware} {inputHardware} {this.constant}\n";
+                return $"imul {resultHardware}, {inputHardware}, {this.constant}";
             }
         }
     }

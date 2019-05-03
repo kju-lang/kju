@@ -59,10 +59,10 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Multiplication
                 var builder = new StringBuilder();
                 if (resultHardware != lhsHardware)
                 {
-                    builder.AppendLine($"mov {resultHardware} {lhsHardware}");
+                    builder.AppendLine($"mov {resultHardware}, {lhsHardware}");
                 }
 
-                builder.AppendLine($"imul {resultHardware} {rhsHardware}");
+                builder.Append($"imul {resultHardware}, {rhsHardware}");
                 return builder.ToString();
             }
         }

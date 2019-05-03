@@ -92,10 +92,10 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Addition
                 var builder = new StringBuilder();
                 if (resultHardware != inputHardware)
                 {
-                    builder.AppendLine($"mov {resultHardware} {inputHardware}");
+                    builder.AppendLine($"mov {resultHardware}, {inputHardware}");
                 }
 
-                builder.AppendLine($"add {resultHardware} {this.constant}");
+                builder.Append($"add {resultHardware}, {this.constant}");
                 return builder.ToString();
             }
         }

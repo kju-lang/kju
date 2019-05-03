@@ -28,7 +28,7 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
 
             public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
-                return "\n";
+                return string.Empty;
             }
         }
     }

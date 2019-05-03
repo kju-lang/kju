@@ -75,10 +75,10 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Multiplication
                 var builder = new StringBuilder();
                 if (!resultHardware.Equals(inputHardware))
                 {
-                    builder.AppendLine($"mov {resultHardware} {inputHardware}");
+                    builder.AppendLine($"mov {resultHardware}, {inputHardware}");
                 }
 
-                builder.AppendLine($"shl {resultHardware} {this.power}");
+                builder.Append($"shl {resultHardware}, {this.power}");
                 return builder.ToString();
             }
         }

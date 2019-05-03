@@ -43,12 +43,12 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
             {
                 case LogicalBinaryOperationType.Or:
                     return this.constant
-                        ? $"mov {resultHardware} 1{Environment.NewLine}"
-                        : $"mov {resultHardware} {registerHardware}{Environment.NewLine}";
+                        ? $"mov {resultHardware}, 1"
+                        : $"mov {resultHardware}, {registerHardware}";
                 case LogicalBinaryOperationType.And:
                     return !this.constant
-                        ? $"mov {resultHardware} 0{Environment.NewLine}"
-                        : $"mov {resultHardware} {registerHardware}{Environment.NewLine}";
+                        ? $"mov {resultHardware}, 0"
+                        : $"mov {resultHardware}, {registerHardware}";
                 default:
                     throw new InstructionException("Something wrong with the type of the operation.");
             }

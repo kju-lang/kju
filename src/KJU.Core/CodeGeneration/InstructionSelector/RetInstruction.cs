@@ -14,7 +14,7 @@
 
         public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
-            return "ret\n";
+            return "ret";
         }
     }
 }

@@ -49,10 +49,10 @@ namespace KJU.Core.CodeGeneration.Templates.Logical
             var builder = new StringBuilder();
             if (resultHardware != lhsHardware)
             {
-                builder.AppendLine($"mov {resultHardware} {lhsHardware}");
+                builder.AppendLine($"mov {resultHardware}, {lhsHardware}");
             }
 
-            builder.AppendLine($"{this.OperationTypeInstruction()} {resultHardware} {rhsHardware}");
+            builder.Append($"{this.OperationTypeInstruction()} {resultHardware}, {rhsHardware}");
             return builder.ToString();
         }
 

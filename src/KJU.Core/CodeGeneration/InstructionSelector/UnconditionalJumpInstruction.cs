@@ -15,7 +15,7 @@ namespace KJU.Core.CodeGeneration
 
         public override string ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
-            return $"jmp {this.Label.Id}\n";
+            return $"jmp {this.Label.Id}";
         }
     }
 }

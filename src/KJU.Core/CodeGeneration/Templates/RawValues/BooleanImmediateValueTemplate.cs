@@ -38,7 +38,7 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
             {
                 var writeTo = this.result.ToHardware(registerAssignment);
                 var valueInt = this.value ? 1 : 0;
-                return $"mov {writeTo} {valueInt}\n";
+                return $"mov {writeTo}, {valueInt}";
             }
         }
     }

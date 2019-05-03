@@ -29,7 +29,7 @@ namespace KJU.Core.CodeGeneration.Templates.ReadWrite
         {
             var toHardware = this.to.ToHardware(registerAssignment);
             var fromHardware = this.from.ToHardware(registerAssignment);
-            return toHardware == fromHardware ? string.Empty : $"mov {toHardware} {fromHardware}\n";
+            return toHardware == fromHardware ? string.Empty : $"mov {toHardware}, {fromHardware}";
         }
     }
 }
