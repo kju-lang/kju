@@ -247,7 +247,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
 
             /* Different behavior when there is a loop */
 
-            var instructionsWithLoop = new List<CodeBlock>();
+            var instructionsWithLoop = new List<CodeBlock>(instructionsWithoutLoop);
             this.AddUnconditionalJumpBlock(instructionsWithLoop, block, label);
 
             var interferenceGraphWithLoop = this.GetEmptyGraph(registers);
