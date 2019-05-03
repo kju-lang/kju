@@ -46,5 +46,30 @@ namespace KJU.Core.Intermediate
                 HardwareRegister.R15,
             };
         }
+
+        public static string ToEightBitsVersion(this HardwareRegister register)
+        {
+            var registerToEightBitsVersionMapping = new Dictionary<HardwareRegister, string>
+            {
+                [HardwareRegister.RAX] = "AL",
+                [HardwareRegister.RBX] = "BL",
+                [HardwareRegister.RCX] = "CL",
+                [HardwareRegister.RDX] = "DL",
+                [HardwareRegister.RSI] = "SIL",
+                [HardwareRegister.RDI] = "DIL",
+                [HardwareRegister.RBP] = "BPL",
+                [HardwareRegister.RSP] = "SPL",
+                [HardwareRegister.R8] = "R8B",
+                [HardwareRegister.R9] = "R9B",
+                [HardwareRegister.R10] = "R10B",
+                [HardwareRegister.R11] = "R11B",
+                [HardwareRegister.R12] = "R12B",
+                [HardwareRegister.R13] = "R13B",
+                [HardwareRegister.R14] = "R14B",
+                [HardwareRegister.R15] = "R15B"
+            };
+
+            return registerToEightBitsVersionMapping[register];
+        }
     }
 }

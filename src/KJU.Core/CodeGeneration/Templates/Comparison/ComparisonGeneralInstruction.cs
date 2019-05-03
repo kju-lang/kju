@@ -35,8 +35,8 @@ namespace KJU.Core.CodeGeneration.Templates.Comparison
             var resultHardware = this.result.ToHardware(registerAssignment);
             var builder = new StringBuilder();
 
-            builder.AppendLine($"cmp {lhsHardware} {rhsHardware}");
-            builder.AppendLine($"{this.OperationTypeInstruction()} {resultHardware}");
+            builder.AppendLine($"cmp {lhsHardware}, {rhsHardware}");
+            builder.AppendLine($"{this.OperationTypeInstruction()} {resultHardware.ToEightBitsVersion()}");
             return builder.ToString();
         }
 
