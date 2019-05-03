@@ -136,11 +136,9 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
                 after,
                 this.function);
 
-            var argumentsAndRegisters = node.Arguments.Reverse().Zip(
-                argumentRegisters,
-                (argument, register) => new { Argument = argument, Register = register });
-
-            var argumentsLabel = argumentsAndRegisters
+            var argumentsLabel = node.Arguments
+                .Reverse()
+                .Zip(argumentRegisters, (argument, register) => new { Argument = argument, Register = register })
                 .Aggregate(callLabel, (next, x) =>
                 {
                     var result = Label.WithLabel(writeLabel =>

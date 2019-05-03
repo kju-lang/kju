@@ -5,6 +5,7 @@ namespace KJU.Core.Compiler
     using AST;
     using AST.ReturnChecker;
     using AST.TypeChecker;
+    using CodeGeneration.AsmHeaderGenerator;
     using CodeGeneration.FunctionToAsmGeneration;
     using Diagnostics;
     using Input;
@@ -39,6 +40,8 @@ namespace KJU.Core.Compiler
         private readonly IFunctionToAsmGenerator
             functionToAsmGenerator = new FunctionToAsmGeneratorFactory().Generate();
 
+        private readonly IAsmHeaderGenerator asmHeaderGenerator = new AsmHeaderGenerator();
+
         public Artifacts RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics)
         {
             try
@@ -54,18 +57,10 @@ namespace KJU.Core.Compiler
                 this.returnChecker.Run(ast, diagnostics);
                 this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var functionsIR = this.intermediateGenerator.CreateIR(ast);
-                var asm = functionsIR.Keys.SelectMany(this.functionToAsmGenerator.ToAsm).ToList();
-                asm = asm.Prepend(@"
-global _start
-section .text
-
-_start:
-call _ZN3KJU3kjuEv
-mov RAX, 60       
-mov RDI, 0       
-syscall          
-").ToList();
-                return new Artifacts(ast, asm);
+                var asmHeader = this.asmHeaderGenerator.GenerateHeader();
+                var functionsAsm = functionsIR.Keys.SelectMany(this.functionToAsmGenerator.ToAsm).ToList();
+                var asm = functionsAsm.Prepend(asmHeader).ToList();
+                return new Artifacts(ast, string.Join(string.Empty, asm));
             }
             catch (Exception ex) when (
                 ex is PreprocessorException

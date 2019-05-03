@@ -5,7 +5,7 @@ namespace KJU.Core.Compiler
 
     public class Artifacts
     {
-        public Artifacts(Node ast, IEnumerable<string> asm)
+        public Artifacts(Node ast, string asm)
         {
             this.Ast = ast;
             this.Asm = asm;
@@ -13,6 +13,6 @@ namespace KJU.Core.Compiler
 
         public Node Ast { get; }
 
-        public IEnumerable<string> Asm { get; }
+        public string Asm { get; }
     }
 }

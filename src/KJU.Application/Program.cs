@@ -68,7 +68,7 @@
             if (options.GenAsm || options.GenExe)
             {
                 var asmPath = resultPath.AddExtension("asm");
-                File.WriteAllLines(asmPath, artifacts.Asm);
+                File.WriteAllText(asmPath, artifacts.Asm);
                 if (options.GenExe)
                 {
                     var arguments = $"{asmPath} -f elf64";
