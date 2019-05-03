@@ -60,7 +60,7 @@ namespace KJU.Core.Compiler
                 var asmHeader = this.asmHeaderGenerator.GenerateHeader();
                 var functionsAsm = functionsIR.Keys.SelectMany(this.functionToAsmGenerator.ToAsm).ToList();
                 var asm = functionsAsm.Prepend(asmHeader).ToList();
-                return new Artifacts(ast, string.Join(string.Empty, asm));
+                return new Artifacts(ast, asm);
             }
             catch (Exception ex) when (
                 ex is PreprocessorException

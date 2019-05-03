@@ -53,8 +53,8 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             return instructionSequence.SelectMany(codeBlock =>
             {
                 return codeBlock.Instructions.SelectMany(instruction => instruction.ToASM(allocation.Allocation))
-                    .Prepend($"{codeBlock.Label.Id}:{Environment.NewLine}");
-            }).Prepend($"{function.MangledName}:{Environment.NewLine}");
+                    .Prepend($"{codeBlock.Label.Id}:");
+            }).Prepend($"{function.MangledName}:");
         }
 
         private static Label FunctionCfg(FunctionDeclaration functionDeclaration)
