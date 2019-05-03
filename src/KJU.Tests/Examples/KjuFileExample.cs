@@ -6,9 +6,9 @@ namespace KJU.Tests.Examples
     using System.Linq;
     using System.Xml.Linq;
     using System.Xml.XPath;
+    using KJU.Core.Filenames;
     using KJU.Core.Input;
-    using KJU.Tests.Examples.OutputChecker;
-    using static KJU.Core.Filenames.Extensions;
+    using OutputChecker;
     using static System.Text.RegularExpressions.Regex;
 
     public class KjuFileExample : IKjuExample
@@ -20,7 +20,10 @@ namespace KJU.Tests.Examples
     <ExpectedMagicStrings>
     </ExpectedMagicStrings>
     <Execution>
+        <Executable>true</Executable>
+        <Timeout>10000</Timeout>
         <Input></Input>
+        <ExpectedOutput></ExpectedOutput>
         <NormalizeOutput>true</NormalizeOutput>
         <Ends>true</Ends>
     </Execution>
@@ -46,6 +49,8 @@ namespace KJU.Tests.Examples
 
         public IInputReader Program => new FileInputReader(this.Path);
 
+        public string SimpleName => new FileInfo(this.Path).Name.RemoveExtension();
+
         public string Name => this.GetDefaultName();
 
         public string Path { get; }
@@ -54,11 +59,13 @@ namespace KJU.Tests.Examples
 
         public bool IsDisabled => bool.Parse(this.GetProperty("/Spec/IsDisabled"));
 
+        public bool Executable => bool.Parse(this.GetProperty("/Spec/Execution/Executable"));
+
         public string Input => this.GetProperty("/Spec/Execution/Input");
 
         public bool Ends => bool.Parse(this.GetProperty("/Spec/Execution/Ends"));
 
-        public long Timeout { get; } = 10 * 1000;
+        public int Timeout => int.Parse(this.GetProperty("/Spec/Execution/Timeout"));
 
         public IOutputChecker OutputChecker =>
             this.ExpectedOutput != null
@@ -108,9 +115,7 @@ namespace KJU.Tests.Examples
 
         private string GetDefaultName()
         {
-            var fileName = new FileInfo(this.Path).Name;
-            var withoutExtension = fileName.RemoveExtension();
-            var withoutUnderscore = Replace(withoutExtension, @"_", " ");
+            var withoutUnderscore = Replace(this.SimpleName, @"_", " ");
             return char.ToUpper(withoutUnderscore[0]) + withoutUnderscore.Substring(1);
         }
     }

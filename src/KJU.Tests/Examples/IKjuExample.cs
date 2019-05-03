@@ -10,15 +10,19 @@ namespace KJU.Tests.Examples
 
         string Name { get; }
 
+        string SimpleName { get; }
+
         bool IsPositive { get; }
 
         bool IsDisabled { get; }
+
+        bool Executable { get; }
 
         string Input { get; }
 
         bool Ends { get; }
 
-        long Timeout { get; }
+        int Timeout { get; }
 
         IOutputChecker OutputChecker { get; }
 

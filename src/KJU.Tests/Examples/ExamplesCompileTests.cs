@@ -10,7 +10,7 @@ namespace KJU.Tests.Examples
     using Util;
 
     [TestClass]
-    public class ExamplesTests
+    public class ExamplesCompileTests
     {
         public static readonly ICompiler Compiler = new Compiler();
 
