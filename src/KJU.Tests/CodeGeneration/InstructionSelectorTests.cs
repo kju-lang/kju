@@ -7,6 +7,7 @@ namespace KJU.Tests.CodeGeneration
     using System.Text;
     using KJU.Core.AST;
     using KJU.Core.CodeGeneration;
+    using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using KJU.Core.CodeGeneration.InstructionSelector;
     using KJU.Core.CodeGeneration.Templates;
     using KJU.Core.CodeGeneration.Templates.Stack;
@@ -17,6 +18,8 @@ namespace KJU.Tests.CodeGeneration
     [TestClass]
     public class InstructionSelectorTests
     {
+        private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
+
         [TestMethod]
         public void SimpleTest()
         {
@@ -49,7 +52,7 @@ namespace KJU.Tests.CodeGeneration
             var template = new RegisterReadTemplate();
             var templates = new List<InstructionTemplate> { template, nullTemplate };
             var root = new RegisterRead(new VirtualRegister());
-            var trueTarget = new Label(new Tree(new UnitImmediateValue(), new UnconditionalJump(null)));
+            var trueTarget = this.labelFactory.GetLabel(new Tree(new UnitImmediateValue(), new UnconditionalJump(null)));
             var controlFlow = new ConditionalJump(trueTarget, null);
             var tree = new Tree(root, controlFlow);
             var selector = new InstructionSelector(templates);
@@ -89,7 +92,8 @@ namespace KJU.Tests.CodeGeneration
                 this.from = from;
             }
 
-            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(
+                IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 yield break;
             }
@@ -114,7 +118,8 @@ namespace KJU.Tests.CodeGeneration
                 {
                 }
 
-                public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+                public override IEnumerable<string> ToASM(
+                    IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
                 {
                     yield break;
                 }
@@ -155,7 +160,8 @@ namespace KJU.Tests.CodeGeneration
                     this.result = result;
                 }
 
-                public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+                public override IEnumerable<string> ToASM(
+                    IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
                 {
                     var lhsHardware = this.lhs.ToHardware(registerAssignment);
                     var rhsHardware = this.rhs.ToHardware(registerAssignment);

@@ -6,12 +6,12 @@ namespace KJU.Core.CodeGeneration
 
     public class UnconditionalJumpInstruction : Instruction
     {
-        public UnconditionalJumpInstruction(Label label)
+        public UnconditionalJumpInstruction(ILabel label)
         {
             this.Label = label;
         }
 
-        public Label Label { get; }
+        public ILabel Label { get; }
 
         public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {

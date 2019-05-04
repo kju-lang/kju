@@ -7,12 +7,12 @@ namespace KJU.Core.Intermediate
 
     public class UnconditionalJump : ControlFlowInstruction
     {
-        public UnconditionalJump(Label target)
+        public UnconditionalJump(ILabel target)
         {
             this.Target = target;
         }
 
-        public Label Target { get; }
+        public ILabel Target { get; }
 
         public override string ToString()
         {
@@ -22,15 +22,15 @@ namespace KJU.Core.Intermediate
 
     public class ConditionalJump : ControlFlowInstruction
     {
-        public ConditionalJump(Label trueTarget, Label falseTarget)
+        public ConditionalJump(ILabel trueTarget, ILabel falseTarget)
         {
             this.TrueTarget = trueTarget;
             this.FalseTarget = falseTarget;
         }
 
-        public Label TrueTarget { get; }
+        public ILabel TrueTarget { get; }
 
-        public Label FalseTarget { get; }
+        public ILabel FalseTarget { get; }
 
         public override string ToString()
         {
@@ -40,7 +40,7 @@ namespace KJU.Core.Intermediate
 
     public class FunctionCall : ControlFlowInstruction
     {
-        public FunctionCall(Function.Function func, Label targetAfter)
+        public FunctionCall(Function.Function func, ILabel targetAfter)
         {
             this.Func = func;
             this.TargetAfter = targetAfter;
@@ -48,7 +48,7 @@ namespace KJU.Core.Intermediate
 
         public Function.Function Func { get; }
 
-        public Label TargetAfter { get; }
+        public ILabel TargetAfter { get; }
 
         public override string ToString()
         {

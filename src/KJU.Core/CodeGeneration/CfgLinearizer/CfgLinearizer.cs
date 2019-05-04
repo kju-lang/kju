@@ -7,11 +7,11 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
 
     public class CfgLinearizer : ICfgLinearizer
     {
-        public Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<Label, int>> Linearize(Label cfg)
+        public Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<ILabel, int>> Linearize(ILabel cfg)
         {
-            var order = new Dictionary<Label, int>();
+            var order = new Dictionary<ILabel, int>();
             var processedTrees = new Dictionary<Tree, int>();
-            var labelsToProcess = new Stack<Label>();
+            var labelsToProcess = new Stack<ILabel>();
             var treeTable = new List<Tree>();
             labelsToProcess.Push(cfg);
 
@@ -65,7 +65,7 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
             }
 
             var resultTreeTable = EraseUnnecessaryJumps(treeTable, order);
-            return new Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<Label, int>>(resultTreeTable, order);
+            return new Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<ILabel, int>>(resultTreeTable, order);
         }
 
         private static Tree FlipConditionalJumpTargets(Node operation, ConditionalJump conditionalJump)
@@ -76,7 +76,7 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
         }
 
         private static IReadOnlyList<Tree> EraseUnnecessaryJumps(
-            IEnumerable<Tree> treeTable, IReadOnlyDictionary<Label, int> order)
+            IEnumerable<Tree> treeTable, IReadOnlyDictionary<ILabel, int> order)
         {
             return treeTable.Select((tree, index) =>
             {

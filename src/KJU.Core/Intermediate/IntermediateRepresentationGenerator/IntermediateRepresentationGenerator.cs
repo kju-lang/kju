@@ -6,7 +6,7 @@ namespace KJU.Core.Intermediate.IntermediateRepresentationGenerator
 
     public class IntermediateRepresentationGenerator : IIntermediateRepresentationGenerator
     {
-        public IReadOnlyDictionary<AST.FunctionDeclaration, Label> CreateIR(AST.Node node)
+        public IReadOnlyDictionary<AST.FunctionDeclaration, ILabel> CreateIR(AST.Node node)
         {
             return node
                 .ChildrenRecursive()
@@ -16,8 +16,7 @@ namespace KJU.Core.Intermediate.IntermediateRepresentationGenerator
                     decl => decl,
                     decl =>
                         {
-                            var generator = new FunctionBodyGenerator.FunctionBodyGenerator(decl.IntermediateFunction);
-                            return generator.BuildFunctionBody(decl.Body);
+                            return decl.IntermediateFunction.GenerateBody(decl);
                         });
         }
     }

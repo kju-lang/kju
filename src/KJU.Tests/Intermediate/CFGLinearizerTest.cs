@@ -3,26 +3,29 @@ namespace KJU.Tests.Intermediate
     using System.Collections.Generic;
     using System.Linq;
     using KJU.Core.CodeGeneration.CfgLinearizer;
+    using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using KJU.Core.Intermediate;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class CfgLinearizerTest
     {
+        private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
+
         private readonly CfgLinearizer linearizer = new CfgLinearizer();
 
         [TestMethod]
         public void UnconditionalJumpTest()
         {
-            var labels = Label.WithLabel(sL =>
+            var labels = this.labelFactory.WithLabel(sL =>
             {
-                var outerEL = Label.WithLabel(eL =>
+                var outerEL = this.labelFactory.WithLabel(eL =>
                 {
                     var endTree = new Tree(null, new UnconditionalJump(sL));
                     return (endTree, eL);
                 });
                 var startTree = new Tree(null, new UnconditionalJump(outerEL));
-                return (startTree, new List<Label> { sL, outerEL });
+                return (startTree, new List<ILabel> { sL, outerEL });
             });
 
             var startLabel = labels[0];
@@ -40,15 +43,15 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void FunctionCallTest()
         {
-            var labels = Label.WithLabel(sL =>
+            var labels = this.labelFactory.WithLabel(sL =>
             {
-                var outerEL = Label.WithLabel(eL =>
+                var outerEL = this.labelFactory.WithLabel(eL =>
                 {
                     var endTree = new Tree(null, new FunctionCall(null, sL));
                     return (endTree, eL);
                 });
                 var startTree = new Tree(null, new FunctionCall(null, outerEL));
-                return (startTree, new List<Label> { sL, outerEL });
+                return (startTree, new List<ILabel> { sL, outerEL });
             });
 
             var startLabel = labels[0];
@@ -67,20 +70,20 @@ namespace KJU.Tests.Intermediate
         [TestMethod]
         public void ConditionalJumpTest()
         {
-            var labels = Label.WithLabel(l0 =>
+            var labels = this.labelFactory.WithLabel(l0 =>
             {
-                var labels12 = Label.WithLabel(l1 =>
+                var labels12 = this.labelFactory.WithLabel(l1 =>
                 {
-                    var label2 = Label.WithLabel(l2 =>
+                    var label2 = this.labelFactory.WithLabel(l2 =>
                     {
                         var tree2 = new Tree(null, new ConditionalJump(l1, l2));
                         return (tree2, l2);
                     });
                     var tree1 = new Tree(null, new ConditionalJump(label2, l0));
-                    return (tree1, new List<Label> { l1, label2 });
+                    return (tree1, new List<ILabel> { l1, label2 });
                 });
                 var tree0 = new Tree(null, new ConditionalJump(labels12[1], labels12[0]));
-                return (tree0, new List<Label> { l0, labels12[0], labels12[1] });
+                return (tree0, new List<ILabel> { l0, labels12[0], labels12[1] });
             });
 
             var output = this.linearizer.Linearize(labels[0]);
@@ -107,11 +110,11 @@ namespace KJU.Tests.Intermediate
         public void DoubleLabelTest()
         {
             var t3 = new Tree(new IntegerImmediateValue(0), new Ret());
-            var l3a = new Label(t3);
-            var l3b = new Label(t3);
+            var l3a = this.labelFactory.GetLabel(t3);
+            var l3b = this.labelFactory.GetLabel(t3);
 
-            var l2 = new Label(new Tree(null, new UnconditionalJump(l3b)));
-            var l1 = new Label(new Tree(null, new ConditionalJump(l2, l3a)));
+            var l2 = this.labelFactory.GetLabel(new Tree(null, new UnconditionalJump(l3b)));
+            var l1 = this.labelFactory.GetLabel(new Tree(null, new ConditionalJump(l2, l3a)));
 
             var output = this.linearizer.Linearize(l1);
             var intTreeCount = output.Item1.Count(x => x.Root is IntegerImmediateValue);

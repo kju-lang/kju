@@ -15,6 +15,8 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
     [TestClass]
     public class LivenessAnalyzerTests
     {
+        private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
+
         [TestMethod]
         public void TestEmpty()
         {
@@ -335,7 +337,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
                 });
         }
 
-        private Label AddRetBlock(
+        private ILabel AddRetBlock(
             ICollection<CodeBlock> instructions, List<Instruction> block)
         {
             block.Add(new RetInstructionMock());
@@ -344,24 +346,24 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             return label;
         }
 
-        private Label AddConditionalJumpBlock(
-            ICollection<CodeBlock> instructions, List<Instruction> block, Label firstTarget, Label secondTarget)
+        private ILabel AddConditionalJumpBlock(
+            ICollection<CodeBlock> instructions, List<Instruction> block, ILabel firstTarget, ILabel secondTarget)
         {
             var label = this.GetLabel(new ConditionalJump(firstTarget, secondTarget));
             instructions.Add(new CodeBlock(label, block));
             return label;
         }
 
-        private Label AddUnconditionalJumpBlock(
-            List<CodeBlock> instructions, List<Instruction> block, Label target)
+        private ILabel AddUnconditionalJumpBlock(
+            List<CodeBlock> instructions, List<Instruction> block, ILabel target)
         {
             var result = this.GetLabel(new UnconditionalJump(target));
             instructions.Add(new CodeBlock(result, block));
             return result;
         }
 
-        private Label AddFunctionCallBlock(
-            List<CodeBlock> instructions, List<Instruction> block, Label target)
+        private ILabel AddFunctionCallBlock(
+            List<CodeBlock> instructions, List<Instruction> block, ILabel target)
         {
             var label = this.GetLabel(new FunctionCall(new Function(), target));
             instructions.Add(new CodeBlock(label, block));
@@ -393,9 +395,9 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             graph[register2].Add(register1);
         }
 
-        private Label GetLabel(ControlFlowInstruction controlFlow)
+        private ILabel GetLabel(ControlFlowInstruction controlFlow)
         {
-            return new Label(new Tree(null, controlFlow));
+            return this.labelFactory.GetLabel(new Tree(null, controlFlow));
         }
 
         private Dictionary<VirtualRegister, List<VirtualRegister>> GetEmptyGraph(
@@ -414,7 +416,8 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
             {
             }
 
-            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(
+                IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 throw new NotImplementedException();
             }

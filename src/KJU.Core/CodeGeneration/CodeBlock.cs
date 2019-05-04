@@ -5,13 +5,13 @@ namespace KJU.Core.CodeGeneration
 
     public class CodeBlock
     {
-        public CodeBlock(Label label, IReadOnlyList<Instruction> instructions)
+        public CodeBlock(ILabel label, IReadOnlyList<Instruction> instructions)
         {
             this.Label = label;
             this.Instructions = instructions;
         }
 
-        public Label Label { get; }
+        public ILabel Label { get; }
 
         public IReadOnlyList<Instruction> Instructions { get; }
     }

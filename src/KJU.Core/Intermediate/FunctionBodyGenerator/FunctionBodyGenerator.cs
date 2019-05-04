@@ -3,6 +3,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using TemporaryVariablesExtractor;
 
     public class FunctionBodyGenerator
@@ -12,14 +13,17 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
         private readonly Dictionary<AST.WhileStatement, LoopLabels> loopLabels =
             new Dictionary<AST.WhileStatement, LoopLabels>();
 
-        public FunctionBodyGenerator(Function.Function function)
+        private readonly ILabelFactory labelFactory;
+
+        public FunctionBodyGenerator(Function.Function function, ILabelFactory labelFactory)
         {
             this.function = function;
+            this.labelFactory = labelFactory;
         }
 
-        public Label BuildFunctionBody(AST.InstructionBlock body)
+        public ILabel BuildFunctionBody(AST.InstructionBlock body)
         {
-            Label guardEpilogue = this.function.GenerateEpilogue(new UnitImmediateValue());
+            ILabel guardEpilogue = this.function.GenerateEpilogue(new UnitImmediateValue());
             Computation afterPrologue = this.ConvertNode(body, guardEpilogue);
             return this.function.GeneratePrologue(afterPrologue.Start);
         }
@@ -27,7 +31,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
         // Any method that returns `Computation` prepends the created list
         // of `Tree`s (that begins at `Start`) to `after`. It's up to the caller
         // to use this list and the returned `Node` in the correct order.
-        private Computation GenerateExpression(AST.Expression node, Label after)
+        private Computation GenerateExpression(AST.Expression node, ILabel after)
         {
             switch (node)
             {
@@ -76,16 +80,16 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             }
         }
 
-        private Computation ConvertNode(AST.InstructionBlock node, Label after)
+        private Computation ConvertNode(AST.InstructionBlock node, ILabel after)
         {
-            Label start = node.Instructions
+            ILabel start = node.Instructions
                 .Reverse()
                 .Aggregate(after, (next, expression) => this.GenerateExpression(expression, next).Start);
 
             return new Computation(start);
         }
 
-        private Computation ConvertNode(BlockWithResult node, Label after)
+        private Computation ConvertNode(BlockWithResult node, ILabel after)
         {
             Computation blockResult = this.GenerateExpression(node.Result, after);
             Computation block = this.ConvertNode(node.Body, blockResult.Start);
@@ -93,14 +97,14 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(block.Start, blockResult.Result);
         }
 
-        private Computation ConvertNode(AST.VariableDeclaration node, Label after)
+        private Computation ConvertNode(AST.VariableDeclaration node, ILabel after)
         {
             if (node.Value == null)
             {
                 return new Computation(after);
             }
 
-            var result = Label.WithLabel(writeLabel =>
+            var result = this.labelFactory.WithLabel(writeLabel =>
             {
                 Computation value = this.GenerateExpression(node.Value, writeLabel);
                 Node write = this.function.GenerateWrite(node.IntermediateVariable, value.Result);
@@ -109,11 +113,11 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(result.Start);
         }
 
-        private Computation ConvertNode(AST.IfStatement node, Label after)
+        private Computation ConvertNode(AST.IfStatement node, ILabel after)
         {
             var thenBody = this.ConvertNode(node.ThenBody, after);
             var elseBody = this.ConvertNode(node.ElseBody, after);
-            var result = Label.WithLabel(testLabel =>
+            var result = this.labelFactory.WithLabel(testLabel =>
             {
                 var condition = this.GenerateExpression(node.Condition, testLabel);
                 return (new Tree(condition.Result, new ConditionalJump(thenBody.Start, elseBody.Start)), condition);
@@ -121,7 +125,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(result.Start);
         }
 
-        private Computation ConvertNode(AST.FunctionCall node, Label after)
+        private Computation ConvertNode(AST.FunctionCall node, ILabel after)
         {
             var resultRegister = new VirtualRegister();
             var argumentRegisters = Enumerable
@@ -141,7 +145,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
                 .Zip(argumentRegisters, (argument, register) => new { Argument = argument, Register = register })
                 .Aggregate(callLabel, (next, x) =>
                 {
-                    var result = Label.WithLabel(writeLabel =>
+                    var result = this.labelFactory.WithLabel(writeLabel =>
                     {
                         var argValue = this.GenerateExpression(x.Argument, writeLabel);
                         Node write = new RegisterWrite(x.Register, argValue.Result);
@@ -153,9 +157,9 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(argumentsLabel, new RegisterRead(resultRegister));
         }
 
-        private Computation ConvertNode(AST.ReturnStatement node, Label after)
+        private Computation ConvertNode(AST.ReturnStatement node, ILabel after)
         {
-            var result = Label.WithLabel(epilogueLabel =>
+            var result = this.labelFactory.WithLabel(epilogueLabel =>
             {
                 Computation value = node.Value == null
                     ? new Computation(epilogueLabel, new UnitImmediateValue())
@@ -165,9 +169,9 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(result.Start);
         }
 
-        private Computation ConvertNode(AST.WhileStatement node, Label after)
+        private Computation ConvertNode(AST.WhileStatement node, ILabel after)
         {
-            var condition = Label.WithLabel(testLabel =>
+            var condition = this.labelFactory.WithLabel(testLabel =>
             {
                 var innerCondition = this.GenerateExpression(node.Condition, testLabel);
                 this.loopLabels.Add(node, new LoopLabels(innerCondition.Start, after));
@@ -178,45 +182,45 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(condition.Start);
         }
 
-        private Computation ConvertNode(AST.BreakStatement node, Label after)
+        private Computation ConvertNode(AST.BreakStatement node, ILabel after)
         {
             return new Computation(this.loopLabels[node.EnclosingLoop].After);
         }
 
-        private Computation ConvertNode(AST.ContinueStatement node, Label after)
+        private Computation ConvertNode(AST.ContinueStatement node, ILabel after)
         {
             return new Computation(this.loopLabels[node.EnclosingLoop].Condition);
         }
 
-        private Computation ConvertNode(AST.Variable node, Label after)
+        private Computation ConvertNode(AST.Variable node, ILabel after)
         {
             return new Computation(after, this.function.GenerateRead(node.Declaration.IntermediateVariable));
         }
 
-        private Computation ConvertNode(AST.BoolLiteral node, Label after)
+        private Computation ConvertNode(AST.BoolLiteral node, ILabel after)
         {
             return new Computation(after, new BooleanImmediateValue(node.Value));
         }
 
-        private Computation ConvertNode(AST.IntegerLiteral node, Label after)
+        private Computation ConvertNode(AST.IntegerLiteral node, ILabel after)
         {
             return new Computation(after, new IntegerImmediateValue(node.Value));
         }
 
-        private Computation ConvertNode(AST.UnitLiteral node, Label after)
+        private Computation ConvertNode(AST.UnitLiteral node, ILabel after)
         {
             return new Computation(after, new UnitImmediateValue());
         }
 
-        private Computation ConvertNode(AST.Assignment node, Label after)
+        private Computation ConvertNode(AST.Assignment node, ILabel after)
         {
             var variable = node.Lhs.Declaration.IntermediateVariable;
-            var (value, readValue) = Label.WithLabel(copyLabel =>
+            var (value, readValue) = this.labelFactory.WithLabel(copyLabel =>
             {
                 var innerValue = this.GenerateExpression(node.Value, copyLabel);
                 var tmpRegister = new VirtualRegister();
                 var innerReadValue = new RegisterRead(tmpRegister);
-                var writeLabel = new Label(new Tree(
+                var writeLabel = this.labelFactory.GetLabel(new Tree(
                     this.function.GenerateWrite(variable, innerReadValue),
                     new UnconditionalJump(after)));
 
@@ -227,7 +231,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(value.Start, readValue);
         }
 
-        private Computation ConvertNode(AST.CompoundAssignment node, Label after)
+        private Computation ConvertNode(AST.CompoundAssignment node, ILabel after)
         {
             return this.ConvertNode(this.SplitCompoundAssignment(node), after);
         }
@@ -238,7 +242,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new AST.Assignment(node.Lhs, operation);
         }
 
-        private Computation ConvertNode(AST.ArithmeticOperation node, Label after)
+        private Computation ConvertNode(AST.ArithmeticOperation node, ILabel after)
         {
             Computation rhs = this.GenerateExpression(node.RightValue, after);
             Computation lhs = this.GenerateExpression(node.LeftValue, rhs.Start);
@@ -246,7 +250,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(lhs.Start, result);
         }
 
-        private Computation ConvertNode(AST.Comparison node, Label after)
+        private Computation ConvertNode(AST.Comparison node, ILabel after)
         {
             Computation rhs = this.GenerateExpression(node.RightValue, after);
             Computation lhs = this.GenerateExpression(node.LeftValue, rhs.Start);
@@ -254,20 +258,20 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(lhs.Start, result);
         }
 
-        private Computation ConvertNode(AST.LogicalBinaryOperation node, Label after)
+        private Computation ConvertNode(AST.LogicalBinaryOperation node, ILabel after)
         {
             var result = new VirtualRegister();
             var shortResultValue = node.BinaryOperationType == AST.LogicalBinaryOperationType.Or;
             Node writeShortResult = new RegisterWrite(result, new BooleanImmediateValue(shortResultValue));
-            var shortLabel = new Label(new Tree(writeShortResult, new UnconditionalJump(after)));
+            var shortLabel = this.labelFactory.GetLabel(new Tree(writeShortResult, new UnconditionalJump(after)));
 
-            var rhs = Label.WithLabel(longLabel =>
+            var rhs = this.labelFactory.WithLabel(longLabel =>
             {
                 var innerRhs = this.GenerateExpression(node.RightValue, longLabel);
                 return (new Tree(new RegisterWrite(result, innerRhs.Result), new UnconditionalJump(after)), innerRhs);
             });
 
-            var lhs = Label.WithLabel(testLabel =>
+            var lhs = this.labelFactory.WithLabel(testLabel =>
             {
                 var innerLhs = this.GenerateExpression(node.LeftValue, testLabel);
                 Tree tree;
@@ -289,7 +293,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(lhs.Start, new RegisterRead(result));
         }
 
-        private Computation ConvertNode(AST.UnaryOperation node, Label after)
+        private Computation ConvertNode(AST.UnaryOperation node, ILabel after)
         {
             Computation operand = this.GenerateExpression(node.Value, after);
             Node result = new UnaryOperation(operand.Result, node.UnaryOperationType);

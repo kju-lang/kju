@@ -74,7 +74,6 @@ namespace KJU.Core.Intermediate
 
         public override List<object> Match(Node template)
         {
-            Console.WriteLine($"{this} trying to match: {template}");
             if (template is BooleanImmediateValue b)
             {
                 if (b.TemplateValue == null)

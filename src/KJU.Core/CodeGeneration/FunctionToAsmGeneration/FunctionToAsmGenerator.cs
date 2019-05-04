@@ -22,6 +22,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         private readonly IInstructionSelector instructionSelector;
         private readonly ILabelIdGenerator labelIdGenerator;
         private readonly ICfgLinearizer cfgLinearizer;
+        private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
 
         public FunctionToAsmGenerator(
             ILivenessAnalyzer livenessAnalyzer,
@@ -57,20 +58,14 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             }).Prepend($"{function.MangledName}:");
         }
 
-        private static Label FunctionCfg(FunctionDeclaration functionDeclaration)
+        private static ILabel FunctionCfg(FunctionDeclaration functionDeclaration)
         {
-            var bodyGenerator = new FunctionBodyGenerator(functionDeclaration.IntermediateFunction);
-            return bodyGenerator.BuildFunctionBody(functionDeclaration.Body);
+            return functionDeclaration.IntermediateFunction.GenerateBody(functionDeclaration);
         }
 
         private (RegisterAllocationResult, IReadOnlyList<CodeBlock>) Allocate(
             Function function, IReadOnlyList<CodeBlock> instructionSequence)
         {
-            instructionSequence.ToList().ForEach(block =>
-            {
-                block.Label.Id = this.labelIdGenerator.GenerateLabelId();
-            });
-
             for (var iteration = 0; iteration < AllocationTriesBound; ++iteration)
             {
                 var interferenceCopyGraphPair = this.livenessAnalyzer.GetInterferenceCopyGraphs(instructionSequence);
@@ -135,7 +130,8 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     var memoryVariable = new Intermediate.Variable(function, memoryLocation);
                     var readOperation = function.GenerateRead(registerVariable);
                     var writeOperation = function.GenerateWrite(memoryVariable, readOperation);
-                    return this.instructionSelector.GetInstructions(new Tree(writeOperation, new UnconditionalJump(null)));
+                    var tree = new Tree(writeOperation, new UnconditionalJump(null));
+                    return this.instructionSelector.GetInstructions(tree);
                 });
 
             var auxiliaryWrites = instruction.Defines
@@ -148,20 +144,21 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     var memoryVariable = new Intermediate.Variable(function, memoryLocation);
                     var readOperation = function.GenerateRead(memoryVariable);
                     var writeOperation = function.GenerateWrite(registerVariable, readOperation);
-                    return this.instructionSelector.GetInstructions(new Tree(writeOperation, new UnconditionalJump(null)));
+                    var tree = new Tree(writeOperation, new UnconditionalJump(null));
+                    return this.instructionSelector.GetInstructions(tree);
                 });
 
             return auxiliaryReads.Append(instruction).Concat(auxiliaryWrites);
         }
 
-        private IReadOnlyList<CodeBlock> InstructionSequence(Label cfg)
+        private IReadOnlyList<CodeBlock> InstructionSequence(ILabel cfg)
         {
             var (orderedTrees, labelToIndexMapping) = this.cfgLinearizer.Linearize(cfg);
 
             var indexToLabelsMapping =
                 labelToIndexMapping
                     .GroupBy(kvp => kvp.Value, kvp => kvp.Key)
-                    .ToDictionary(x => x.Key, x => new HashSet<Label>(x));
+                    .ToDictionary(x => x.Key, x => new HashSet<ILabel>(x));
 
             var nopInstruction = new NopInstruction();
             var nopInstructionBlock = new List<Instruction> { nopInstruction } as IReadOnlyList<Instruction>;
@@ -171,7 +168,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 var labelsWithNops = indexToLabelsMapping[index]
                     .Select(label => new CodeBlock(label, nopInstructionBlock));
 
-                var auxiliaryLabel = new Label(tree);
+                var auxiliaryLabel = this.labelFactory.GetLabel(tree);
                 var block = this.instructionSelector.GetInstructions(tree).ToList() as IReadOnlyList<Instruction>;
 
                 var labelBlockTuple = new CodeBlock(auxiliaryLabel, block);

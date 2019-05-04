@@ -6,6 +6,6 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
 
     public interface ICfgLinearizer
     {
-        Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<Label, int>> Linearize(Label cfg);
+        Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<ILabel, int>> Linearize(ILabel cfg);
     }
 }
