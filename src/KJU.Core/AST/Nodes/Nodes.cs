@@ -3,6 +3,7 @@
 
 namespace KJU.Core.AST
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Intermediate.Function;
@@ -106,6 +107,8 @@ namespace KJU.Core.AST
 
     public class VariableDeclaration : Expression
     {
+        private Intermediate.Variable intermediateVariable;
+
         public VariableDeclaration(DataType variableType, string identifier, Expression value)
         {
             this.VariableType = variableType;
@@ -119,14 +122,21 @@ namespace KJU.Core.AST
 
         public Expression Value { get; }
 
-        public Intermediate.Variable IntermediateVariable { get; set; }
+        public Intermediate.Variable IntermediateVariable
+        {
+            get => this.intermediateVariable;
+            set => this.intermediateVariable = value ?? throw new Exception("Intermediate variable is null.");
+        }
+
+        public override string Representation()
+        {
+            return
+                $"VariableDeclaration{{VariableType: {this.VariableType}, Identifier: {this.Identifier}, Value: {this.Value}, IntermediateVariable: {this.intermediateVariable?.ToString() ?? "null!!!!"}}}";
+        }
 
         public override IEnumerable<Node> Children()
         {
-            if (this.Value == null)
-                return new List<Node>();
-            else
-                return new List<Node>() { this.Value };
+            return this.Value == null ? new List<Node>() : new List<Node>() { this.Value };
         }
 
         public override string ToString()

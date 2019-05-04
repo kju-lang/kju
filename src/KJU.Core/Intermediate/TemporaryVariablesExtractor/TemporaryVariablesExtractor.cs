@@ -12,12 +12,16 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
         private readonly IReadOnlyDictionary<AST.Node, IReadOnlyCollection<VariableDeclaration>>
             variableAccessGraph;
 
+        private readonly Function.Function function;
+
         public TemporaryVariablesExtractor(
             IReadOnlyDictionary<AST.Node, IReadOnlyCollection<VariableDeclaration>> variableModificationGraph,
-            IReadOnlyDictionary<AST.Node, IReadOnlyCollection<VariableDeclaration>> variableAccessGraph)
+            IReadOnlyDictionary<AST.Node, IReadOnlyCollection<VariableDeclaration>> variableAccessGraph,
+            Function.Function function)
         {
             this.variableModificationGraph = variableModificationGraph;
             this.variableAccessGraph = variableAccessGraph;
+            this.function = function;
         }
 
         public List<Expression> ExtractTemporaryVariables(Expression node)
@@ -62,7 +66,12 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                                     .Contains(variableArgument.Declaration));
                             if (modifiedByAnotherArgument)
                             {
-                                var tmpDeclaration = new VariableDeclaration(argument.Type, "tmp", argument);
+                                var tmpDeclaration = new VariableDeclaration(argument.Type, "tmp", argument)
+                                {
+                                    IntermediateVariable = new Intermediate.Variable(
+                                        this.function,
+                                        new VirtualRegister())
+                                };
                                 var tmpVariable = new AST.Variable("tmp")
                                     { Declaration = tmpDeclaration, Type = argument.Type };
                                 return (Expression)new BlockWithResult(
@@ -109,7 +118,12 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     if (modifiedVariables.Any(x => usedVariables.Contains(x)))
                     {
                         var tmpDecl = new VariableDeclaration(
-                            operationNode.LeftValue.Type, "tmp", operationNode.LeftValue);
+                            operationNode.LeftValue.Type, "tmp", operationNode.LeftValue)
+                        {
+                            IntermediateVariable = new Intermediate.Variable(
+                                this.function,
+                                new VirtualRegister())
+                        };
                         var tmpVar = new AST.Variable("tmp") { Declaration = tmpDecl };
 
                         result.Add(tmpDecl);

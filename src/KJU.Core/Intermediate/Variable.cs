@@ -1,19 +1,17 @@
 namespace KJU.Core.Intermediate
 {
+    using System;
+
     public class Variable
     {
         public Variable(Function.Function owner, ILocation location)
         {
             this.Owner = owner;
-            this.Location = location;
+            this.Location = location ?? throw new Exception("Location is null");
         }
 
-        public Variable()
-        {
-        }
+        public Function.Function Owner { get; }
 
-        public Function.Function Owner { get; set; }
-
-        public ILocation Location { get; set; }
+        public ILocation Location { get; }
     }
 }

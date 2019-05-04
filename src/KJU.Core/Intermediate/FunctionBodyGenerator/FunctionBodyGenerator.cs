@@ -194,7 +194,9 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
         private Computation ConvertNode(AST.Variable node, ILabel after)
         {
-            return new Computation(after, this.function.GenerateRead(node.Declaration.IntermediateVariable));
+            var variable = node.Declaration.IntermediateVariable ?? throw new Exception("Variable is null.");
+            var read = this.function.GenerateRead(variable);
+            return new Computation(after, read);
         }
 
         private Computation ConvertNode(AST.BoolLiteral node, ILabel after)

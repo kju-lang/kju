@@ -37,22 +37,22 @@ namespace KJU.Tests.Intermediate
 
             var functionB = new Function { Parent = functionA };
             var functionBLinkLocation = functionB.ReserveStackFrameLocation();
-            functionB.Link = new Variable { Location = functionBLinkLocation, Owner = functionB };
+            functionB.Link = new Variable(functionB, functionBLinkLocation);
 
             functionB.ReserveStackFrameLocation();
 
             var functionC = new Function { Parent = functionB };
             var cLinkLocation = new VirtualRegister();
-            functionC.Link = new Variable { Location = cLinkLocation, Owner = functionC };
+            functionC.Link = new Variable(functionC, cLinkLocation);
 
             var variableALocation = functionA.ReserveStackFrameLocation();
-            var variableA = new Variable { Owner = functionA, Location = variableALocation };
+            var variableA = new Variable(functionA, variableALocation);
 
             var variableBLocation = functionB.ReserveStackFrameLocation();
-            var variableB = new Variable { Owner = functionB, Location = variableBLocation };
+            var variableB = new Variable(functionB, variableBLocation);
 
             var variableCLocation = new VirtualRegister();
-            var variableC = new Variable { Owner = functionC, Location = variableCLocation };
+            var variableC = new Variable(functionC, variableCLocation);
 
             var uniqueNode = new RegisterRead(new VirtualRegister());
 
