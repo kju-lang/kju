@@ -1,7 +1,7 @@
 ﻿namespace KJU.Core.CodeGeneration.Templates.Stack
 {
     using System.Collections.Generic;
-    using KJU.Core.Intermediate;
+    using Intermediate;
 
     public class ReserveStackMemoryTemplate : InstructionTemplate
     {

@@ -7,7 +7,7 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
     internal class IntegerImmediateValueTemplate : InstructionTemplate
     {
         public IntegerImmediateValueTemplate()
-            : base(new BooleanImmediateValue(false) { TemplateValue = null }, 1)
+            : base(new IntegerImmediateValue(0) { TemplateValue = null }, 1)
         {
         }
 

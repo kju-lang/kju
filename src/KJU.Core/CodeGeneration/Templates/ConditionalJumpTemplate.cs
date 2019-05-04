@@ -12,6 +12,11 @@ namespace KJU.Core.CodeGeneration.Templates
 
         public override Instruction Emit(VirtualRegister result, IReadOnlyList<object> fill, string label)
         {
+            if (label == null)
+            {
+                throw new TemplateCreationException("Label is null.");
+            }
+
             var input = fill.GetRegister(0);
             return new ConditionalJumpInstruction(input, label);
         }
@@ -28,7 +33,8 @@ namespace KJU.Core.CodeGeneration.Templates
                 this.label = label;
             }
 
-            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(
+                IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var hardwareRegister = this.register.ToHardware(registerAssignment);
 

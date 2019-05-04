@@ -1,7 +1,7 @@
 namespace KJU.Core.CodeGeneration.Templates
 {
     using System.Collections.Generic;
-    using KJU.Core.Intermediate;
+    using Intermediate;
 
     public static class InstructionsTemplatesUtils
     {
@@ -31,7 +31,7 @@ namespace KJU.Core.CodeGeneration.Templates
             this IReadOnlyList<object> fill,
             int position)
         {
-            var box = (BooleanImmediateValue)fill[position];
+            var box = new BooleanImmediateValue((bool)fill[position]);
             return box.Value;
         }
 
