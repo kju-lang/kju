@@ -31,7 +31,9 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
             var labelToFirstInstruction = codeBlocks
                 .ToDictionary(codeBlock => codeBlock.Label, codeBlock => codeBlock.Instructions[0]);
 
-            var cfg = codeBlocks.SelectMany(codeBlock => codeBlock.Instructions)
+            var cfg = codeBlocks
+                .SelectMany(codeBlock => codeBlock.Instructions)
+                .Distinct()
                 .ToDictionary(instruction => instruction, _ => new HashSet<Instruction>());
 
             for (int i = 0; i < codeBlocks.Count; i++)
