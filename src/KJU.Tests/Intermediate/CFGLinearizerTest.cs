@@ -91,7 +91,7 @@ namespace KJU.Tests.Intermediate
         {
             var t1 = new Tree(null);
             var t2 = new Tree(null);
-            var t3 = new Tree(new IntegerImmediateValue(0));
+            var t3 = new Tree(new IntegerImmediateValue(0), new Ret());
 
             var l1 = new Label(t1);
             var l2 = new Label(t2);

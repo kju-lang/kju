@@ -39,7 +39,7 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
                         if (order.ContainsKey(conditionalJump.FalseTarget) &&
                             !order.ContainsKey(conditionalJump.TrueTarget))
                         {
-                            FlipConditionalJumpTargets(current.Tree);
+                            current.Tree = FlipConditionalJumpTargets(current.Tree.Root, conditionalJump);
                             newConditionalJump = (ConditionalJump)current.Tree.ControlFlow;
                         }
                         else
@@ -56,13 +56,8 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
                     case Ret _:
                         break;
                     default:
-                        if (current.Tree.ControlFlow != null)
-                        {
-                            throw new NotSupportedException(
-                                $"Unknown control flow instruction: {current.Tree.ControlFlow}");
-                        }
-
-                        break;
+                        throw new NotSupportedException(
+                            $"Unknown control flow instruction: {current.Tree.ControlFlow}");
                 }
 
                 order[current] = processedTrees[current.Tree] = treeTable.Count;
@@ -73,18 +68,11 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
             return new Tuple<IReadOnlyList<Tree>, IReadOnlyDictionary<Label, int>>(resultTreeTable, order);
         }
 
-        private static void FlipConditionalJumpTargets(Tree tree)
+        private static Tree FlipConditionalJumpTargets(Node operation, ConditionalJump conditionalJump)
         {
-            if (tree.ControlFlow is ConditionalJump conditionalJump)
-            {
-                tree.Root = new UnaryOperation(tree.Root, AST.UnaryOperationType.Not);
-                tree.ControlFlow = new ConditionalJump(conditionalJump.FalseTarget, conditionalJump.TrueTarget);
-            }
-            else
-            {
-                throw new Exception(
-                    $"Expected control flow to be type ConditionalJump. Got: {tree.ControlFlow.GetType()}");
-            }
+            var newOperation = new UnaryOperation(operation, AST.UnaryOperationType.Not);
+            var newControlFlow = new ConditionalJump(conditionalJump.FalseTarget, conditionalJump.TrueTarget);
+            return new Tree(newOperation, newControlFlow);
         }
 
         private static IReadOnlyList<Tree> EraseUnnecessaryJumps(
@@ -92,33 +80,33 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
         {
             return treeTable.Select((tree, index) =>
             {
+                ControlFlowInstruction controlFlow;
                 switch (tree.ControlFlow)
                 {
                     case UnconditionalJump unconditionalJump:
-                        if (order[unconditionalJump.Target] == index + 1)
-                        {
-                            tree.ControlFlow = new UnconditionalJump(null);
-                        }
+                        controlFlow = order[unconditionalJump.Target] == index + 1
+                            ? new UnconditionalJump(null)
+                            : tree.ControlFlow;
 
                         break;
                     case ConditionalJump conditionalJump:
-                        if (order[conditionalJump.FalseTarget] == index + 1)
-                        {
-                            tree.ControlFlow =
-                                new ConditionalJump(conditionalJump.TrueTarget, null);
-                        }
+                        controlFlow = order[conditionalJump.FalseTarget] == index + 1
+                            ? new ConditionalJump(conditionalJump.TrueTarget, null)
+                            : tree.ControlFlow;
 
                         break;
                     case FunctionCall functionCall: // erase TargetAfter???
-                        if (order[functionCall.TargetAfter] == index + 1)
-                        {
-                            tree.ControlFlow = new FunctionCall(functionCall.Func, null);
-                        }
+                        controlFlow = order[functionCall.TargetAfter] == index + 1
+                            ? new FunctionCall(functionCall.Func, null)
+                            : tree.ControlFlow;
 
                         break;
+                    default:
+                        controlFlow = tree.ControlFlow;
+                        break;
                 }
-
-                return tree;
+                var treeRoot = tree.Root;
+                return new Tree(treeRoot, controlFlow);
             }).ToList();
         }
     }
