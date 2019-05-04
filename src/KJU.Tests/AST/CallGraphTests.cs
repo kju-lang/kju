@@ -42,7 +42,8 @@
                     id,
                     UnitType.Instance,
                     new List<VariableDeclaration>(),
-                    body);
+                    body,
+                    false);
                 functions.Add(fun);
             }
 
@@ -88,7 +89,8 @@
                     "b",
                     UnitType.Instance,
                     new List<VariableDeclaration>(),
-                    new InstructionBlock(new List<Expression> { aCall }));
+                    new InstructionBlock(new List<Expression> { aCall }),
+                    false);
             functions.Add(b);
 
             var cCall = new FunctionCall("c", new List<Expression>());
@@ -97,7 +99,8 @@
                     "c",
                     UnitType.Instance,
                     new List<VariableDeclaration>(),
-                    new InstructionBlock(new List<Expression> { cCall }));
+                    new InstructionBlock(new List<Expression> { cCall }),
+                    false);
 
             var bCall = new FunctionCall("b", new List<Expression>());
 
@@ -105,7 +108,8 @@
                     "a",
                     UnitType.Instance,
                     new List<VariableDeclaration>(),
-                    new InstructionBlock(new List<Expression> { bCall, c }));
+                    new InstructionBlock(new List<Expression> { bCall, c }),
+                    false);
             functions.Add(a);
 
             var root = new Program(new List<FunctionDeclaration> { a, b });

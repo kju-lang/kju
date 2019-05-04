@@ -12,13 +12,11 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             var instructionsTemplatesFactory = new Templates.InstructionsTemplatesFactory();
             var instructionTemplates = instructionsTemplatesFactory.CreateInstructionTemplates();
             var instructionSelector = new InstructionSelector.InstructionSelector(instructionTemplates);
-            var labelIdGuidGenerator = new LabelIdGuidGenerator();
             var cfgLinearizer = new CfgLinearizer.CfgLinearizer();
             return new FunctionToAsmGenerator(
                 livenessAnalyzer,
                 registerAllocator,
                 instructionSelector,
-                labelIdGuidGenerator,
                 cfgLinearizer);
         }
     }

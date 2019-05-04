@@ -14,7 +14,7 @@ namespace KJU.Core.Intermediate
 
         public override string ToString()
         {
-            return $"Tree{{Root: {this.Root}, ControlFlowInstruction: {this.ControlFlow?.ToString() ?? "null!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"}}}";
+            return $"Tree{{Root: {this.Root}, ControlFlowInstruction: {this.ControlFlow}}}";
         }
     }
 }

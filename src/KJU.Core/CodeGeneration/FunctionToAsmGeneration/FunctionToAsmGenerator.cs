@@ -4,7 +4,6 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using AST;
     using CfgLinearizer;
     using InstructionSelector;
     using Intermediate;
@@ -20,7 +19,6 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         private readonly ILivenessAnalyzer livenessAnalyzer;
         private readonly IRegisterAllocator registerAllocator;
         private readonly IInstructionSelector instructionSelector;
-        private readonly ILabelIdGenerator labelIdGenerator;
         private readonly ICfgLinearizer cfgLinearizer;
         private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
 
@@ -28,20 +26,16 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             ILivenessAnalyzer livenessAnalyzer,
             IRegisterAllocator registerAllocator,
             IInstructionSelector instructionSelector,
-            ILabelIdGenerator labelIdGenerator,
             ICfgLinearizer cfgLinearizer)
         {
             this.livenessAnalyzer = livenessAnalyzer;
             this.registerAllocator = registerAllocator;
             this.instructionSelector = instructionSelector;
-            this.labelIdGenerator = labelIdGenerator;
             this.cfgLinearizer = cfgLinearizer;
         }
 
-        public IEnumerable<string> ToAsm(FunctionDeclaration functionDeclaration)
+        public IEnumerable<string> ToAsm(Function function, ILabel cfg)
         {
-            var function = functionDeclaration.IntermediateFunction;
-            var cfg = FunctionCfg(functionDeclaration);
             var (allocation, instructionSequence) = this.Allocate(function, this.InstructionSequence(cfg));
             return ConstructResult(instructionSequence, allocation, function);
         }
@@ -56,11 +50,6 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 return codeBlock.Instructions.SelectMany(instruction => instruction.ToASM(allocation.Allocation))
                     .Prepend($"{codeBlock.Label.Id}:");
             }).Prepend($"{function.MangledName}:");
-        }
-
-        private static ILabel FunctionCfg(FunctionDeclaration functionDeclaration)
-        {
-            return functionDeclaration.IntermediateFunction.GenerateBody(functionDeclaration);
         }
 
         private (RegisterAllocationResult, IReadOnlyList<CodeBlock>) Allocate(

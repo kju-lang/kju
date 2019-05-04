@@ -9,7 +9,12 @@ namespace KJU.Tests.Util
     {
         public static FunctionDeclaration CreateFunction(string name, List<Expression> body)
         {
-            return new FunctionDeclaration(name, IntType.Instance, new List<VariableDeclaration>(), new InstructionBlock(body));
+            return new FunctionDeclaration(
+                name,
+                IntType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(body),
+                false);
         }
 
         public static VariableDeclaration CreateVariableDeclaration(string name)
@@ -32,7 +37,11 @@ namespace KJU.Tests.Util
 
         public static CompoundAssignment CreateIncrement(VariableDeclaration declaration)
         {
-            return new CompoundAssignment(CreateVariable(declaration), ArithmeticOperationType.Addition, new IntegerLiteral(1));
+            var variable = CreateVariable(declaration);
+            return new CompoundAssignment(
+                variable,
+                ArithmeticOperationType.Addition,
+                new IntegerLiteral(1));
         }
     }
 }

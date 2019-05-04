@@ -68,7 +68,7 @@ namespace KJU.Core.Intermediate
 
             public override string ToString()
             {
-                return $"Label{{Id: {this.Id ?? "null"}, Tree: {this.Tree}}}";
+                return $"Label{{Id: {this.Id}, Tree: {this.Tree}}}";
             }
         }
     }

@@ -28,7 +28,8 @@
                 "Fun1",
                 UnitType.Instance,
                 new List<VariableDeclaration> { arg1 },
-                new InstructionBlock(new List<Expression> { new ReturnStatement(null) }));
+                new InstructionBlock(new List<Expression> { new ReturnStatement(null) }),
+                false);
 
             var fun2 = new FunctionDeclaration(
                 "Fun2",
@@ -47,7 +48,8 @@
                             {
                                 DeclarationCandidates = new List<FunctionDeclaration> { fun1 }
                             })
-                    }));
+                    }),
+                false);
 
             var functions = new List<FunctionDeclaration> { fun1, fun2 };
             var root = new Program(functions);
@@ -88,7 +90,8 @@
                                 ComparisonType.Equal,
                                 new Variable("Var1") { Declaration = var1 },
                                 new Variable("Var2") { Declaration = var2 }))
-                    }));
+                    }),
+                false);
 
             var functions = new List<FunctionDeclaration> { fun1 };
             Node root = new Program(functions);
@@ -153,7 +156,8 @@
                         {
                             Type = BoolType.Instance
                         }
-                    }) { Type = UnitType.Instance }) { Type = UnitType.Instance };
+                    }) { Type = UnitType.Instance },
+                false) { Type = UnitType.Instance };
 
             var expectedFunctions = new List<FunctionDeclaration> { expectedFun1 };
             Node expectedRoot = new Program(expectedFunctions);
@@ -177,7 +181,8 @@
                         new UnaryOperation(UnaryOperationType.Plus, new Variable("var1") { Declaration = var1 }),
                         new UnaryOperation(UnaryOperationType.Minus, new Variable("var1") { Declaration = var1 }),
                         new UnaryOperation(UnaryOperationType.Not, new Variable("var2") { Declaration = var2 }),
-                    }));
+                    }),
+                false);
 
             var functions = new List<FunctionDeclaration> { fun1 };
             Node root = new Program(functions);
@@ -216,7 +221,8 @@
                         new UnaryOperation(UnaryOperationType.Plus, new Variable("var2") { Declaration = var2 }),
                         new UnaryOperation(UnaryOperationType.Minus, new Variable("var2") { Declaration = var2 }),
                         new UnaryOperation(UnaryOperationType.Not, new Variable("var1") { Declaration = var1 }),
-                    }));
+                    }),
+                false);
 
             var functions = new List<FunctionDeclaration> { fun1 };
             Node root = new Program(functions);
@@ -309,7 +315,8 @@
                                 {
                                     Declaration = var1
                                 }))
-                    }));
+                    }),
+                false);
 
             var var2 = new VariableDeclaration(
                 IntType.Instance,
@@ -341,7 +348,8 @@
                             {
                                 Declaration = var2
                             })
-                    }));
+                    }),
+                false);
 
             var functions = new List<FunctionDeclaration> { fun1, fun2 };
             return new Program(functions);
@@ -404,7 +412,8 @@
                     })
                 {
                     Type = UnitType.Instance
-                })
+                },
+                false)
             {
                 Type = UnitType.Instance
             };
@@ -447,7 +456,8 @@
                     })
                 {
                     Type = UnitType.Instance
-                })
+                },
+                false)
             {
                 Type = UnitType.Instance
             };
@@ -496,7 +506,8 @@
                                 {
                                     Declaration = var1
                                 }))
-                    }));
+                    }),
+                false);
 
             var var2 = new VariableDeclaration(
                 IntType.Instance,
@@ -522,7 +533,8 @@
                             new IntegerLiteral(3)),
                         new ReturnStatement(
                             new Variable("var2") { Declaration = var2 })
-                    }));
+                    }),
+                false);
 
             var functions = new List<FunctionDeclaration> { fun1, fun2 };
             return new Program(functions);
@@ -539,7 +551,8 @@
                     new List<Expression>
                     {
                         new ReturnStatement(new IntegerLiteral(5))
-                    }));
+                    }),
+                false);
 
             var fun2 = new FunctionDeclaration(
                 "Fun2",
@@ -558,7 +571,8 @@
                                     DeclarationCandidates = new List<FunctionDeclaration> { fun1 }
                                 },
                                 new IntegerLiteral(5)))
-                    }));
+                    }),
+                false);
 
             var functions = new List<FunctionDeclaration> { fun1, fun2 };
             return new Program(functions);

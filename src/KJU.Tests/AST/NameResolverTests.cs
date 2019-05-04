@@ -41,7 +41,8 @@
                     id,
                     UnitType.Instance,
                     new List<VariableDeclaration>(),
-                    body);
+                    body,
+                    false);
                 calls.Add(functionCall);
                 functions.Add(fun);
             }
@@ -80,7 +81,8 @@
                 "h",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                hInstructionBlock);
+                hInstructionBlock,
+                false);
             var x = new VariableDeclaration(IntType.Instance, "x", null);
             var v = new Variable("x");
             var h2 = new VariableDeclaration(IntType.Instance, "h", null);
@@ -90,7 +92,8 @@
                 "f",
                 UnitType.Instance,
                 new List<VariableDeclaration> { x },
-                fInstructionBlock);
+                fInstructionBlock,
+                false);
 
             var x2 = new VariableDeclaration(IntType.Instance, "x", null);
             var v2 = new Variable("x");
@@ -101,7 +104,8 @@
                 "g",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                gInstructionBlock);
+                gInstructionBlock,
+                false);
 
             var functions = new List<FunctionDeclaration> { h, f, g };
             var root = new Program(functions);
@@ -131,7 +135,8 @@
                 "f",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                fInstructionBlock);
+                fInstructionBlock,
+                false);
 
             var diagnosticsMock = new Moq.Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
@@ -159,13 +164,15 @@
                 "f",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                new InstructionBlock(new List<Expression>()));
+                new InstructionBlock(new List<Expression>()),
+                false);
 
             var f2 = new FunctionDeclaration(
                 "f",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                new InstructionBlock(new List<Expression>()));
+                new InstructionBlock(new List<Expression>()),
+                false);
 
             var diagnosticsMock = new Moq.Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
@@ -197,19 +204,22 @@
                 "g",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                gInstructionBlock);
+                gInstructionBlock,
+                false);
 
             var g2 = new FunctionDeclaration(
                 "g",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                gInstructionBlock);
+                gInstructionBlock,
+                false);
 
             var f = new FunctionDeclaration(
                 "f",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                new InstructionBlock(new List<Expression> { g, g2 }));
+                new InstructionBlock(new List<Expression> { g, g2 }),
+                false);
 
             var diagnosticsMock = new Moq.Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
@@ -242,7 +252,8 @@
                 "f",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                new InstructionBlock(new List<Expression> { v, x, fc }));
+                new InstructionBlock(new List<Expression> { v, x, fc }),
+                false);
 
             var mockDiagnostics = new Moq.Mock<IDiagnostics>();
             var diagnostics = mockDiagnostics.Object;
@@ -279,7 +290,8 @@
                 "f",
                 UnitType.Instance,
                 new List<VariableDeclaration>(),
-                new InstructionBlock(new List<Expression> { v, x, fc }));
+                new InstructionBlock(new List<Expression> { v, x, fc }),
+                false);
 
             var diagnosticsMock = new Moq.Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
@@ -290,8 +302,8 @@
 
             Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(root, diagnostics));
             MockDiagnostics.Verify(
-               diagnosticsMock,
-               NameResolver.IdentifierNotFoundDiagnostic);
+                diagnosticsMock,
+                NameResolver.IdentifierNotFoundDiagnostic);
         }
     }
 }

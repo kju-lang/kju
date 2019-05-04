@@ -58,7 +58,8 @@ namespace KJU.Core.Compiler
                 this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var functionsIR = this.intermediateGenerator.CreateIR(ast);
                 var asmHeader = this.asmHeaderGenerator.GenerateHeader();
-                var functionsAsm = functionsIR.Keys.SelectMany(this.functionToAsmGenerator.ToAsm).ToList();
+                var functionsAsm = functionsIR.SelectMany(x => this.functionToAsmGenerator.ToAsm(x.Key, x.Value))
+                    .ToList();
                 var asm = functionsAsm.Prepend(asmHeader).ToList();
                 return new Artifacts(ast, asm);
             }

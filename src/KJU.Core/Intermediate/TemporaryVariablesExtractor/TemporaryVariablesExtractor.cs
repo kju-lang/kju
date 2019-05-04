@@ -36,7 +36,10 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     return new List<Expression>();
 
                 case VariableDeclaration variable:
-                    return this.ExtractTemporaryVariables(variable.Value);
+                {
+                    var value = variable.Value;
+                    return value == null ? new List<Expression>() : this.ExtractTemporaryVariables(variable.Value);
+                }
 
                 case WhileStatement whileNode:
                     this.ExtractTemporaryVariables(whileNode.Body);
@@ -80,7 +83,10 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     return new List<Expression>();
 
                 case ReturnStatement returnNode:
-                    return this.ExtractTemporaryVariables(returnNode.Value);
+                {
+                    var value = returnNode.Value;
+                    return value == null ? new List<Expression>() : this.ExtractTemporaryVariables(value);
+                }
 
                 case AST.Variable _:
                     return new List<Expression>();

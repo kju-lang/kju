@@ -26,7 +26,8 @@ namespace KJU.Tests.Intermediate
                     new VariableDeclaration(IntType.Instance, null, null),
                     new VariableDeclaration(BoolType.Instance, null, null),
                 },
-                body: null);
+                body: null,
+                false);
 
             Assert.AreEqual(
                 actual: this.nameMangler.GetMangledName(function1, null),
@@ -44,7 +45,8 @@ namespace KJU.Tests.Intermediate
                 identifier: "bar",
                 returnType: null,
                 parameters: new List<VariableDeclaration>() { },
-                body: null);
+                body: null,
+                false);
 
             Assert.AreEqual(
                 actual: this.nameMangler.GetMangledName(function2, null),

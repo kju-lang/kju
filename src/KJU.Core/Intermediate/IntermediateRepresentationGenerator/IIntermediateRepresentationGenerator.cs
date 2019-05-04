@@ -4,6 +4,6 @@ namespace KJU.Core.Intermediate.IntermediateRepresentationGenerator
 
     public interface IIntermediateRepresentationGenerator
     {
-        IReadOnlyDictionary<AST.FunctionDeclaration, ILabel> CreateIR(AST.Node node);
+        IReadOnlyDictionary<Function.Function, ILabel> CreateIR(AST.Node node);
     }
 }

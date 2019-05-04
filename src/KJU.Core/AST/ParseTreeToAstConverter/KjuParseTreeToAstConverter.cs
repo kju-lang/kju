@@ -321,8 +321,8 @@ namespace KJU.Core.AST
                     identifier,
                     type,
                     parameters,
-                    body);
-                ast.IsForeign = isForeign;
+                    body,
+                    isForeign);
 
                 return ast;
             }
@@ -339,7 +339,9 @@ namespace KJU.Core.AST
 
             private Expression InstructionToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
-                return branch.Children.Count == 1 ? new UnitLiteral() : this.NotDelimeteredInstructionToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                return branch.Children.Count == 1
+                    ? new UnitLiteral()
+                    : this.NotDelimeteredInstructionToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
             }
 
             private Expression NotDelimeteredInstructionToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
@@ -497,7 +499,8 @@ namespace KJU.Core.AST
                     var variable = this.ExpressionLogicalOrToAst(
                         (Brunch<KjuAlphabet>)branch.Children[0],
                         diagnostics) as AST.Variable;
-                    var rightValue = this.ExpressionAssignmentToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
+                    var rightValue =
+                        this.ExpressionAssignmentToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
 
                     if (variable == null)
                     {

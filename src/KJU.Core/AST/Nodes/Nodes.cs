@@ -5,8 +5,7 @@ namespace KJU.Core.AST
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Intermediate;
-    using KJU.Core.Intermediate.Function;
+    using Intermediate.Function;
 
     public class Expression : Node
     {
@@ -39,12 +38,14 @@ namespace KJU.Core.AST
             string identifier,
             DataType returnType,
             IReadOnlyList<VariableDeclaration> parameters,
-            InstructionBlock body)
+            InstructionBlock body,
+            bool isForeign)
         {
             this.Identifier = identifier;
             this.ReturnType = returnType;
             this.Parameters = parameters;
             this.Body = body;
+            this.IsForeign = isForeign;
         }
 
         public string Identifier { get; }
@@ -55,7 +56,7 @@ namespace KJU.Core.AST
 
         public InstructionBlock Body { get; set; }
 
-        public bool IsForeign { get; set; }
+        public bool IsForeign { get; }
 
         public Function IntermediateFunction { get; set; }
 
@@ -73,10 +74,7 @@ namespace KJU.Core.AST
 
         public override IEnumerable<Node> Children()
         {
-            if (this.Body != null)
-                return new List<Node>(this.Parameters) { this.Body };
-            else
-                return new List<Node>(this.Parameters);
+            return this.Body != null ? new List<Node>(this.Parameters) { this.Body } : new List<Node>(this.Parameters);
         }
 
         public override string ToString()
