@@ -4,15 +4,20 @@ namespace KJU.Core.Filenames
 
     public static class Extensions
     {
-        public static string ChangeExtension(string input, string extension)
+        public static string ChangeExtension(this string input, string extension)
         {
             var basename = RemoveExtension(input);
             return $"{basename}.{extension}";
         }
 
-        public static string RemoveExtension(string input)
+        public static string RemoveExtension(this string input)
         {
             return Regex.Replace(input, @"(\.[^.]*)*$", string.Empty);
+        }
+
+        public static string AddExtension(this string input, string extension)
+        {
+            return $"{input}.{extension}";
         }
     }
 }

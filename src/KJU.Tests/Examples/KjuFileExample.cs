@@ -35,7 +35,7 @@ namespace KJU.Tests.Examples
         {
             this.Path = path;
 
-            var specPath = ChangeExtension(this.Path, "spec.xml");
+            var specPath = this.Path.ChangeExtension("spec.xml");
             if (File.Exists(specPath))
             {
                 this.spec = XDocument.Load(specPath);
@@ -109,7 +109,7 @@ namespace KJU.Tests.Examples
         private string GetDefaultName()
         {
             var fileName = new FileInfo(this.Path).Name;
-            var withoutExtension = RemoveExtension(fileName);
+            var withoutExtension = fileName.RemoveExtension();
             var withoutUnderscore = Replace(withoutExtension, @"_", " ");
             return char.ToUpper(withoutUnderscore[0]) + withoutUnderscore.Substring(1);
         }

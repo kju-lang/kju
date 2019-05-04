@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using CommandLine;
     using KJU.Core;
     using KJU.Core.AST;
@@ -11,6 +12,7 @@
     using KJU.Core.Filenames;
     using KJU.Core.Input;
     using KJU.Core.Parser;
+    using static KJU.Application.ProgramUtils;
 
     public static class Program
     {
@@ -23,36 +25,67 @@
         public static void Run(Options options)
         {
             var compiler = new Compiler();
-            foreach (var filename in options.Files)
+            var inputs = options.Files.Select(file => new CompilationQuery(new FileInputReader(file), file));
+            foreach (var query in inputs)
             {
                 var diag = new TextWriterDiagnostics(Console.Error);
 
                 try
                 {
-                    var artifacts = compiler.RunOnFile(filename, diag);
-
-                    if (options.GenAstDot)
-                    {
-                        System.IO.File.WriteAllLines(
-                            Extensions.ChangeExtension(filename, "ast.dot"),
-                            KJU.Core.Visualization.AstToDotConverter.Convert(artifacts.Ast));
-                    }
-
-                    if (options.GenAsm)
-                    {
-                    Console.WriteLine($"{Extensions.ChangeExtension(filename, "asm")}");
-                        System.IO.File.WriteAllLines(
-                            Extensions.ChangeExtension(filename, "asm"),
-                            artifacts.Asm);
-                    }
+                    GenerateArtifacts(options, compiler, query, diag);
                 }
                 catch (CompilerException)
                 {
                     Console.WriteLine("Compilation failed");
                 }
+                catch (ArtifactGenerationException e)
+                {
+                    Console.WriteLine($"Cannot generate artifact: {e.Message}");
+                }
                 finally
                 {
                     diag.Report();
+                }
+            }
+        }
+
+        public static void GenerateArtifacts(
+            Options options,
+            ICompiler compiler,
+            CompilationQuery query,
+            IDiagnostics diag)
+        {
+            var artifacts = compiler.RunOnInputReader(query.Input, diag);
+
+            var resultPath = query.ResultPath;
+            if (options.GenAstDot)
+            {
+                var astPath = resultPath.AddExtension("ast.dot");
+                var astText = Core.Visualization.AstToDotConverter.Convert(artifacts.Ast);
+                File.WriteAllLines(astPath, astText);
+            }
+
+            if (options.GenAsm || options.GenExe)
+            {
+                var asmPath = resultPath.AddExtension("asm");
+                File.WriteAllLines(asmPath, artifacts.Asm);
+                if (options.GenExe)
+                {
+                    var arguments = $"{asmPath} -f elf64";
+                    var nasmExitCode = RunProcess("nasm", arguments);
+                    if (nasmExitCode != 0)
+                    {
+                        throw new ArtifactGenerationException($"Nasm {arguments} process failed. Exit code: {nasmExitCode}");
+                    }
+
+                    var oPath = resultPath.AddExtension("o");
+                    var exePath = resultPath;
+                    var gccExitCode = RunProcess(@"gcc", $"{oPath} -o {exePath} -nostdlib");
+                    if (gccExitCode != 0)
+                    {
+                        throw new ArtifactGenerationException(
+                            $"Gcc (linking) process failed. Exit code: {gccExitCode}");
+                    }
                 }
             }
         }
@@ -67,6 +100,9 @@
 
             [Option("gen-asm", Default = false, HelpText = "Generate asm output.")]
             public bool GenAsm { get; set; }
+
+            [Option("gen-exe", Default = false, HelpText = "Generate executable.")]
+            public bool GenExe { get; set; }
         }
     }
 }
