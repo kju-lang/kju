@@ -35,7 +35,9 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Coloring
                         register => this.superVertices[register],
                         register => register);
 
-            var vertexColoring = order.Aggregate(hardwareRegistersColoring, (currentColoring, vertex) =>
+            var vertexColoring = order
+                .Where(vertex => !vertex.Any(register => register is HardwareRegister))
+                .Aggregate(hardwareRegistersColoring, (currentColoring, vertex) =>
                 {
                     var color = this.GetVertexColor(vertex, currentColoring, allowedHardwareRegisters);
                     currentColoring.Add(vertex, color);
