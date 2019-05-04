@@ -1,18 +1,18 @@
 #pragma warning disable CS0169
 #pragma warning disable SA1202 // this class violates SRP, so it's exempt from this warning :) (private members must come before public)
-namespace KJU.Core.Intermediate
+namespace KJU.Core.Intermediate.Function
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using AST.VariableAccessGraph;
-    using static CFGUtils;
-    using static HardwareRegisterUtils;
+    using CodeGeneration.FunctionToAsmGeneration;
 
     public class Function
     {
-        private Dictionary<HardwareRegister, VirtualRegister> calleeSavedMapping;
+        private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
+        private readonly Dictionary<HardwareRegister, VirtualRegister> calleeSavedMapping;
 
         public Function(Function parent)
             : this()
@@ -38,10 +38,8 @@ namespace KJU.Core.Intermediate
 
         public int StackBytes { get; set; }
 
-        private int StackArgumentsCount
-        {
-            get { return Math.Max(0, this.Arguments.Count + 1 - ArgumentRegisters.Count); }
-        }
+        private int StackArgumentsCount =>
+            Math.Max(0, this.Arguments.Count + 1 - HardwareRegisterUtils.ArgumentRegisters.Count);
 
         public MemoryLocation ReserveStackFrameLocation()
         {
@@ -50,10 +48,10 @@ namespace KJU.Core.Intermediate
 
         // We will use standard x86-64 conventions -> RDI, RSI, RDX, RCX, R8, R9.
         // TODO: instruction templates covering hw register modifications
-        public Label GenerateCall(
+        public ILabel GenerateCall(
             VirtualRegister result,
             List<VirtualRegister> arguments,
-            Label onReturn,
+            ILabel onReturn,
             Function caller)
         {
             var savedRsp = new VirtualRegister();
@@ -64,42 +62,42 @@ namespace KJU.Core.Intermediate
 
             IEnumerable<Node> postCall = new List<Node>
             {
-                RegisterCopy(result, HardwareRegister.RAX),
-                RegisterCopy(HardwareRegister.RSP, savedRsp),
+                CFGUtils.RegisterCopy(result, HardwareRegister.RAX),
+                CFGUtils.RegisterCopy(HardwareRegister.RSP, savedRsp),
             };
 
             Tree call = new Tree(
                 new UnitImmediateValue(),
-                new FunctionCall(this, MakeTreeChain(postCall, onReturn)));
+                new FunctionCall(this, postCall.MakeTreeChain(this.labelFactory, onReturn)));
 
-            return MakeTreeChain(preCall, call);
+            return preCall.MakeTreeChain(this.labelFactory, call);
         }
 
-        public Label GeneratePrologue(Label after)
+        public ILabel GeneratePrologue(ILabel after)
         {
             var operations = new List<Node>()
-            {
-                new Push(new RegisterRead(HardwareRegister.RBP)),
-                RegisterCopy(HardwareRegister.RBP, HardwareRegister.RSP),
-                new ReserveStackMemory(this),
-            }
-                .Concat(this.calleeSavedMapping.Select(kvp => RegisterCopy(kvp.Value, kvp.Key)))
+                {
+                    new Push(new RegisterRead(HardwareRegister.RBP)),
+                    CFGUtils.RegisterCopy(HardwareRegister.RBP, HardwareRegister.RSP),
+                    new ReserveStackMemory(this),
+                }
+                .Concat(this.calleeSavedMapping.Select(kvp => CFGUtils.RegisterCopy(kvp.Value, kvp.Key)))
                 .Concat(this.RetrieveArguments());
 
-            return MakeTreeChain(operations, after);
+            return operations.MakeTreeChain(this.labelFactory, after);
         }
 
-        public Label GenerateEpilogue(Node retVal)
+        public ILabel GenerateEpilogue(Node retVal)
         {
             var operations = this.calleeSavedMapping
-                .Select(kvp => RegisterCopy(kvp.Key, kvp.Value))
+                .Select(kvp => CFGUtils.RegisterCopy(kvp.Key, kvp.Value))
                 .Append(new RegisterWrite(HardwareRegister.RAX, retVal))
-                .Append(RegisterCopy(HardwareRegister.RSP, HardwareRegister.RBP))
+                .Append(CFGUtils.RegisterCopy(HardwareRegister.RSP, HardwareRegister.RBP))
                 .Append(new Pop(HardwareRegister.RBP))
                 .Append(new ClearDF());
 
-            Tree ret = new Tree(new UnitImmediateValue(), new Ret());
-            return MakeTreeChain(operations, ret);
+            var ret = new Tree(new UnitImmediateValue(), new Ret());
+            return operations.MakeTreeChain(this.labelFactory, ret);
         }
 
         private Function GetCallingSibling(Function caller)
@@ -117,7 +115,7 @@ namespace KJU.Core.Intermediate
         {
             return new List<Node>
             {
-                RegisterCopy(savedRsp, HardwareRegister.RSP),
+                CFGUtils.RegisterCopy(savedRsp, HardwareRegister.RSP),
                 new AlignStackPointer(offsetByQword: this.StackArgumentsCount % 2 == 1),
             };
         }
@@ -144,16 +142,16 @@ namespace KJU.Core.Intermediate
                 .Append(readStaticLink);
 
             return Enumerable.Concat<Node>(
-                values.Zip(ArgumentRegisters, (value, hwReg) => new RegisterWrite(hwReg, value)),
-                values.Skip(ArgumentRegisters.Count).Reverse().Select(value => new Push(value)));
+                values.Zip(HardwareRegisterUtils.ArgumentRegisters, (value, hwReg) => new RegisterWrite(hwReg, value)),
+                values.Skip(HardwareRegisterUtils.ArgumentRegisters.Count).Reverse().Select(value => new Push(value)));
         }
 
         private IEnumerable<Node> RetrieveArguments()
         {
-            Func<int, Node> readNthStackArg = n => new MemoryRead(OffsetAddress(HardwareRegister.RBP, n + 2));
+            Func<int, Node> readNthStackArg = n => new MemoryRead(CFGUtils.OffsetAddress(HardwareRegister.RBP, n + 2));
 
             var values = Enumerable.Concat<Node>(
-                ArgumentRegisters.Select(reg => new RegisterRead(reg)),
+                HardwareRegisterUtils.ArgumentRegisters.Select(reg => new RegisterRead(reg)),
                 Enumerable.Range(0, this.StackArgumentsCount).Select(readNthStackArg));
 
             return this.Arguments
@@ -219,10 +217,10 @@ namespace KJU.Core.Intermediate
             }
         }
 
-        public Label GenerateBody(AST.FunctionDeclaration root)
+        public ILabel GenerateBody(AST.FunctionDeclaration root)
         {
             this.ExtractTemporaryVariables(root);
-            var generator = new FunctionBodyGenerator.FunctionBodyGenerator(this);
+            var generator = new FunctionBodyGenerator.FunctionBodyGenerator(this, this.labelFactory);
             return generator.BuildFunctionBody(root.Body);
         }
 
@@ -231,7 +229,10 @@ namespace KJU.Core.Intermediate
             var variableAccessGraphGenerator = new VariableAccessGraphGenerator(new AST.CallGraph.CallGraphGenerator());
             var variableModificationGraph = variableAccessGraphGenerator.BuildVariableModificationsPerAstNode(root);
             var variableAccessGraph = variableAccessGraphGenerator.BuildVariableAccessesPerAstNode(root);
-            var extractor = new TemporaryVariablesExtractor.TemporaryVariablesExtractor(variableModificationGraph, variableAccessGraph);
+            var extractor = new TemporaryVariablesExtractor.TemporaryVariablesExtractor(
+                variableModificationGraph,
+                variableAccessGraph,
+                this);
             var result = extractor.ExtractTemporaryVariables(root.Body);
             var instructions = result.Concat(root.Body.Instructions).ToList();
             root.Body = new AST.InstructionBlock(instructions);

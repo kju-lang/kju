@@ -1,8 +1,8 @@
-namespace KJU.Core.CodeGeneration
+namespace KJU.Core.CodeGeneration.InstructionSelector
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Intermediate;
+    using KJU.Core.Intermediate;
     using KJU.Core.Intermediate.Function;
 
     public class CallInstruction : Instruction

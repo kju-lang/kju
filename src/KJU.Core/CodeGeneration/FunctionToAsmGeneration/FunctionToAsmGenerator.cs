@@ -7,8 +7,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     using CfgLinearizer;
     using InstructionSelector;
     using Intermediate;
-    using Intermediate.FunctionBodyGenerator;
-    using KJU.Core.Intermediate.Function;
+    using Intermediate.Function;
     using LivenessAnalysis;
     using RegisterAllocation;
 

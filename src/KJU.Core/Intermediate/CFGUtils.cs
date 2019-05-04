@@ -6,17 +6,21 @@ namespace KJU.Core.Intermediate
 
     public static class CFGUtils
     {
-        public static Label MakeTreeChain(IEnumerable<Node> nodes, Tree after)
+        public static ILabel MakeTreeChain(this IEnumerable<Node> nodes, ILabelFactory labelFactory, Tree after)
         {
-            return MakeTreeChain(nodes, new Label(after));
+            return MakeTreeChain(nodes, labelFactory, labelFactory.GetLabel(after));
         }
 
-        public static Label MakeTreeChain(IEnumerable<Node> nodes, Label after)
+        public static ILabel MakeTreeChain(this IEnumerable<Node> nodes, ILabelFactory labelFactory, ILabel after)
         {
-            Func<Label, Node, Label> linkToNext = (next, node) =>
-                new Label(new Tree(node, new UnconditionalJump(next)));
-
-            return nodes.Reverse().Aggregate(after, linkToNext);
+            return nodes
+                .Reverse()
+                .Aggregate(after, (next, node) =>
+                {
+                    var controlFlow = new UnconditionalJump(next);
+                    var tree = new Tree(node, controlFlow);
+                    return labelFactory.GetLabel(tree);
+                });
         }
 
         public static Node OffsetAddress(VirtualRegister baseAddr, int offset)

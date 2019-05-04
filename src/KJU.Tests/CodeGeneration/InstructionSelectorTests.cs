@@ -4,7 +4,6 @@ namespace KJU.Tests.CodeGeneration
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using KJU.Core.AST;
     using KJU.Core.CodeGeneration;
     using KJU.Core.CodeGeneration.FunctionToAsmGeneration;

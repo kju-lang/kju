@@ -6,7 +6,7 @@ namespace KJU.Core.AST
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Intermediate.Function;
+    using KJU.Core.Intermediate.Function;
 
     public class Expression : Node
     {

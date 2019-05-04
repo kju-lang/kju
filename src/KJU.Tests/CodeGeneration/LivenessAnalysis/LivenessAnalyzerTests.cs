@@ -9,8 +9,8 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
     using KJU.Core.CodeGeneration.LivenessAnalysis;
     using KJU.Core.Intermediate;
     using KJU.Core.Intermediate.Function;
-    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Util;
 
     [TestClass]
     public class LivenessAnalyzerTests
