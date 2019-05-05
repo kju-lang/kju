@@ -48,14 +48,15 @@ namespace KJU.Tests.Examples
             {
                 GenExe = true
             };
-            var query = new CompilationQuery(example.Program, $"{TestsDirectory}/{example.SimpleName}");
+            var exeName = $"{TestsDirectory}/{example.SimpleName}";
+            var query = new CompilationQuery(example.Program, exeName);
             var doNothingDiagnostics = new DoNothingDiagnostics();
             Program.GenerateArtifacts(options, Compiler, query, doNothingDiagnostics);
             var process = new System.Diagnostics.Process
             {
                 StartInfo =
                 {
-                    FileName = $"{TestsDirectory}/{example.SimpleName}",
+                    FileName = exeName,
                     Arguments = string.Empty,
                     UseShellExecute = false,
                     RedirectStandardInput = true,

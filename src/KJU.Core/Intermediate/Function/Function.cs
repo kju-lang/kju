@@ -13,33 +13,37 @@ namespace KJU.Core.Intermediate.Function
     {
         private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
         private readonly Dictionary<HardwareRegister, VirtualRegister> calleeSavedMapping;
+        private readonly Variable link;
+        private readonly Function parent;
+        private readonly List<Variable> arguments;
 
-        public Function(Function parent)
-            : this()
-        {
-            this.Parent = parent;
-        }
-
-        public Function()
+        public Function(
+            Function parent,
+            string mangledName,
+            IEnumerable<AST.VariableDeclaration> parameters)
         {
             // RBP is handled separately, since it has a set place on the stack frame
             this.calleeSavedMapping = HardwareRegisterUtils.CalleeSavedRegisters
                 .Where(reg => reg != HardwareRegister.RBP)
                 .ToDictionary(register => register, register => new VirtualRegister());
+            this.link = new Variable(this, this.ReserveStackFrameLocation());
+            this.parent = parent;
+            this.MangledName = mangledName;
+            this.arguments = parameters.Select(parameter =>
+            {
+                var location = this.ReserveStackFrameLocation();
+                var variable = new Variable(this, location);
+                parameter.IntermediateVariable = variable;
+                return variable;
+            }).ToList();
         }
 
-        public Variable Link { get; set; }
-
-        public List<Variable> Arguments { get; set; }
-
-        public Function Parent { get; set; }
-
-        public string MangledName { get; set; }
+        public string MangledName { get; }
 
         public int StackBytes { get; set; }
 
         private int StackArgumentsCount =>
-            Math.Max(0, this.Arguments.Count + 1 - HardwareRegisterUtils.ArgumentRegisters.Count);
+            Math.Max(0, this.arguments.Count + 1 - HardwareRegisterUtils.ArgumentRegisters.Count);
 
         public MemoryLocation ReserveStackFrameLocation()
         {
@@ -50,27 +54,24 @@ namespace KJU.Core.Intermediate.Function
         // TODO: instruction templates covering hw register modifications
         public ILabel GenerateCall(
             VirtualRegister result,
-            List<VirtualRegister> arguments,
+            IEnumerable<VirtualRegister> callArguments,
             ILabel onReturn,
             Function caller)
         {
             var savedRsp = new VirtualRegister();
 
-            IEnumerable<Node> preCall = this.RspAlignmentNodes(savedRsp)
-                .Concat(this.PassArguments(caller, arguments))
+            var preCall = this.RspAlignmentNodes(savedRsp)
+                .Concat(this.PassArguments(caller, callArguments))
                 .Append(new ClearDF());
 
-            IEnumerable<Node> postCall = new List<Node>
+            var postCall = new List<Node>
             {
-                CFGUtils.RegisterCopy(result, HardwareRegister.RAX),
-                CFGUtils.RegisterCopy(HardwareRegister.RSP, savedRsp),
+                result.CopyFrom(HardwareRegister.RAX),
+                HardwareRegister.RSP.CopyFrom(savedRsp),
             };
 
-            Tree call = new Tree(
-                new UnitImmediateValue(),
-                new FunctionCall(this, postCall.MakeTreeChain(this.labelFactory, onReturn)));
-
-            return preCall.MakeTreeChain(this.labelFactory, call);
+            var controlFlow = new FunctionCall(this, postCall.MakeTreeChain(this.labelFactory, onReturn));
+            return preCall.MakeTreeChain(this.labelFactory, controlFlow);
         }
 
         public ILabel GeneratePrologue(ILabel after)
@@ -78,10 +79,10 @@ namespace KJU.Core.Intermediate.Function
             var operations = new List<Node>()
                 {
                     new Push(new RegisterRead(HardwareRegister.RBP)),
-                    CFGUtils.RegisterCopy(HardwareRegister.RBP, HardwareRegister.RSP),
+                    HardwareRegister.RBP.CopyFrom(HardwareRegister.RSP),
                     new ReserveStackMemory(this),
                 }
-                .Concat(this.calleeSavedMapping.Select(kvp => CFGUtils.RegisterCopy(kvp.Value, kvp.Key)))
+                .Concat(this.calleeSavedMapping.Select(kvp => kvp.Value.CopyFrom(kvp.Key)))
                 .Concat(this.RetrieveArguments());
 
             return operations.MakeTreeChain(this.labelFactory, after);
@@ -90,22 +91,21 @@ namespace KJU.Core.Intermediate.Function
         public ILabel GenerateEpilogue(Node retVal)
         {
             var operations = this.calleeSavedMapping
-                .Select(kvp => CFGUtils.RegisterCopy(kvp.Key, kvp.Value))
+                .Select(kvp => kvp.Key.CopyFrom(kvp.Value))
                 .Append(new RegisterWrite(HardwareRegister.RAX, retVal))
-                .Append(CFGUtils.RegisterCopy(HardwareRegister.RSP, HardwareRegister.RBP))
+                .Append(HardwareRegister.RSP.CopyFrom(HardwareRegister.RBP))
                 .Append(new Pop(HardwareRegister.RBP))
                 .Append(new ClearDF());
 
-            var ret = new Tree(new UnitImmediateValue(), new Ret());
-            return operations.MakeTreeChain(this.labelFactory, ret);
+            return operations.MakeTreeChain(this.labelFactory, new Ret());
         }
 
         private Function GetCallingSibling(Function caller)
         {
             var result = caller;
-            while (result.Parent != this.Parent)
+            while (result.parent != this.parent)
             {
-                result = result.Parent;
+                result = result.parent;
             }
 
             return result;
@@ -115,86 +115,92 @@ namespace KJU.Core.Intermediate.Function
         {
             return new List<Node>
             {
-                CFGUtils.RegisterCopy(savedRsp, HardwareRegister.RSP),
+                savedRsp.CopyFrom(HardwareRegister.RSP),
                 new AlignStackPointer(offsetByQword: this.StackArgumentsCount % 2 == 1),
             };
         }
 
-        // Argument position on wrt. stack frame (if needed):
-        //
-        //        |             ...            |
-        //        | (i+7)th argument           | rbp + 16 + 8i
-        //        |             ...            |
-        //        | 7th argument               | rbp + 16
-        //        | return stack pointer value | rbp + 8
-        // rbp -> | previous rbp value         |
-        //
-        // Static link is the last argument, either in register or on stack.
+/*
+        Argument position on wrt. stack frame (if needed):
+               |             ...            |
+               | (i+7)th argument           | rbp + 16 + 8i
+               |             ...            |
+               | 7th argument               | rbp + 16
+               | return stack pointer value | rbp + 8
+        rbp -> | previous rbp value         |
+        Static link is the last argument, either in register or on stack.
+*/
 
         private IEnumerable<Node> PassArguments(Function caller, IEnumerable<VirtualRegister> argRegisters)
         {
-            Node readStaticLink = caller == this.Parent
+            var readStaticLink = caller == this.parent
                 ? new RegisterRead(HardwareRegister.RBP)
-                : caller.GenerateRead(this.GetCallingSibling(caller).Link);
+                : caller.GenerateRead(this.GetCallingSibling(caller).link);
 
             var values = argRegisters
                 .Select(argVR => new RegisterRead(argVR))
-                .Append(readStaticLink);
+                .Append(readStaticLink).ToList();
 
-            return Enumerable.Concat<Node>(
-                values.Zip(HardwareRegisterUtils.ArgumentRegisters, (value, hwReg) => new RegisterWrite(hwReg, value)),
-                values.Skip(HardwareRegisterUtils.ArgumentRegisters.Count).Reverse().Select(value => new Push(value)));
+            return values.Zip(
+                    HardwareRegisterUtils.ArgumentRegisters,
+                    (value, hwReg) => new RegisterWrite(hwReg, value))
+                .Concat<Node>(
+                    values.Skip(HardwareRegisterUtils.ArgumentRegisters.Count).Reverse()
+                        .Select(value => new Push(value)));
         }
 
         private IEnumerable<Node> RetrieveArguments()
         {
-            Func<int, Node> readNthStackArg = n => new MemoryRead(CFGUtils.OffsetAddress(HardwareRegister.RBP, n + 2));
+            var values = HardwareRegisterUtils
+                .ArgumentRegisters
+                .Select(reg => new RegisterRead(reg))
+                .Concat(Enumerable.Range(0, this.StackArgumentsCount)
+                    .Select((Func<int, Node>)(n => new MemoryRead(HardwareRegister.RBP.OffsetAddress(n + 2)))));
 
-            var values = Enumerable.Concat<Node>(
-                HardwareRegisterUtils.ArgumentRegisters.Select(reg => new RegisterRead(reg)),
-                Enumerable.Range(0, this.StackArgumentsCount).Select(readNthStackArg));
-
-            return this.Arguments
-                .Append(this.Link)
+            return this.arguments
+                .Append(this.link)
                 .Zip(values, this.GenerateWrite);
         }
 
-        public Node GenerateRead(Variable v)
+        public Node GenerateRead(Variable variable)
         {
-            return this.GenerateRead(v, new RegisterRead(HardwareRegister.RBP));
+            return this.GenerateRead(variable, new RegisterRead(HardwareRegister.RBP));
         }
 
-        public Node GenerateWrite(Variable v, Node value)
+        public Node GenerateWrite(Variable variable, Node value)
         {
-            return this.GenerateWrite(v, value, new RegisterRead(HardwareRegister.RBP));
+            return this.GenerateWrite(variable, value, new RegisterRead(HardwareRegister.RBP));
         }
 
-        private Node GenerateRead(Variable v, Node framePointer)
+        private Node GenerateRead(Variable variable, Node framePointer)
         {
-            switch (v.Location)
+            switch (variable.Location)
             {
-                case VirtualRegister reg:
-                    if (v.Owner != this)
-                        throw new ArgumentException("read of virtual register outside its function");
-                    return new RegisterRead(reg);
+                case VirtualRegister virtualRegister:
+                    if (variable.Owner != this)
+                    {
+                        throw new ArgumentException("Read of virtual register outside its function");
+                    }
+
+                    return new RegisterRead(virtualRegister);
                 case MemoryLocation location:
                     return new MemoryRead(this.GenerateVariableLocation(location, framePointer));
                 default:
-                    throw new ArgumentException($"unexpected Location kind {v}");
+                    throw new ArgumentException($"Unexpected Location kind {variable}");
             }
         }
 
-        private Node GenerateWrite(Variable v, Node value, Node framePointer)
+        private Node GenerateWrite(Variable variable, Node value, Node framePointer)
         {
-            switch (v.Location)
+            switch (variable.Location)
             {
-                case VirtualRegister reg:
-                    Debug.Assert(v.Owner == this, "write to virtual register outside its function");
-                    return new RegisterWrite(reg, value);
+                case VirtualRegister virtualRegister:
+                    Debug.Assert(variable.Owner == this, "Write to virtual register outside its function");
+                    return new RegisterWrite(virtualRegister, value);
                 case MemoryLocation location:
                     return new MemoryWrite(this.GenerateVariableLocation(location, framePointer), value);
                 default:
-                    throw new ArgumentException($"unexpected Location kind {v}");
+                    throw new ArgumentException($"Unexpected Location kind {variable}");
             }
         }
 
@@ -207,14 +213,14 @@ namespace KJU.Core.Intermediate.Function
                     framePointer,
                     new IntegerImmediateValue(loc.Offset));
             }
-            else
-            {
-                if (this.Parent == null)
-                    throw new ArgumentException("variable not found in parents chain");
 
-                Node parentFramePointer = this.GenerateRead(this.Link, framePointer);
-                return this.Parent.GenerateVariableLocation(loc, parentFramePointer);
+            if (this.parent == null)
+            {
+                throw new ArgumentException("Variable not found in parents chain");
             }
+
+            var parentFramePointer = this.GenerateRead(this.link, framePointer);
+            return this.parent.GenerateVariableLocation(loc, parentFramePointer);
         }
 
         public ILabel GenerateBody(AST.FunctionDeclaration root)

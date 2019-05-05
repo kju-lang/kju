@@ -26,7 +26,7 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
                 VirtualRegister result,
                 bool value)
                 : base(
-                    new List<VirtualRegister> { },
+                    new List<VirtualRegister>(),
                     new List<VirtualRegister> { result },
                     new List<Tuple<VirtualRegister, VirtualRegister>>())
             {

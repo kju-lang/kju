@@ -36,7 +36,7 @@ namespace KJU.Tests.CodeGeneration
         {
             var template = new ReserveStackMemoryTemplate();
             var templates = new List<InstructionTemplate> { template };
-            var root = new ReserveStackMemory(new Function { StackBytes = 16 });
+            var root = new ReserveStackMemory(new Function(null, "abc", new List<VariableDeclaration>()) { StackBytes = 16 });
             var tree = new Tree(root, new Ret());
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);
@@ -51,7 +51,8 @@ namespace KJU.Tests.CodeGeneration
             var template = new RegisterReadTemplate();
             var templates = new List<InstructionTemplate> { template, nullTemplate };
             var root = new RegisterRead(new VirtualRegister());
-            var trueTarget = this.labelFactory.GetLabel(new Tree(new UnitImmediateValue(), new UnconditionalJump(null)));
+            var trueTarget =
+                this.labelFactory.GetLabel(new Tree(new UnitImmediateValue(), new UnconditionalJump(null)));
             var controlFlow = new ConditionalJump(trueTarget, null);
             var tree = new Tree(root, controlFlow);
             var selector = new InstructionSelector(templates);

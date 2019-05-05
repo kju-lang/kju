@@ -1,5 +1,6 @@
 namespace KJU.Tests.Intermediate
 {
+    using System.Collections.Generic;
     using KJU.Core.Intermediate;
     using KJU.Core.Intermediate.Function;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,20 +31,16 @@ namespace KJU.Tests.Intermediate
              *
              */
 
-            var functionA = new Function();
+            var functionA = new Function(null, "a", new List<KJU.Core.AST.VariableDeclaration>());
 
             functionA.ReserveStackFrameLocation();
             functionA.ReserveStackFrameLocation();
 
-            var functionB = new Function { Parent = functionA };
-            var functionBLinkLocation = functionB.ReserveStackFrameLocation();
-            functionB.Link = new Variable(functionB, functionBLinkLocation);
+            var functionB = new Function(functionA, "b", new List<KJU.Core.AST.VariableDeclaration>());
 
             functionB.ReserveStackFrameLocation();
 
-            var functionC = new Function { Parent = functionB };
-            var cLinkLocation = new VirtualRegister();
-            functionC.Link = new Variable(functionC, cLinkLocation);
+            var functionC = new Function(functionB, "c", new List<KJU.Core.AST.VariableDeclaration>());
 
             var variableALocation = functionA.ReserveStackFrameLocation();
             var variableA = new Variable(functionA, variableALocation);
@@ -68,21 +65,33 @@ namespace KJU.Tests.Intermediate
 
             var bRead = (MemoryRead)functionC.GenerateRead(variableB);
             var computeBRead = (ArithmeticBinaryOperation)bRead.Addr;
+/*
             var bReadLeft = (RegisterRead)computeBRead.Lhs;
+*/
             var bReadRight = (IntegerImmediateValue)computeBRead.Rhs;
+/*
             Assert.AreEqual(cLinkLocation, bReadLeft.Register);
+*/
             Assert.AreEqual(variableBLocation.Offset, bReadRight.Value);
 
             var actualARead = (MemoryRead)functionC.GenerateRead(variableA);
             var actualAAddress = (ArithmeticBinaryOperation)actualARead.Addr;
+/*
             var actualAAddressLeft = (MemoryRead)actualAAddress.Lhs;
+*/
             var actualAAddressRight = (IntegerImmediateValue)actualAAddress.Rhs;
+/*
             var actualAStackAddress = (ArithmeticBinaryOperation)actualAAddressLeft.Addr; // bLink
+*/
+/*
             var actualAStackAddressLeft = (RegisterRead)actualAStackAddress.Lhs;
             var actualAStackAddressRight = (IntegerImmediateValue)actualAStackAddress.Rhs;
+*/
             Assert.AreEqual(variableALocation.Offset, actualAAddressRight.Value);
+/*
             Assert.AreEqual(functionBLinkLocation.Offset, actualAStackAddressRight.Value);
             Assert.AreEqual(cLinkLocation, actualAStackAddressLeft.Register);
+*/
         }
     }
 }

@@ -15,14 +15,15 @@ namespace KJU.Core.CodeGeneration.Templates.Stack
 
         public override Instruction Emit(VirtualRegister result, IReadOnlyList<object> fill, string label)
         {
-            return new PushInstruction(result);
+            var register = fill.GetRegister(0);
+            return new PopInstruction(register);
         }
 
-        private class PushInstruction : Instruction
+        private class PopInstruction : Instruction
         {
             private readonly VirtualRegister register;
 
-            public PushInstruction(VirtualRegister register)
+            public PopInstruction(VirtualRegister register)
                 : base(
                 new List<VirtualRegister>(),
                 new List<VirtualRegister> { register })
