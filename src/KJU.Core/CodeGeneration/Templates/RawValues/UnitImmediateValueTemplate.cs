@@ -18,14 +18,6 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
 
         private class UnitImmediateValueInstruction : Instruction
         {
-            public UnitImmediateValueInstruction()
-                : base(
-                    new List<VirtualRegister>(),
-                    new List<VirtualRegister>(),
-                    new List<Tuple<VirtualRegister, VirtualRegister>>())
-            {
-            }
-
             public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 yield break;

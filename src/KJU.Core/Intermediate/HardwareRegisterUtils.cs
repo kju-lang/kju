@@ -4,44 +4,7 @@ namespace KJU.Core.Intermediate
 
     public static class HardwareRegisterUtils
     {
-        private static IReadOnlyList<HardwareRegister> argumentRegisters =
-            new List<HardwareRegister>
-            {
-                HardwareRegister.RDI,
-                HardwareRegister.RSI,
-                HardwareRegister.RDX,
-                HardwareRegister.RCX,
-                HardwareRegister.R8,
-                HardwareRegister.R9
-            };
-
-        private static IReadOnlyCollection<HardwareRegister> callerSavedRegisters =
-            new List<HardwareRegister>
-            {
-                HardwareRegister.RAX,
-                HardwareRegister.RCX,
-                HardwareRegister.RDX,
-                HardwareRegister.RSI,
-                HardwareRegister.RDI,
-                HardwareRegister.R8,
-                HardwareRegister.R9,
-                HardwareRegister.R10,
-                HardwareRegister.R11,
-            };
-
-        private static IReadOnlyCollection<HardwareRegister> calleeSavedRegisters =
-            new List<HardwareRegister>
-            {
-                HardwareRegister.RBX,
-                HardwareRegister.RSP,
-                HardwareRegister.RBP,
-                HardwareRegister.R12,
-                HardwareRegister.R13,
-                HardwareRegister.R14,
-                HardwareRegister.R15,
-            };
-
-        private static Dictionary<HardwareRegister, string> registerToEightBitsVersionMapping =
+        private static readonly Dictionary<HardwareRegister, string> RegisterToEightBitsVersionMapping =
             new Dictionary<HardwareRegister, string>
             {
                 [HardwareRegister.RAX] = "AL",
@@ -62,15 +25,46 @@ namespace KJU.Core.Intermediate
                 [HardwareRegister.R15] = "R15B"
             };
 
-        public static IReadOnlyList<HardwareRegister> ArgumentRegisters { get => argumentRegisters; }
+        public static IReadOnlyList<HardwareRegister> ArgumentRegisters { get; } =
+            new List<HardwareRegister>
+            {
+                HardwareRegister.RDI,
+                HardwareRegister.RSI,
+                HardwareRegister.RDX,
+                HardwareRegister.RCX,
+                HardwareRegister.R8,
+                HardwareRegister.R9
+            };
 
-        public static IReadOnlyCollection<HardwareRegister> CallerSavedRegisters { get => callerSavedRegisters; }
+        public static IReadOnlyList<HardwareRegister> CallerSavedRegisters { get; } =
+            new List<HardwareRegister>
+            {
+                HardwareRegister.RAX,
+                HardwareRegister.RCX,
+                HardwareRegister.RDX,
+                HardwareRegister.RSI,
+                HardwareRegister.RDI,
+                HardwareRegister.R8,
+                HardwareRegister.R9,
+                HardwareRegister.R10,
+                HardwareRegister.R11,
+            };
 
-        public static IReadOnlyCollection<HardwareRegister> CalleeSavedRegisters { get => calleeSavedRegisters; }
+        public static IReadOnlyCollection<HardwareRegister> CalleeSavedRegisters { get; } =
+            new List<HardwareRegister>
+            {
+                HardwareRegister.RBX,
+                HardwareRegister.RSP,
+                HardwareRegister.RBP,
+                HardwareRegister.R12,
+                HardwareRegister.R13,
+                HardwareRegister.R14,
+                HardwareRegister.R15,
+            };
 
         public static string ToEightBitsVersion(this HardwareRegister register)
         {
-            return registerToEightBitsVersionMapping[register];
+            return RegisterToEightBitsVersionMapping[register];
         }
     }
 }

@@ -4,6 +4,7 @@ namespace KJU.Core.CodeGeneration.Templates
     using Arithmetic;
     using Arithmetic.Addition;
     using Arithmetic.Multiplication;
+    using Comments;
     using Comparison;
     using Logical;
     using RawValues;
@@ -42,7 +43,9 @@ namespace KJU.Core.CodeGeneration.Templates
                 new AlignStackPointerTemplate(),
                 new ClearDFTemplate(),
 
-                new ConditionalJumpTemplate()
+                new ConditionalJumpTemplate(),
+
+                new CommentTemplate()
             };
 
             templates.AddRange(comparisonTemplates);

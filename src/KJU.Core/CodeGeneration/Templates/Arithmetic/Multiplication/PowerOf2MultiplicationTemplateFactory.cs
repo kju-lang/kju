@@ -18,11 +18,11 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Multiplication
                     new ArithmeticBinaryOperation(
                         ArithmeticOperationType.Multiplication,
                         null,
-                        new IntegerImmediateValue(0) { TemplateValue = 1L << power }), power),
+                        new IntegerImmediateValue() { TemplateValue = 1L << power }), power),
                 new Pow2MulTemplate(
                     new ArithmeticBinaryOperation(
                         ArithmeticOperationType.Multiplication,
-                        new IntegerImmediateValue(0) { TemplateValue = 1L << power },
+                        new IntegerImmediateValue() { TemplateValue = 1L << power },
                         null), power),
             }).ToList();
         }

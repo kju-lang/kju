@@ -7,7 +7,7 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
     internal class IntegerImmediateValueTemplate : InstructionTemplate
     {
         public IntegerImmediateValueTemplate()
-            : base(new IntegerImmediateValue(0) { TemplateValue = null }, 1)
+            : base(new IntegerImmediateValue() { TemplateValue = null }, 1)
         {
         }
 
@@ -27,8 +27,7 @@ namespace KJU.Core.CodeGeneration.Templates.RawValues
                 long value)
                 : base(
                     new List<VirtualRegister>(),
-                    new List<VirtualRegister> { result },
-                    new List<Tuple<VirtualRegister, VirtualRegister>>())
+                    new List<VirtualRegister> { result })
             {
                 this.result = result;
                 this.value = value;

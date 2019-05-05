@@ -78,11 +78,15 @@ namespace KJU.Core.Intermediate.Function
         {
             var operations = new List<Node>()
                 {
+                    new Comment("Save RBP"),
                     new Push(new RegisterRead(HardwareRegister.RBP)),
+                    new Comment("Copy RSP to RSP"),
                     HardwareRegister.RBP.CopyFrom(HardwareRegister.RSP),
+                    new Comment("Reserve memory for local variables"),
                     new ReserveStackMemory(this),
-                }
+                }.Append(new Comment("Save callee saved registers."))
                 .Concat(this.calleeSavedMapping.Select(kvp => kvp.Value.CopyFrom(kvp.Key)))
+                .Append(new Comment("Retrieve arguments."))
                 .Concat(this.RetrieveArguments());
 
             return operations.MakeTreeChain(this.labelFactory, after);
@@ -90,12 +94,18 @@ namespace KJU.Core.Intermediate.Function
 
         public ILabel GenerateEpilogue(Node retVal)
         {
-            var operations = this.calleeSavedMapping
-                .Select(kvp => kvp.Key.CopyFrom(kvp.Value))
-                .Append(new RegisterWrite(HardwareRegister.RAX, retVal))
-                .Append(HardwareRegister.RSP.CopyFrom(HardwareRegister.RBP))
-                .Append(new Pop(HardwareRegister.RBP))
-                .Append(new ClearDF());
+            var operations =
+                new List<Node> { new Comment("Restore callee saved registers.") }
+                    .Concat(this.calleeSavedMapping
+                        .Select(kvp => kvp.Key.CopyFrom(kvp.Value)))
+                    .Append(new Comment("Save result to RAX"))
+                    .Append(new RegisterWrite(HardwareRegister.RAX, retVal))
+                    .Append(new Comment("Restore RSP from RBP"))
+                    .Append(HardwareRegister.RSP.CopyFrom(HardwareRegister.RBP))
+                    .Append(new Comment("Restore RBP from stack"))
+                    .Append(new Pop(HardwareRegister.RBP))
+                    .Append(new Comment("Clear direction flag."))
+                    .Append(new ClearDF());
 
             return operations.MakeTreeChain(this.labelFactory, new Ret());
         }
@@ -151,11 +161,13 @@ namespace KJU.Core.Intermediate.Function
 
         private IEnumerable<Node> RetrieveArguments()
         {
-            var values = HardwareRegisterUtils
+            var registerArguments = HardwareRegisterUtils
                 .ArgumentRegisters
-                .Select(reg => new RegisterRead(reg))
-                .Concat(Enumerable.Range(0, this.StackArgumentsCount)
-                    .Select((Func<int, Node>)(n => new MemoryRead(HardwareRegister.RBP.OffsetAddress(n + 2)))));
+                .Select(reg => new RegisterRead(reg));
+            var memoryArguments = Enumerable.Range(0, this.StackArgumentsCount)
+                .Select(n => (Node)new MemoryRead(HardwareRegister.RBP.OffsetAddress(n + 2)));
+            var values = registerArguments
+                .Concat(memoryArguments);
 
             return this.arguments
                 .Append(this.link)

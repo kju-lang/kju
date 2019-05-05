@@ -31,9 +31,7 @@
             public override IEnumerable<string> ToASM(
                 IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
-                var hardwareRegister = HardwareRegister.RSP;
-
-                yield return $"sub {hardwareRegister}, {this.KjuFunction.StackBytes}";
+                yield return $"sub {HardwareRegister.RSP}, {this.KjuFunction.StackBytes}";
             }
         }
     }

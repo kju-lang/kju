@@ -26,10 +26,7 @@ namespace KJU.Core.CodeGeneration.Templates.ReadWrite
             public MovRegisterMemoryInstruction(
                 VirtualRegister to,
                 VirtualRegister from)
-                : base(
-                    new List<VirtualRegister> { from },
-                    new List<VirtualRegister> { to },
-                    new List<Tuple<VirtualRegister, VirtualRegister>>())
+                : base(new List<VirtualRegister> { from, to }) // No register is written to. Only memory.
             {
                 this.to = to;
                 this.from = from;

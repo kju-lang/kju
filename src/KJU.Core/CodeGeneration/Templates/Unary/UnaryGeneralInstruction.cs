@@ -34,10 +34,12 @@ namespace KJU.Core.CodeGeneration.Templates.Unary
         public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
             var inputHardware = this.input.ToHardware(registerAssignment);
-            var resultHardware = this.input.ToHardware(registerAssignment);
+            var resultHardware = this.result.ToHardware(registerAssignment);
 
             if (inputHardware != resultHardware)
+            {
                 yield return $"mov {resultHardware} {inputHardware}";
+            }
 
             switch (this.type)
             {

@@ -27,6 +27,10 @@ namespace KJU.Core.Intermediate
 
     public class IntegerImmediateValue : Node
     {
+        public IntegerImmediateValue()
+        {
+        }
+
         public IntegerImmediateValue(long value)
         {
             this.Value = value;
@@ -95,6 +99,47 @@ namespace KJU.Core.Intermediate
         public override string ToString()
         {
             return $"BooleanImmediateValue{{Value:{this.Value}, TemplateValue: {this.TemplateValue}}}";
+        }
+    }
+
+    public class Comment : Node
+    {
+        public Comment()
+        {
+        }
+
+        public Comment(string value)
+        {
+            this.Value = value;
+        }
+
+        public string Value { get; }
+
+        public string TemplateValue { get; set; }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is Comment comment)
+            {
+                if (comment.TemplateValue == null)
+                {
+                    return new List<object> { this.Value };
+                }
+
+                if (comment.TemplateValue == this.Value)
+                {
+                    return new List<object>();
+                }
+
+                return null;
+            }
+
+            return null;
+        }
+
+        public override string ToString()
+        {
+            return $"CommentImmediateValue{{Value:{this.Value}, TemplateValue: {this.TemplateValue}}}";
         }
     }
 

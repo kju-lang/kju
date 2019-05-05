@@ -24,16 +24,21 @@ namespace KJU.Core.CodeGeneration.Templates
             this IReadOnlyList<object> fill,
             int position)
         {
-            var box = new IntegerImmediateValue((long)fill[position]);
-            return box.Value;
+            return (long)fill[position];
         }
 
         public static bool GetBool(
             this IReadOnlyList<object> fill,
             int position)
         {
-            var box = new BooleanImmediateValue((bool)fill[position]);
-            return box.Value;
+            return (bool)fill[position];
+        }
+
+        public static string GetString(
+            this IReadOnlyList<object> fill,
+            int position)
+        {
+            return (string)fill[position];
         }
 
         public static Function GetFunction(

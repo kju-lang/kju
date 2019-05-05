@@ -1,4 +1,4 @@
-namespace KJU.Core.CodeGeneration.Templates.Comparison
+namespace KJU.Core.CodeGeneration.Templates
 {
     using System;
 

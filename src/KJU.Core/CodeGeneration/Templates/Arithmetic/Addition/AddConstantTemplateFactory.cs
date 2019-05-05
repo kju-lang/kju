@@ -17,11 +17,11 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Addition
                     new ArithmeticBinaryOperation(
                         ArithmeticOperationType.Addition,
                         null,
-                        new IntegerImmediateValue(0) { TemplateValue = null })),
+                        new IntegerImmediateValue() { TemplateValue = null })),
                 new ConstantAddTemplate(
                     new ArithmeticBinaryOperation(
                         ArithmeticOperationType.Addition,
-                        new IntegerImmediateValue(0) { TemplateValue = null },
+                        new IntegerImmediateValue() { TemplateValue = null },
                         null))
             };
         }

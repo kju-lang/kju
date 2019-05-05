@@ -18,11 +18,11 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Multiplication
                     new ArithmeticBinaryOperation(
                         ArithmeticOperationType.Multiplication,
                         null,
-                        new IntegerImmediateValue(0) { TemplateValue = null })),
+                        new IntegerImmediateValue() { TemplateValue = null })),
                 new ConstantMulTemplate(
                     new ArithmeticBinaryOperation(
                         ArithmeticOperationType.Multiplication,
-                        new IntegerImmediateValue(0) { TemplateValue = null },
+                        new IntegerImmediateValue() { TemplateValue = null },
                         null))
             };
         }
