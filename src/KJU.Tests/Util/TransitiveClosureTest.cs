@@ -26,7 +26,7 @@ namespace KJU.Tests.Util
                 [3] = new HashSet<int>() { },
             };
 
-            var closure = TransitiveClosure<int>.ComputeTransitiveClosure(relation);
+            var closure = relation.TransitiveClosure();
 
             Assert.IsTrue(closure.Keys.ToHashSet().SetEquals(expected.Keys.ToHashSet()));
             foreach (var key in relation.Keys)
@@ -53,7 +53,7 @@ namespace KJU.Tests.Util
                 [3] = new HashSet<int>() { },
             };
 
-            var closure = TransitiveClosure<int>.ComputeTransitiveClosure(relation);
+            var closure = relation.TransitiveClosure();
 
             Assert.IsTrue(closure.Keys.ToHashSet().SetEquals(expected.Keys.ToHashSet()));
             foreach (var key in relation.Keys)

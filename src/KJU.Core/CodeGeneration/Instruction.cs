@@ -22,6 +22,13 @@ namespace KJU.Core.CodeGeneration
 
         public IReadOnlyCollection<Tuple<VirtualRegister, VirtualRegister>> Copies { get; }
 
-        public abstract IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment);
+        public abstract IEnumerable<string> ToASM(
+            IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment);
+
+        public override string ToString()
+        {
+            return
+                $"{this.GetType().Name}:{{Uses: {string.Join(", ", this.Uses)}, Defines:{string.Join(", ", this.Defines)}}}";
+        }
     }
 }

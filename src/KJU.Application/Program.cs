@@ -25,7 +25,7 @@
         public static void Run(Options options)
         {
             var compiler = new Compiler();
-            var inputs = options.Files.Select(file => new CompilationQuery(new FileInputReader(file), file));
+            var inputs = options.Files.Select(file => new CompilationQuery(new FileInputReader(file), file.RemoveExtension()));
             foreach (var query in inputs)
             {
                 var diag = new TextWriterDiagnostics(Console.Error);
@@ -71,14 +71,14 @@
                 File.WriteAllLines(asmPath, artifacts.Asm);
                 if (options.GenExe)
                 {
-                    var arguments = $"{asmPath} -f elf64";
+                    var oPath = resultPath.AddExtension("o");
+                    var arguments = $"{asmPath} -f elf64 -o {oPath}";
                     var nasmExitCode = RunProcess("nasm", arguments);
                     if (nasmExitCode != 0)
                     {
                         throw new ArtifactGenerationException($"Nasm {arguments} process failed. Exit code: {nasmExitCode}");
                     }
 
-                    var oPath = resultPath.AddExtension("o");
                     var exePath = resultPath;
                     var gccExitCode = RunProcess(@"gcc", $"{oPath} -o {exePath} -nostdlib");
                     if (gccExitCode != 0)

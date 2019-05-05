@@ -61,8 +61,13 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     .Values
                     .Where(register => register != HardwareRegister.RSP)
                     .ToList();
+
+                Console.WriteLine(
+                    $"Interference:\n {string.Join("\n", interferenceCopyGraphPair.InterferenceGraph.Select(x => $"{string.Join(", ", x.Key)}: {string.Join(", ", x.Value)}"))}");
                 var allocationResult =
                     this.registerAllocator.Allocate(interferenceCopyGraphPair, allowedHardwareRegisters);
+                Console.WriteLine(
+                    $"Allocation: {string.Join("\n", allocationResult.Allocation.Select(x => $"{x.Key} -> {x.Value}"))}");
                 var spilled = new HashSet<VirtualRegister>(allocationResult.Spilled);
 
                 if (spilled.Count == 0)

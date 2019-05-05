@@ -20,13 +20,14 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
             var cfg = GetInstructionCFG(instructions);
             var reverseCFG = GraphReverser.ReverseGraph(cfg);
             var liveness = GetLivenessSets(reverseCFG);
+            Console.WriteLine(
+                $"Liveness:\n{string.Join("\n", liveness.Select(x => $"{x.Key}:{string.Join(", ", x.Value)}"))}");
             var interferenceGraph = CreateInterferenceGraph(reverseCFG, liveness);
             var copyGraph = CreateCopyGraph(reverseCFG);
             return new InterferenceCopyGraphPair(interferenceGraph, copyGraph);
         }
 
-        private static ControlFlowGraph GetInstructionCFG(
-            IReadOnlyList<CodeBlock> codeBlocks)
+        private static ControlFlowGraph GetInstructionCFG(IReadOnlyList<CodeBlock> codeBlocks)
         {
             var labelToFirstInstruction = codeBlocks
                 .ToDictionary(codeBlock => codeBlock.Label, codeBlock => codeBlock.Instructions[0]);
@@ -52,7 +53,7 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
                 {
                     case UnconditionalJump unconditionalJump:
                         connectedWithNext = unconditionalJump.Target == null;
-                        if (unconditionalJump.Target != null)
+                        if (!connectedWithNext)
                         {
                             cfg[lastInstruction].Add(labelToFirstInstruction[unconditionalJump.Target]);
                         }
@@ -61,7 +62,7 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
                     case ConditionalJump conditionalJump:
                         cfg[lastInstruction].Add(labelToFirstInstruction[conditionalJump.TrueTarget]);
                         connectedWithNext = conditionalJump.FalseTarget == null;
-                        if (conditionalJump.FalseTarget != null)
+                        if (!connectedWithNext)
                         {
                             cfg[lastInstruction].Add(labelToFirstInstruction[conditionalJump.FalseTarget]);
                         }
@@ -69,7 +70,7 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
                         break;
                     case FunctionCall functionCall:
                         connectedWithNext = functionCall.TargetAfter == null;
-                        if (functionCall.TargetAfter != null)
+                        if (!connectedWithNext)
                         {
                             cfg[lastInstruction].Add(labelToFirstInstruction[functionCall.TargetAfter]);
                         }
@@ -90,7 +91,7 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
 
             return cfg.ToDictionary(
                 elem => elem.Key,
-                elem => (IReadOnlyCollection<Instruction>)elem.Value);
+                elem => (IReadOnlyCollection<Instruction>)elem.Value).TransitiveClosure();
         }
 
         private static IReadOnlyDictionary<Instruction, Liveness> GetLivenessSets(

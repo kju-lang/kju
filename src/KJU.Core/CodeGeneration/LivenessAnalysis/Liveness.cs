@@ -15,5 +15,10 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
         public HashSet<VirtualRegister> InLiveness { get; }
 
         public HashSet<VirtualRegister> OutLiveness { get; }
+
+        public override string ToString()
+        {
+            return $"Liveness:\n\tInLiveness:{string.Join(", ", this.InLiveness)}\n\tOutLiveness:{string.Join(", ", this.OutLiveness)}";
+        }
     }
 }

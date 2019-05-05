@@ -46,6 +46,7 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
         {
             var node = tree.Root;
             var result = new VirtualRegister();
+            Console.WriteLine($"{result} stores {tree}");
             JumpType jumpType;
             string label;
             var controlFlow = tree.ControlFlow;
@@ -172,6 +173,8 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
                 if (child is Node innerNode)
                 {
                     var register = new VirtualRegister();
+                    Console.WriteLine($"{register} stores {child}");
+
                     var innerTemplates = this.FitTemplates(
                         innerNode,
                         register,

@@ -1,6 +1,7 @@
 namespace KJU.Core.Compiler
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using AST;
     using AST.ReturnChecker;
@@ -13,6 +14,8 @@ namespace KJU.Core.Compiler
     using Intermediate.IntermediateRepresentationGenerator;
     using Intermediate.NameMangler;
     using Intermediate.VariableAndFunctionBuilder;
+    using KJU.Core.Intermediate;
+    using KJU.Core.Intermediate.Function;
     using Lexer;
     using Parser;
 
@@ -57,6 +60,7 @@ namespace KJU.Core.Compiler
                 this.returnChecker.Run(ast, diagnostics);
                 this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var functionsIR = this.intermediateGenerator.CreateIR(ast);
+                Console.WriteLine($"IR: {string.Join("\n", functionsIR.Values)}");
                 var asmHeader = this.asmHeaderGenerator.GenerateHeader();
                 var functionsAsm = functionsIR.SelectMany(x => this.functionToAsmGenerator.ToAsm(x.Key, x.Value))
                     .ToList();

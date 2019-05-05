@@ -59,6 +59,11 @@ namespace KJU.Core.Intermediate
 
             return null;
         }
+
+        public override string ToString()
+        {
+            return $"IntegerImmediateValue{{Value: {this.Value}, TemplateValue: {this.TemplateValue}}}";
+        }
     }
 
     public class BooleanImmediateValue : Node

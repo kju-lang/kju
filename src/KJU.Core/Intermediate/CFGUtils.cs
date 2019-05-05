@@ -8,13 +8,8 @@ namespace KJU.Core.Intermediate
         public static ILabel MakeTreeChain(
             this IEnumerable<Node> nodes, ILabelFactory labelFactory, ControlFlowInstruction controlFlow)
         {
-            var nodesList = nodes.ToList();
-            return MakeTreeChain(nodesList.Skip(1), labelFactory, new Tree(nodesList.First(), controlFlow));
-        }
-
-        public static ILabel MakeTreeChain(this IEnumerable<Node> nodes, ILabelFactory labelFactory, Tree after)
-        {
-            return MakeTreeChain(nodes, labelFactory, labelFactory.GetLabel(after));
+            var nodesList = nodes.Reverse().ToList();
+            return MakeTreeChain(nodesList.Skip(1).Reverse(), labelFactory, labelFactory.GetLabel(new Tree(nodesList.First(), controlFlow)));
         }
 
         public static ILabel MakeTreeChain(this IEnumerable<Node> nodes, ILabelFactory labelFactory, ILabel after)

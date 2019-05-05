@@ -31,7 +31,7 @@ namespace KJU.Core.Intermediate.Function
             this.MangledName = mangledName;
             this.arguments = parameters.Select(parameter =>
             {
-                var location = this.ReserveStackFrameLocation();
+                var location = new VirtualRegister(); // Why not virtual register?
                 var variable = new Variable(this, location);
                 parameter.IntermediateVariable = variable;
                 return variable;
@@ -78,9 +78,9 @@ namespace KJU.Core.Intermediate.Function
         {
             var operations = new List<Node>()
                 {
-                    new Comment("Save RBP"),
+                    new Comment("Save RBP - parent base pointer"),
                     new Push(new RegisterRead(HardwareRegister.RBP)),
-                    new Comment("Copy RSP to RSP"),
+                    new Comment("Copy RSP to RBP - current base pointer"),
                     HardwareRegister.RBP.CopyFrom(HardwareRegister.RSP),
                     new Comment("Reserve memory for local variables"),
                     new ReserveStackMemory(this),
@@ -164,14 +164,16 @@ namespace KJU.Core.Intermediate.Function
             var registerArguments = HardwareRegisterUtils
                 .ArgumentRegisters
                 .Select(reg => new RegisterRead(reg));
+
             var memoryArguments = Enumerable.Range(0, this.StackArgumentsCount)
                 .Select(n => (Node)new MemoryRead(HardwareRegister.RBP.OffsetAddress(n + 2)));
-            var values = registerArguments
+
+            var argumentsVirtualRegisters = registerArguments
                 .Concat(memoryArguments);
 
             return this.arguments
                 .Append(this.link)
-                .Zip(values, this.GenerateWrite);
+                .Zip(argumentsVirtualRegisters, this.GenerateWrite);
         }
 
         public Node GenerateRead(Variable variable)
@@ -207,7 +209,11 @@ namespace KJU.Core.Intermediate.Function
             switch (variable.Location)
             {
                 case VirtualRegister virtualRegister:
-                    Debug.Assert(variable.Owner == this, "Write to virtual register outside its function");
+                    if (variable.Owner != this)
+                    {
+                        throw new Exception("Write to virtual register outside its function");
+                    }
+
                     return new RegisterWrite(virtualRegister, value);
                 case MemoryLocation location:
                     return new MemoryWrite(this.GenerateVariableLocation(location, framePointer), value);

@@ -3,10 +3,10 @@ namespace KJU.Core.Util
     using System.Collections.Generic;
     using System.Linq;
 
-    public static class TransitiveClosure<T>
+    public static class GraphUtils
     {
-        public static IReadOnlyDictionary<T, IReadOnlyCollection<T>> ComputeTransitiveClosure(
-            IReadOnlyDictionary<T, IReadOnlyCollection<T>> relation)
+        public static IReadOnlyDictionary<T, IReadOnlyCollection<T>> TransitiveClosure<T>(
+            this IReadOnlyDictionary<T, IReadOnlyCollection<T>> relation)
         {
             var result = new Dictionary<T, HashSet<T>>();
             relation.ToList().ForEach(p => result.Add(p.Key, new HashSet<T>()));

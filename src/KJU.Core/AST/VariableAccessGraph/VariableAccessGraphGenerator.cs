@@ -73,8 +73,7 @@ namespace KJU.Core.AST.VariableAccessGraph
                 INodeInfoExtractor variablesExtractor)
         {
             var callGraph = this.callGraphGenerator.BuildCallGraph(root);
-            var callGraphClosure = TransitiveClosure<FunctionDeclaration>
-                .ComputeTransitiveClosure(callGraph);
+            var callGraphClosure = callGraph.TransitiveClosure();
             var functions = this.AggregateFunctionDeclarations(root).ToList();
             return functions.ToDictionary(fun => fun, function =>
             {

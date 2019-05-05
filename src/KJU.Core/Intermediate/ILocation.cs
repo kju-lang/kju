@@ -9,6 +9,18 @@ namespace KJU.Core.Intermediate
 
     public class VirtualRegister : ILocation
     {
+        private static int counter = 0;
+        private readonly int number;
+
+        public VirtualRegister()
+        {
+            this.number = counter++;
+        }
+
+        public override string ToString()
+        {
+            return $"r{this.number}";
+        }
     }
 
     public class HardwareRegister : VirtualRegister

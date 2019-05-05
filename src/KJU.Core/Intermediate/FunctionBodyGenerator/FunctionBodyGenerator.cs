@@ -23,8 +23,8 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
         public ILabel BuildFunctionBody(AST.InstructionBlock body)
         {
-            ILabel guardEpilogue = this.function.GenerateEpilogue(new UnitImmediateValue());
-            Computation afterPrologue = this.ConvertNode(body, guardEpilogue);
+            var guardEpilogue = this.function.GenerateEpilogue(new UnitImmediateValue());
+            var afterPrologue = this.ConvertNode(body, guardEpilogue);
             return this.function.GeneratePrologue(afterPrologue.Start);
         }
 
