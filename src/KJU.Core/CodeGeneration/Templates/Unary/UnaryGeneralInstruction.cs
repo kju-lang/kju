@@ -38,7 +38,7 @@ namespace KJU.Core.CodeGeneration.Templates.Unary
 
             if (inputHardware != resultHardware)
             {
-                yield return $"mov {resultHardware} {inputHardware}";
+                yield return $"mov {resultHardware}, {inputHardware}";
             }
 
             switch (this.type)

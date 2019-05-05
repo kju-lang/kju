@@ -32,7 +32,7 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                 VirtualRegister rhs,
                 VirtualRegister result)
                 : base(
-                    new List<VirtualRegister> { lhs, rhs },
+                    new List<VirtualRegister> { lhs, rhs, HardwareRegister.RDX }, // RDX must be defined to 0 so rhs must not be RDX
                     new List<VirtualRegister>
                     {
                         result,
@@ -41,6 +41,7 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                     }, new List<Tuple<VirtualRegister, VirtualRegister>>
                     {
                         new Tuple<VirtualRegister, VirtualRegister>(HardwareRegister.RAX, lhs),
+                        new Tuple<VirtualRegister, VirtualRegister>(HardwareRegister.RDX, result),
                     })
             {
                 this.lhs = lhs;
