@@ -35,6 +35,7 @@ namespace KJU.Tests.Examples
             .Select(example => new object[] { example });
 
         [DataTestMethod]
+        [Timeout(1000)]
         [DynamicData(nameof(Positive))]
         public void PositiveExamples(IKjuExample example)
         {

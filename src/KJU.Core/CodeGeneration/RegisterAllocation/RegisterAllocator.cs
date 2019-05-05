@@ -47,10 +47,6 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation
             var vertices = new HashSet<HashSet<VirtualRegister>>(verticesEnumerable);
             var finalInterference = FinalGraph(allRegisters, superVertices, query.InterferenceGraph);
             var finalCopy = FinalGraph(allRegisters, superVertices, query.CopyGraph);
-/*
-            Console.WriteLine(
-                $"Interference:\n {string.Join("\n", finalInterference.Select(x => $"{string.Join(", ", x.Key)}: {string.Join(", ", x.Value.SelectMany(y => y).Distinct())}"))}");
-*/
             var registerPainter = new RegisterPainter(finalInterference, finalCopy, superVertices);
             return registerPainter.GetColoring(vertices, allowedHardwareRegisters, order, allRegisters);
         }

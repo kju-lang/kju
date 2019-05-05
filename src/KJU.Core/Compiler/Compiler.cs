@@ -60,7 +60,6 @@ namespace KJU.Core.Compiler
                 this.returnChecker.Run(ast, diagnostics);
                 this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var functionsIR = this.intermediateGenerator.CreateIR(ast);
-                Console.WriteLine($"IR: {string.Join("\n", functionsIR.Values)}");
                 var asmHeader = this.asmHeaderGenerator.GenerateHeader();
                 var functionsAsm = functionsIR.SelectMany(x => this.functionToAsmGenerator.ToAsm(x.Key, x.Value))
                     .ToList();

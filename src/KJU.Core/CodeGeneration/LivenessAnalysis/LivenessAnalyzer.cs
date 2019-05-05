@@ -20,8 +20,6 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
             var cfg = GetInstructionCFG(instructions);
             var reverseCFG = GraphReverser.ReverseGraph(cfg);
             var liveness = GetLivenessSets(reverseCFG);
-            Console.WriteLine(
-                $"Liveness:\n{string.Join("\n", liveness.Select(x => $"{x.Key}:{string.Join(", ", x.Value)}"))}");
             var interferenceGraph = CreateInterferenceGraph(reverseCFG, liveness);
             var copyGraph = CreateCopyGraph(reverseCFG);
             return new InterferenceCopyGraphPair(interferenceGraph, copyGraph);

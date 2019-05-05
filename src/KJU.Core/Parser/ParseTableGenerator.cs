@@ -36,7 +36,6 @@ namespace KJU.Core.Parser
 
                         if (actions.Count > 1)
                         {
-                            Console.WriteLine($"rule: {rule.Key} state {dfa.Label(state)}");
                             var errorMessage =
                                 $"Many possible actions for label {firstSymbol}: {{{string.Join(", ", actions)}}}\n";
                             error += errorMessage;

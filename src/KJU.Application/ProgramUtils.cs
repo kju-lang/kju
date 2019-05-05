@@ -6,7 +6,6 @@ namespace KJU.Application
     {
         public static int RunProcess(string program, string arguments)
         {
-            Console.WriteLine($"Running: {program} {arguments}");
             var process = new System.Diagnostics.Process
             {
                 StartInfo =
