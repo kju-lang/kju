@@ -62,6 +62,25 @@ namespace KJU.Core.Intermediate
                 HardwareRegister.R15,
             };
 
+        public static IReadOnlyCollection<HardwareRegister> RegistersForColoring { get; } =
+            new List<HardwareRegister>
+            {
+                HardwareRegister.RAX,
+                HardwareRegister.RCX,
+                HardwareRegister.RDX,
+                HardwareRegister.RSI,
+                HardwareRegister.RDI,
+                HardwareRegister.R8,
+                HardwareRegister.R9,
+                HardwareRegister.R10,
+                HardwareRegister.R11,
+                HardwareRegister.RBX,
+                HardwareRegister.R12,
+                HardwareRegister.R13,
+                HardwareRegister.R14,
+                HardwareRegister.R15,
+            };
+
         public static string ToEightBitsVersion(this HardwareRegister register)
         {
             return RegisterToEightBitsVersionMapping[register];

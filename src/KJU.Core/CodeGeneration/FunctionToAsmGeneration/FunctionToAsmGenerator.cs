@@ -58,11 +58,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             {
                 var interferenceCopyGraphPair = this.livenessAnalyzer.GetInterferenceCopyGraphs(instructionSequence);
 
-                var allowedHardwareRegisters = HardwareRegister
-                    .Values
-                    .Where(register => register != HardwareRegister.RSP)
-                    .Where(register => register != HardwareRegister.RBP)
-                    .ToList();
+                var allowedHardwareRegisters = HardwareRegisterUtils.RegistersForColoring;
 
                 var allocationResult =
                     this.registerAllocator.Allocate(interferenceCopyGraphPair, allowedHardwareRegisters);

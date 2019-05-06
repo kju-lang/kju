@@ -89,7 +89,7 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
 
             return cfg.ToDictionary(
                 elem => elem.Key,
-                elem => (IReadOnlyCollection<Instruction>)elem.Value).TransitiveClosure();
+                elem => (IReadOnlyCollection<Instruction>)elem.Value);
         }
 
         private static IReadOnlyDictionary<Instruction, Liveness> GetLivenessSets(
