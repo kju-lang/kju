@@ -31,11 +31,10 @@ namespace KJU.Tests.AST
                 [VariableInfo.Modifications] = new ModifyInfoExtractor(),
             };
             var generator = new VariableAccessGraphGenerator(callGraphGenerator, nodeInfoExtractors);
-            var resultAccesses = generator.GetVariableInfoPerAstNode(root, VariableInfo.Access);
-            var resultModifications = generator.GetVariableInfoPerAstNode(root, VariableInfo.Modifications);
+            var resultActual = generator.GetVariableInfoPerAstNode(root);
 
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultAccesses, resultExpected));
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultModifications, resultExpected));
+            MappingEquivalence.AssertAreEquivalentCollection(resultExpected, resultActual.Accesses);
+            MappingEquivalence.AssertAreEquivalentCollection(resultExpected, resultActual.Modifies);
         }
 
         [TestMethod]
@@ -146,11 +145,9 @@ namespace KJU.Tests.AST
                 [VariableInfo.Modifications] = new ModifyInfoExtractor(),
             };
             var generator = new VariableAccessGraphGenerator(callGraphGenerator, nodeInfoExtractors);
-            var resultAccesses = generator.GetVariableInfoPerAstNode(root, VariableInfo.Access);
-            var resultModifications = generator.GetVariableInfoPerAstNode(root, VariableInfo.Modifications);
-
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultAccesses, expectedAccesses));
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultModifications, expectedModifications));
+            var resultActual = generator.GetVariableInfoPerAstNode(root);
+            MappingEquivalence.AssertAreEquivalentCollection(expectedAccesses, resultActual.Accesses);
+            MappingEquivalence.AssertAreEquivalentCollection(expectedModifications, resultActual.Modifies);
         }
 
         [TestMethod]
@@ -186,7 +183,6 @@ namespace KJU.Tests.AST
                 [VariableInfo.Modifications] = new ModifyInfoExtractor(),
             };
 
-            VariableAccessGraphGenerator tempQualifier = new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
             INodeInfoExtractor infoExtractor = new AccessInfoExtractor();
             var graph = VariableAccessGraphGenerator.TransitiveCallClosure(mockCallGraph.Object, ast, infoExtractor);
 
@@ -235,7 +231,8 @@ namespace KJU.Tests.AST
                 [VariableInfo.Modifications] = new ModifyInfoExtractor(),
             };
 
-            VariableAccessGraphGenerator tempQualifier = new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
+            VariableAccessGraphGenerator tempQualifier =
+                new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
             INodeInfoExtractor infoExtractor = new AccessInfoExtractor();
             var graph = VariableAccessGraphGenerator.TransitiveCallClosure(mockCallGraph.Object, ast, infoExtractor);
 
@@ -282,7 +279,8 @@ namespace KJU.Tests.AST
                 [VariableInfo.Modifications] = new ModifyInfoExtractor(),
             };
 
-            VariableAccessGraphGenerator tempQualifier = new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
+            VariableAccessGraphGenerator tempQualifier =
+                new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
             INodeInfoExtractor infoExtractor = new AccessInfoExtractor();
             var graph = VariableAccessGraphGenerator.TransitiveCallClosure(mockCallGraph.Object, ast, infoExtractor);
 
@@ -335,7 +333,8 @@ namespace KJU.Tests.AST
                 [VariableInfo.Modifications] = new ModifyInfoExtractor(),
             };
 
-            VariableAccessGraphGenerator tempQualifier = new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
+            VariableAccessGraphGenerator tempQualifier =
+                new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
             INodeInfoExtractor infoExtractor = new AccessInfoExtractor();
             var graph = VariableAccessGraphGenerator.TransitiveCallClosure(mockCallGraph.Object, ast, infoExtractor);
 

@@ -95,7 +95,7 @@ namespace KJU.Tests.Parser
                 parseTableExpected[key] = new ParseAction<Label> { Kind = actionKind, Label = actionLabel };
             }
 
-            Assert.IsTrue(MappingEquivalence.AreEquivalent(parseTable, parseTableExpected));
+            Assert.IsTrue(MappingEquivalence.AssertAreEquivalent(parseTable, parseTableExpected));
         }
 
         [TestMethod]

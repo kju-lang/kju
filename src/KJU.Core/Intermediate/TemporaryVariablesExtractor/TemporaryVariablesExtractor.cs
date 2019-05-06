@@ -3,24 +3,19 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
     using System.Collections.Generic;
     using System.Linq;
     using AST;
+    using KJU.Core.AST.VariableAccessGraph;
 
     internal class TemporaryVariablesExtractor
     {
-        private readonly IReadOnlyDictionary<AST.Node, IReadOnlyCollection<VariableDeclaration>>
-            variableModificationGraph;
-
-        private readonly IReadOnlyDictionary<AST.Node, IReadOnlyCollection<VariableDeclaration>>
-            variableAccessGraph;
+        private readonly VariableAccess variableAccess;
 
         private readonly Function.Function function;
 
         public TemporaryVariablesExtractor(
-            IReadOnlyDictionary<AST.Node, IReadOnlyCollection<VariableDeclaration>> variableModificationGraph,
-            IReadOnlyDictionary<AST.Node, IReadOnlyCollection<VariableDeclaration>> variableAccessGraph,
+            VariableAccess variableAccess,
             Function.Function function)
         {
-            this.variableModificationGraph = variableModificationGraph;
-            this.variableAccessGraph = variableAccessGraph;
+            this.variableAccess = variableAccess;
             this.function = function;
         }
 
@@ -87,8 +82,8 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
             operationNode.LeftValue = this.ReplaceWithBlock(operationNode.LeftValue);
 
             var result = new List<Expression>();
-            var modifiedVariables = this.variableModificationGraph[operationNode.LeftValue];
-            var usedVariables = this.variableAccessGraph[operationNode.RightValue];
+            var modifiedVariables = this.variableAccess.Modifies[operationNode.LeftValue];
+            var usedVariables = this.variableAccess.Accesses[operationNode.RightValue];
             if (modifiedVariables.Any(x => usedVariables.Contains(x)))
             {
                 var tmpDecl = new VariableDeclaration(
@@ -124,7 +119,7 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     var modifiedByAnotherArgument = funCall
                         .Arguments
                         .Skip(i + 1)
-                        .Any(followingArgument => this.variableModificationGraph[followingArgument]
+                        .Any(followingArgument => this.variableAccess.Modifies[followingArgument]
                             .Contains(variableArgument.Declaration));
                     if (modifiedByAnotherArgument)
                     {

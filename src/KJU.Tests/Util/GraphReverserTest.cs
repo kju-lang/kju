@@ -26,7 +26,7 @@ namespace KJU.Tests.Util
 
             var result = GraphReverser.ReverseGraph(graph);
 
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(expectedReverse, result));
+            MappingEquivalence.AssertAreEquivalentCollection(expectedReverse, result);
         }
     }
 }

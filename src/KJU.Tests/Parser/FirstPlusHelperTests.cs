@@ -43,7 +43,7 @@ namespace KJU.Tests.Parser
             };
 
             var firstPlus = FirstPlusHelper<string>.GetFirstPlusSymbols(first, follow, nullables);
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(firstPlus, firstPlusExpected));
+            MappingEquivalence.AssertAreEquivalentCollection(firstPlusExpected, firstPlus);
         }
 
         private static DfaAndState<string> GetMockState()

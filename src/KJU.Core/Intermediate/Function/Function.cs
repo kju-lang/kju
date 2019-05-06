@@ -256,13 +256,9 @@ namespace KJU.Core.Intermediate.Function
         private void ExtractTemporaryVariables(
             AST.FunctionDeclaration root, IVariableAccessGraphGenerator variableAccessGraphGenerator)
         {
-            var variableModificationGraph =
-                variableAccessGraphGenerator.GetVariableInfoPerAstNode(root, VariableInfo.Modifications);
-            var variableAccessGraph = variableAccessGraphGenerator.GetVariableInfoPerAstNode(root, VariableInfo.Access);
-            var extractor = new TemporaryVariablesExtractor.TemporaryVariablesExtractor(
-                variableModificationGraph,
-                variableAccessGraph,
-                this);
+            var variableAccess =
+                variableAccessGraphGenerator.GetVariableInfoPerAstNode(root);
+            var extractor = new TemporaryVariablesExtractor.TemporaryVariablesExtractor(variableAccess, this);
             var result = extractor.ExtractTemporaryVariables(root.Body);
             var instructions = result.Concat(root.Body.Instructions).ToList();
             root.Body = new AST.InstructionBlock(instructions);

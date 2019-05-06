@@ -43,11 +43,11 @@ namespace KJU.Core.AST.VariableAccessGraph
             });
         }
 
-        public NodeVariableAccessMapping GetVariableInfoPerAstNode(Node root, VariableInfo variableInfo)
+        public VariableAccess GetVariableInfoPerAstNode(Node root)
         {
-            var extractor = this.infoExtractors[variableInfo];
-            var accessGraph = TransitiveCallClosure(this.callGraphGenerator, root, extractor);
-            return AggregateNodeVariableInfo(root, accessGraph, extractor);
+            var accesses = this.GetVariableInfoPerAstNodeByType(root, VariableInfo.Access);
+            var modifies = this.GetVariableInfoPerAstNodeByType(root, VariableInfo.Modifications);
+            return new VariableAccess(accesses, modifies);
         }
 
         private static IEnumerable<VariableDeclaration> AggregateFunctionVariablesInfo(
@@ -104,6 +104,13 @@ namespace KJU.Core.AST.VariableAccessGraph
                     .Concat(descendantsDeclarations)
                     .Concat(callDeclarations));
             return result;
+        }
+
+        private NodeVariableAccessMapping GetVariableInfoPerAstNodeByType(Node root, VariableInfo variableInfo)
+        {
+            var extractor = this.infoExtractors[variableInfo];
+            var accessGraph = TransitiveCallClosure(this.callGraphGenerator, root, extractor);
+            return AggregateNodeVariableInfo(root, accessGraph, extractor);
         }
     }
 }

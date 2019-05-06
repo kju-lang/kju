@@ -377,13 +377,13 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
         {
             var result = new LivenessAnalyzer().GetInterferenceCopyGraphs(instructions);
 
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(
+            MappingEquivalence.AssertAreEquivalentCollection(
                 expectedInterferenceGraph.ToDictionary(t => t.Key, t => (IReadOnlyCollection<VirtualRegister>)t.Value),
-                result.InterferenceGraph));
+                result.InterferenceGraph);
 
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(
+            MappingEquivalence.AssertAreEquivalentCollection(
                 expectedCopyGraph.ToDictionary(t => t.Key, t => (IReadOnlyCollection<VirtualRegister>)t.Value),
-                result.CopyGraph));
+                result.CopyGraph);
         }
 
         private void AddEdge(
