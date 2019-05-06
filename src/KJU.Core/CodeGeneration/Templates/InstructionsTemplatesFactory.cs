@@ -45,7 +45,8 @@ namespace KJU.Core.CodeGeneration.Templates
 
                 new ConditionalJumpTemplate(),
 
-                new CommentTemplate()
+                new CommentTemplate(),
+                new UsesDefinesTemplate()
             };
 
             templates.AddRange(comparisonTemplates);

@@ -16,9 +16,9 @@ namespace KJU.Core.CodeGeneration
             this.Copies = copies ?? new List<Tuple<VirtualRegister, VirtualRegister>>();
         }
 
-        public IReadOnlyCollection<VirtualRegister> Uses { get; }
+        public IReadOnlyCollection<VirtualRegister> Uses { get; set; }
 
-        public IReadOnlyCollection<VirtualRegister> Defines { get; }
+        public IReadOnlyCollection<VirtualRegister> Defines { get; set; }
 
         public IReadOnlyCollection<Tuple<VirtualRegister, VirtualRegister>> Copies { get; }
 

@@ -47,5 +47,12 @@ namespace KJU.Core.CodeGeneration.Templates
         {
             return (Function)fill[position];
         }
+
+        public static IReadOnlyCollection<VirtualRegister> GetCollection(
+            this IReadOnlyList<object> fill,
+            int position)
+        {
+            return (IReadOnlyCollection<VirtualRegister>)fill[position];
+        }
     }
 }

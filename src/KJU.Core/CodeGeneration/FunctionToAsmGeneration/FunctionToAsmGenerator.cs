@@ -13,7 +13,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
 
     public class FunctionToAsmGenerator : IFunctionToAsmGenerator
     {
-        private const int AllocationTriesBound = 5;
+        private const int AllocationTriesBound = 4;
 
         private readonly ILivenessAnalyzer livenessAnalyzer;
         private readonly IRegisterAllocator registerAllocator;
@@ -57,9 +57,11 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             for (var iteration = 0; iteration < AllocationTriesBound; ++iteration)
             {
                 var interferenceCopyGraphPair = this.livenessAnalyzer.GetInterferenceCopyGraphs(instructionSequence);
+
                 var allowedHardwareRegisters = HardwareRegister
                     .Values
                     .Where(register => register != HardwareRegister.RSP)
+                    .Where(register => register != HardwareRegister.RBP)
                     .ToList();
 
                 var allocationResult =
@@ -137,6 +139,9 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     return this.instructionSelector.GetInstructions(tree);
                 });
 
+            instruction.Uses = instruction.Uses.Where(register => !spilled.Contains(register)).ToList();
+            instruction.Defines = instruction.Defines.Where(register => !spilled.Contains(register)).ToList();
+
             return auxiliaryReads.Append(instruction).Concat(auxiliaryWrites);
         }
 
@@ -149,13 +154,16 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     .GroupBy(kvp => kvp.Value, kvp => kvp.Key)
                     .ToDictionary(x => x.Key, x => new HashSet<ILabel>(x));
 
-            var nopInstruction = new NopInstruction();
-            var nopInstructionBlock = new List<Instruction> { nopInstruction } as IReadOnlyList<Instruction>;
-
             return orderedTrees.SelectMany((tree, index) =>
             {
                 var labelsWithNops = indexToLabelsMapping[index]
-                    .Select(label => new CodeBlock(label, nopInstructionBlock));
+                    .Select(label =>
+                    {
+                        var nopInstruction = new NopInstruction();
+                        var nopInstructionBlock = new List<Instruction> { nopInstruction } as IReadOnlyList<Instruction>;
+                        label.Tree = new Tree(null, new UnconditionalJump(null));
+                        return new CodeBlock(label, nopInstructionBlock);
+                    });
 
                 var auxiliaryLabel = this.labelFactory.GetLabel(tree);
                 var block = this.instructionSelector.GetInstructions(tree).ToList() as IReadOnlyList<Instruction>;

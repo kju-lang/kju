@@ -492,4 +492,24 @@ namespace KJU.Core.Intermediate
             return template is ClearDF ? new List<object>() : null;
         }
     }
+
+    public class UsesDefinesNode : Node
+    {
+        public UsesDefinesNode(
+            IReadOnlyCollection<VirtualRegister> uses,
+            IReadOnlyCollection<VirtualRegister> defines)
+        {
+            this.Uses = uses;
+            this.Defines = defines;
+        }
+
+        public IReadOnlyCollection<VirtualRegister> Uses { get; }
+
+        public IReadOnlyCollection<VirtualRegister> Defines { get; }
+
+        public override List<object> Match(Node template)
+        {
+            return template is UsesDefinesNode ? new List<object> { this.Uses, this.Defines } : null;
+        }
+    }
 }

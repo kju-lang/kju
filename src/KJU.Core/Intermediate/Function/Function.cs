@@ -9,7 +9,7 @@ namespace KJU.Core.Intermediate.Function
     using AST.VariableAccessGraph;
     using CodeGeneration.FunctionToAsmGeneration;
 
-    public class Function
+    public class Function : IFunction
     {
         private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
         private readonly Dictionary<HardwareRegister, VirtualRegister> calleeSavedMapping;
@@ -62,7 +62,8 @@ namespace KJU.Core.Intermediate.Function
 
             var preCall = this.RspAlignmentNodes(savedRsp)
                 .Concat(this.PassArguments(caller, callArguments))
-                .Append(new ClearDF());
+                .Append(new ClearDF())
+                .Append(new UsesDefinesNode(null, HardwareRegisterUtils.CallerSavedRegisters));
 
             var postCall = new List<Node>
             {
@@ -78,6 +79,7 @@ namespace KJU.Core.Intermediate.Function
         {
             var operations = new List<Node>()
                 {
+                    new UsesDefinesNode(null, HardwareRegisterUtils.CalleeSavedRegisters),
                     new Comment("Save RBP - parent base pointer"),
                     new Push(new RegisterRead(HardwareRegister.RBP)),
                     new Comment("Copy RSP to RBP - current base pointer"),
@@ -105,7 +107,8 @@ namespace KJU.Core.Intermediate.Function
                     .Append(new Comment("Restore RBP from stack"))
                     .Append(new Pop(HardwareRegister.RBP))
                     .Append(new Comment("Clear direction flag."))
-                    .Append(new ClearDF());
+                    .Append(new ClearDF())
+                    .Append(new UsesDefinesNode(HardwareRegisterUtils.CalleeSavedRegisters, new List<VirtualRegister> { HardwareRegister.RSP }));
 
             return operations.MakeTreeChain(this.labelFactory, new Ret());
         }
