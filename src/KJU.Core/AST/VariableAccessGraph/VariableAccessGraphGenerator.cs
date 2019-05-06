@@ -34,15 +34,12 @@ namespace KJU.Core.AST.VariableAccessGraph
         {
             var callGraph = callGraphGenerator.BuildCallGraph(root);
             var callGraphClosure = callGraph.TransitiveClosure();
-            var functions = AggregateFunctionDeclarations(root).ToList();
-            return functions.ToDictionary(fun => fun, function =>
+            return AggregateFunctionDeclarations(root).ToDictionary(fun => fun, function =>
             {
-                var result = AggregateFunctionVariables(function, variablesExtractor);
-                callGraphClosure[function]
-                    .Select(foo => AggregateFunctionVariables(foo, variablesExtractor))
-                    .ToList()
-                    .ForEach(x => result.UnionWith(x));
-                return (IReadOnlyCollection<VariableDeclaration>)result;
+                var rootVariables = AggregateFunctionVariablesInfo(function, variablesExtractor);
+                var closureVariables = callGraphClosure[function]
+                    .SelectMany(foo => AggregateFunctionVariablesInfo(foo, variablesExtractor));
+                return (IReadOnlyCollection<VariableDeclaration>)rootVariables.Concat(closureVariables).ToList();
             });
         }
 
@@ -50,10 +47,10 @@ namespace KJU.Core.AST.VariableAccessGraph
         {
             var extractor = this.infoExtractors[variableInfo];
             var accessGraph = TransitiveCallClosure(this.callGraphGenerator, root, extractor);
-            return this.AggregateNodeVariableInfo(root, accessGraph, extractor);
+            return AggregateNodeVariableInfo(root, accessGraph, extractor);
         }
 
-        private static HashSet<VariableDeclaration> AggregateFunctionVariables(
+        private static IEnumerable<VariableDeclaration> AggregateFunctionVariablesInfo(
             FunctionDeclaration functionDeclaration,
             INodeInfoExtractor infoExtractor)
         {
@@ -81,36 +78,32 @@ namespace KJU.Core.AST.VariableAccessGraph
         private static IEnumerable<FunctionDeclaration> AggregateFunctionDeclarations(Node root)
         {
             var result = root.Children().SelectMany(AggregateFunctionDeclarations);
-            if (root is FunctionDeclaration functionDeclaration)
-            {
-                return result.Append(functionDeclaration);
-            }
 
-            return result;
+            return root is FunctionDeclaration functionDeclaration ? result.Append(functionDeclaration) : result;
         }
 
-        private NodeVariableAccessMapping AggregateNodeVariableInfo(
+        private static NodeVariableAccessMapping AggregateNodeVariableInfo(
             Node root,
             FunctionVariableAccessMapping infoPerFunction,
             INodeInfoExtractor infoExtractor)
         {
-            var dictionary = root.Children()
-                .SelectMany(child => this.AggregateNodeVariableInfo(child, infoPerFunction, infoExtractor))
+            var result = root.Children()
+                .SelectMany(child => AggregateNodeVariableInfo(child, infoPerFunction, infoExtractor))
                 .ToDictionary(x => x.Key, x => x.Value);
 
             var descendantsDeclarations = root is FunctionDeclaration
                 ? new List<VariableDeclaration>()
-                : root.Children().SelectMany(child => dictionary[child]);
+                : root.Children().SelectMany(child => result[child]);
 
             var callDeclarations = root is FunctionCall call
                 ? infoPerFunction[call.Declaration]
                 : new List<VariableDeclaration>();
 
-            dictionary[root] = new HashSet<VariableDeclaration>(
+            result[root] = new HashSet<VariableDeclaration>(
                 infoExtractor.ExtractInfo(root)
                     .Concat(descendantsDeclarations)
                     .Concat(callDeclarations));
-            return dictionary;
+            return result;
         }
     }
 }
