@@ -8,31 +8,28 @@ namespace KJU.Core.Util
         public static IReadOnlyDictionary<T, IReadOnlyCollection<T>> TransitiveClosure<T>(
             this IReadOnlyDictionary<T, IReadOnlyCollection<T>> relation)
         {
-            var result = new Dictionary<T, HashSet<T>>();
-            relation.ToList().ForEach(p => result.Add(p.Key, new HashSet<T>()));
-            relation.ToList().ForEach(p => result[p.Key].UnionWith(relation[p.Key]));
-            var changeOccured = true;
-            while (changeOccured)
+            var result = relation.ToDictionary(p => p.Key, p => new HashSet<T>(p.Value));
+            while (MakeTransitiveClosureStep(relation, result))
             {
-                changeOccured = false;
-                foreach (var key in relation.Keys)
+            }
+
+            return result.ToDictionary(x => x.Key, x => (IReadOnlyCollection<T>)x.Value);
+        }
+
+        private static bool MakeTransitiveClosureStep<T>(IReadOnlyDictionary<T, IReadOnlyCollection<T>> relation, IReadOnlyDictionary<T, HashSet<T>> result)
+        {
+            var changeOccured = false;
+            foreach (var kvp in relation.Keys)
+            {
+                var sizePreUnion = result[kvp].Count;
+                result[kvp].ToList().ForEach(called => result[kvp].UnionWith(relation[called]));
+                if (sizePreUnion != result[kvp].Count)
                 {
-                    var sizePreUnion = result[key].Count;
-                    result[key].ToList().ForEach(called => result[key].UnionWith(relation[called]));
-                    if (sizePreUnion != result[key].Count)
-                    {
-                        changeOccured = true;
-                    }
+                    changeOccured = true;
                 }
             }
 
-            var castResult = new Dictionary<T, IReadOnlyCollection<T>>();
-            foreach (var p in result)
-            {
-                castResult.Add(p.Key, p.Value);
-            }
-
-            return castResult;
+            return changeOccured;
         }
     }
 }

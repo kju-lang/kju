@@ -41,7 +41,7 @@ namespace KJU.Tests.Examples
         }
 
         [DataTestMethod]
-        [Timeout(20000)]
+        [Timeout(2000)]
         [DynamicData(nameof(Positive))]
         public void PositiveExamples(IKjuExample example)
         {
@@ -80,6 +80,13 @@ namespace KJU.Tests.Examples
                     Assert.Fail($"Process has not ended before timeout ({example.Timeout}).");
                 }
             }
+            else
+            {
+                if (!example.Ends)
+                {
+                    Assert.Fail($"Should not end but ended.");
+                }
+            }
 
             var processOutput = process.StandardOutput.ReadToEnd();
             var exitCode = process.ExitCode;
@@ -94,7 +101,7 @@ namespace KJU.Tests.Examples
         }
 
         [DataTestMethod]
-        [Timeout(3000)]
+        [Timeout(2000)]
         [DynamicData(nameof(PositiveDisabled))]
         public void PositiveDisabledExamples(IKjuExample example)
         {

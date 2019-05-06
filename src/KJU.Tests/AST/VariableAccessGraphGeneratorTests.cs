@@ -25,9 +25,14 @@ namespace KJU.Tests.AST
             };
 
             var callGraphGenerator = new CallGraphGenerator();
-            var generator = new VariableAccessGraphGenerator(callGraphGenerator);
-            var resultAccesses = generator.BuildVariableAccessesPerAstNode(root, graph);
-            var resultModifications = generator.BuildVariableModificationsPerAstNode(root, graph);
+            var nodeInfoExtractors = new Dictionary<VariableInfo, INodeInfoExtractor>
+            {
+                [VariableInfo.Access] = new AccessInfoExtractor(),
+                [VariableInfo.Modifications] = new ModifyInfoExtractor(),
+            };
+            var generator = new VariableAccessGraphGenerator(callGraphGenerator, nodeInfoExtractors);
+            var resultAccesses = generator.GetVariableInfoPerAstNode(root, VariableInfo.Access);
+            var resultModifications = generator.GetVariableInfoPerAstNode(root, VariableInfo.Modifications);
 
             Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultAccesses, resultExpected));
             Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultModifications, resultExpected));
@@ -135,11 +140,16 @@ namespace KJU.Tests.AST
             /* Get results from generator and compare */
 
             var callGraphGenerator = new CallGraphGenerator();
-            var generator = new VariableAccessGraphGenerator(callGraphGenerator);
-            var resultAccesses = generator.BuildVariableAccessesPerAstNode(root, accessGraph);
-            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultAccesses, expectedAccesses));
+            var nodeInfoExtractors = new Dictionary<VariableInfo, INodeInfoExtractor>
+            {
+                [VariableInfo.Access] = new AccessInfoExtractor(),
+                [VariableInfo.Modifications] = new ModifyInfoExtractor(),
+            };
+            var generator = new VariableAccessGraphGenerator(callGraphGenerator, nodeInfoExtractors);
+            var resultAccesses = generator.GetVariableInfoPerAstNode(root, VariableInfo.Access);
+            var resultModifications = generator.GetVariableInfoPerAstNode(root, VariableInfo.Modifications);
 
-            var resultModifications = generator.BuildVariableModificationsPerAstNode(root, modificationGraph);
+            Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultAccesses, expectedAccesses));
             Assert.IsTrue(MappingEquivalence.AreEquivalentCollection(resultModifications, expectedModifications));
         }
 
@@ -170,8 +180,15 @@ namespace KJU.Tests.AST
                 [functions["f"]] = new HashSet<FunctionDeclaration>(),
             };
             mockCallGraph.Setup(foo => foo.BuildCallGraph(It.IsAny<Node>())).Returns(callGraphDict);
+            var nodeInfoExtractors = new Dictionary<VariableInfo, INodeInfoExtractor>
+            {
+                [VariableInfo.Access] = new AccessInfoExtractor(),
+                [VariableInfo.Modifications] = new ModifyInfoExtractor(),
+            };
 
-            var graph = new VariableAccessGraphGenerator(mockCallGraph.Object).BuildVariableAccessGraph(ast);
+            VariableAccessGraphGenerator tempQualifier = new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
+            INodeInfoExtractor infoExtractor = new AccessInfoExtractor();
+            var graph = VariableAccessGraphGenerator.TransitiveCallClosure(mockCallGraph.Object, ast, infoExtractor);
 
             Assert.IsTrue(graph[functions["f"]].Contains(variables["x"]));
             Assert.IsFalse(graph[functions["kju"]].Contains(variables["par1"]));
@@ -212,7 +229,15 @@ namespace KJU.Tests.AST
             };
             mockCallGraph.Setup(foo => foo.BuildCallGraph(It.IsAny<Node>())).Returns(callGraphDict);
 
-            var graph = new VariableAccessGraphGenerator(mockCallGraph.Object).BuildVariableAccessGraph(ast);
+            var nodeInfoExtractors = new Dictionary<VariableInfo, INodeInfoExtractor>
+            {
+                [VariableInfo.Access] = new AccessInfoExtractor(),
+                [VariableInfo.Modifications] = new ModifyInfoExtractor(),
+            };
+
+            VariableAccessGraphGenerator tempQualifier = new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
+            INodeInfoExtractor infoExtractor = new AccessInfoExtractor();
+            var graph = VariableAccessGraphGenerator.TransitiveCallClosure(mockCallGraph.Object, ast, infoExtractor);
 
             Assert.IsTrue(graph[functions["kju"]].Contains(variables["x"]));
             Assert.IsTrue(graph[functions["kju"]].Contains(variables["par1"]));
@@ -251,7 +276,15 @@ namespace KJU.Tests.AST
             };
             mockCallGraph.Setup(foo => foo.BuildCallGraph(It.IsAny<Node>())).Returns(callGraphDict);
 
-            var graph = new VariableAccessGraphGenerator(mockCallGraph.Object).BuildVariableModificationGraph(ast);
+            var nodeInfoExtractors = new Dictionary<VariableInfo, INodeInfoExtractor>
+            {
+                [VariableInfo.Access] = new AccessInfoExtractor(),
+                [VariableInfo.Modifications] = new ModifyInfoExtractor(),
+            };
+
+            VariableAccessGraphGenerator tempQualifier = new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
+            INodeInfoExtractor infoExtractor = new AccessInfoExtractor();
+            var graph = VariableAccessGraphGenerator.TransitiveCallClosure(mockCallGraph.Object, ast, infoExtractor);
 
             Assert.IsTrue(graph[functions["f"]].Contains(variables["x"]));
             Assert.IsTrue(graph[functions["f"]].Contains(variables["y"]));
@@ -296,7 +329,15 @@ namespace KJU.Tests.AST
             };
             mockCallGraph.Setup(foo => foo.BuildCallGraph(It.IsAny<Node>())).Returns(callGraphDict);
 
-            var graph = new VariableAccessGraphGenerator(mockCallGraph.Object).BuildVariableModificationGraph(ast);
+            var nodeInfoExtractors = new Dictionary<VariableInfo, INodeInfoExtractor>
+            {
+                [VariableInfo.Access] = new AccessInfoExtractor(),
+                [VariableInfo.Modifications] = new ModifyInfoExtractor(),
+            };
+
+            VariableAccessGraphGenerator tempQualifier = new VariableAccessGraphGenerator(mockCallGraph.Object, nodeInfoExtractors);
+            INodeInfoExtractor infoExtractor = new AccessInfoExtractor();
+            var graph = VariableAccessGraphGenerator.TransitiveCallClosure(mockCallGraph.Object, ast, infoExtractor);
 
             Assert.IsTrue(graph[functions["g"]].Contains(variables["x"]));
             Assert.IsTrue(graph[functions["g"]].Contains(variables["y"]));

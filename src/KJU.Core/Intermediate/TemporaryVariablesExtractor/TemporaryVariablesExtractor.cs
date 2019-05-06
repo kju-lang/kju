@@ -32,70 +32,22 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     return new List<Expression>();
 
                 case InstructionBlock instructionBlock:
-
-                    instructionBlock.Instructions = instructionBlock
-                        .Instructions
-                        .SelectMany(instruction => this.ExtractTemporaryVariables(instruction).Append(instruction))
-                        .ToList();
-                    return new List<Expression>();
+                    return this.ExtractFromInstructionBlock(instructionBlock);
 
                 case VariableDeclaration variable:
-                {
-                    var value = variable.Value;
-                    return value == null ? new List<Expression>() : this.ExtractTemporaryVariables(variable.Value);
-                }
+                    return this.ExtractFromVariable(variable);
 
                 case WhileStatement whileNode:
-                    this.ExtractTemporaryVariables(whileNode.Body);
-                    return this.ExtractTemporaryVariables(whileNode.Condition);
+                    return this.ExtractFromWhile(whileNode);
 
                 case IfStatement ifNode:
-                    this.ExtractTemporaryVariables(ifNode.ElseBody);
-                    this.ExtractTemporaryVariables(ifNode.ThenBody);
-                    return this.ExtractTemporaryVariables(ifNode.Condition);
+                    return this.ExtractFromIf(ifNode);
 
                 case AST.FunctionCall funCall:
-                    funCall.Arguments = funCall.Arguments.Select((argument, i) =>
-                    {
-                        if (argument is AST.Variable variableArgument)
-                        {
-                            var modifiedByAnotherArgument = funCall
-                                .Arguments
-                                .Skip(i + 1)
-                                .Any(followingArgument => this.variableModificationGraph[followingArgument]
-                                    .Contains(variableArgument.Declaration));
-                            if (modifiedByAnotherArgument)
-                            {
-                                var tmpDeclaration = new VariableDeclaration(argument.Type, "tmp", argument)
-                                {
-                                    IntermediateVariable = new Intermediate.Variable(
-                                        this.function,
-                                        new VirtualRegister())
-                                };
-                                var tmpVariable = new AST.Variable("tmp")
-                                    { Declaration = tmpDeclaration, Type = argument.Type };
-                                return (Expression)new BlockWithResult(
-                                    new InstructionBlock(new List<Expression> { tmpDeclaration }),
-                                    tmpVariable)
-                                {
-                                    Type = tmpVariable.Type
-                                };
-                            }
-                        }
+                    return this.ExtractFromFunctionCall(funCall);
 
-                        var instructions = this.ExtractTemporaryVariables(argument);
-                        return new BlockWithResult(new InstructionBlock(instructions), argument)
-                        {
-                            Type = argument.Type
-                        };
-                    }).ToList();
-                    return new List<Expression>();
-
-                case ReturnStatement returnNode:
-                {
-                    var value = returnNode.Value;
-                    return value == null ? new List<Expression>() : this.ExtractTemporaryVariables(value);
-                }
+                case ReturnStatement returnStatement:
+                    return this.ExtractFromReturnStatement(returnStatement);
 
                 case AST.Variable _:
                     return new List<Expression>();
@@ -109,30 +61,7 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                 case UnitLiteral _:
                     return new List<Expression>();
                 case BinaryOperation operationNode:
-
-                    operationNode.LeftValue = this.ReplaceWithBlock(operationNode.LeftValue);
-
-                    var result = new List<Expression>();
-                    var modifiedVariables = this.variableModificationGraph[operationNode.LeftValue];
-                    var usedVariables = this.variableAccessGraph[operationNode.RightValue];
-                    if (modifiedVariables.Any(x => usedVariables.Contains(x)))
-                    {
-                        var tmpDecl = new VariableDeclaration(
-                            operationNode.LeftValue.Type, "tmp", operationNode.LeftValue)
-                        {
-                            IntermediateVariable = new Intermediate.Variable(
-                                this.function,
-                                new VirtualRegister())
-                        };
-                        var tmpVar = new AST.Variable("tmp") { Declaration = tmpDecl };
-
-                        result.Add(tmpDecl);
-                        operationNode.LeftValue = tmpVar;
-                    }
-
-                    operationNode.RightValue = this.ReplaceWithBlock(operationNode.RightValue);
-
-                    return result;
+                    return this.ExtractFromOperationNode(operationNode);
 
                 case Assignment assignmentNode:
                     return this.ExtractTemporaryVariables(assignmentNode.Value);
@@ -151,6 +80,106 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     throw new TemporaryVariablesExtractorException(
                         $"Unexpected AST node type: {node.GetType()}. This should never happen.");
             }
+        }
+
+        private List<Expression> ExtractFromOperationNode(BinaryOperation operationNode)
+        {
+            operationNode.LeftValue = this.ReplaceWithBlock(operationNode.LeftValue);
+
+            var result = new List<Expression>();
+            var modifiedVariables = this.variableModificationGraph[operationNode.LeftValue];
+            var usedVariables = this.variableAccessGraph[operationNode.RightValue];
+            if (modifiedVariables.Any(x => usedVariables.Contains(x)))
+            {
+                var tmpDecl = new VariableDeclaration(
+                    operationNode.LeftValue.Type, "tmp", operationNode.LeftValue)
+                {
+                    IntermediateVariable = new Intermediate.Variable(
+                        this.function,
+                        new VirtualRegister())
+                };
+                var tmpVar = new AST.Variable("tmp") { Declaration = tmpDecl };
+
+                result.Add(tmpDecl);
+                operationNode.LeftValue = tmpVar;
+            }
+
+            operationNode.RightValue = this.ReplaceWithBlock(operationNode.RightValue);
+
+            return result;
+        }
+
+        private List<Expression> ExtractFromReturnStatement(ReturnStatement returnNode)
+        {
+            var value = returnNode.Value;
+            return value == null ? new List<Expression>() : this.ExtractTemporaryVariables(value);
+        }
+
+        private List<Expression> ExtractFromFunctionCall(FunctionCall funCall)
+        {
+            funCall.Arguments = funCall.Arguments.Select((argument, i) =>
+            {
+                if (argument is AST.Variable variableArgument)
+                {
+                    var modifiedByAnotherArgument = funCall
+                        .Arguments
+                        .Skip(i + 1)
+                        .Any(followingArgument => this.variableModificationGraph[followingArgument]
+                            .Contains(variableArgument.Declaration));
+                    if (modifiedByAnotherArgument)
+                    {
+                        var tmpDeclaration = new VariableDeclaration(argument.Type, "tmp", argument)
+                        {
+                            IntermediateVariable = new Intermediate.Variable(
+                                this.function,
+                                new VirtualRegister())
+                        };
+                        var tmpVariable = new AST.Variable("tmp")
+                            { Declaration = tmpDeclaration, Type = argument.Type };
+                        return (Expression)new BlockWithResult(
+                            new InstructionBlock(new List<Expression> { tmpDeclaration }),
+                            tmpVariable)
+                        {
+                            Type = tmpVariable.Type
+                        };
+                    }
+                }
+
+                var instructions = this.ExtractTemporaryVariables(argument);
+                return new BlockWithResult(new InstructionBlock(instructions), argument)
+                {
+                    Type = argument.Type
+                };
+            }).ToList();
+            return new List<Expression>();
+        }
+
+        private List<Expression> ExtractFromIf(IfStatement ifNode)
+        {
+            this.ExtractTemporaryVariables(ifNode.ElseBody);
+            this.ExtractTemporaryVariables(ifNode.ThenBody);
+            return this.ExtractTemporaryVariables(ifNode.Condition);
+        }
+
+        private List<Expression> ExtractFromWhile(WhileStatement whileNode)
+        {
+            this.ExtractTemporaryVariables(whileNode.Body);
+            return this.ExtractTemporaryVariables(whileNode.Condition);
+        }
+
+        private List<Expression> ExtractFromVariable(VariableDeclaration variable)
+        {
+            var value = variable.Value;
+            return value == null ? new List<Expression>() : this.ExtractTemporaryVariables(variable.Value);
+        }
+
+        private List<Expression> ExtractFromInstructionBlock(InstructionBlock instructionBlock)
+        {
+            instructionBlock.Instructions = instructionBlock
+                .Instructions
+                .SelectMany(instruction => this.ExtractTemporaryVariables(instruction).Append(instruction))
+                .ToList();
+            return new List<Expression>();
         }
 
         private Expression ReplaceWithBlock(Expression expression)

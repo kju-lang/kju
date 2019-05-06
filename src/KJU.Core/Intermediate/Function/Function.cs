@@ -243,16 +243,19 @@ namespace KJU.Core.Intermediate.Function
 
         public ILabel GenerateBody(AST.FunctionDeclaration root)
         {
-            this.ExtractTemporaryVariables(root);
+            var variableAccessGraphGenerator =
+                new VariableAccessGraphGeneratorFactory().GetGenerator(); // TODO dependency injection
+            this.ExtractTemporaryVariables(root, variableAccessGraphGenerator);
             var generator = new FunctionBodyGenerator.FunctionBodyGenerator(this, this.labelFactory);
             return generator.BuildFunctionBody(root.Body);
         }
 
-        private void ExtractTemporaryVariables(AST.FunctionDeclaration root)
+        private void ExtractTemporaryVariables(
+            AST.FunctionDeclaration root, IVariableAccessGraphGenerator variableAccessGraphGenerator)
         {
-            var variableAccessGraphGenerator = new VariableAccessGraphGenerator(new AST.CallGraph.CallGraphGenerator());
-            var variableModificationGraph = variableAccessGraphGenerator.BuildVariableModificationsPerAstNode(root);
-            var variableAccessGraph = variableAccessGraphGenerator.BuildVariableAccessesPerAstNode(root);
+            var variableModificationGraph =
+                variableAccessGraphGenerator.GetVariableInfoPerAstNode(root, VariableInfo.Modifications);
+            var variableAccessGraph = variableAccessGraphGenerator.GetVariableInfoPerAstNode(root, VariableInfo.Access);
             var extractor = new TemporaryVariablesExtractor.TemporaryVariablesExtractor(
                 variableModificationGraph,
                 variableAccessGraph,

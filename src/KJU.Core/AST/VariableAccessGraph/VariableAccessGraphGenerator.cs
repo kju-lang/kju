@@ -1,5 +1,6 @@
 namespace KJU.Core.AST.VariableAccessGraph
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using KJU.Core.AST.CallGraph;
@@ -11,118 +12,48 @@ namespace KJU.Core.AST.VariableAccessGraph
         System.Collections.Generic.IReadOnlyDictionary<Node,
             System.Collections.Generic.IReadOnlyCollection<VariableDeclaration>>;
 
-    public class VariableAccessGraphGenerator
+    public class VariableAccessGraphGenerator : IVariableAccessGraphGenerator
     {
         private readonly ICallGraphGenerator callGraphGenerator;
+        private readonly Dictionary<VariableInfo, INodeInfoExtractor> infoExtractors;
 
-        public VariableAccessGraphGenerator(ICallGraphGenerator callGraphGenerator)
+        public VariableAccessGraphGenerator(
+            ICallGraphGenerator callGraphGenerator,
+            Dictionary<VariableInfo, INodeInfoExtractor> infoExtractors)
         {
             this.callGraphGenerator = callGraphGenerator;
+            this.infoExtractors = infoExtractors;
         }
 
-        private interface INodeInfoExtractor
-        {
-            IEnumerable<VariableDeclaration> ExtractInfo(Node node);
-        }
-
-        public FunctionVariableAccessMapping
-            BuildVariableAccessGraph(Node root)
-        {
-            var variablesExtractor = new AccessInfoExtractor();
-            return this.TransitiveCallClosure(root, variablesExtractor);
-        }
-
-        public FunctionVariableAccessMapping
-            BuildVariableModificationGraph(Node root)
-        {
-            var variablesExtractor = new ModifyInfoExtractor();
-            return this.TransitiveCallClosure(root, variablesExtractor);
-        }
-
-        public NodeVariableAccessMapping BuildVariableAccessesPerAstNode(
-            Node root,
-            FunctionVariableAccessMapping accessGraph)
-        {
-            var extractor = new AccessInfoExtractor();
-            return this.AggregateNodeVariableInfo(root, accessGraph, extractor);
-        }
-
-        public NodeVariableAccessMapping BuildVariableAccessesPerAstNode(
-            Node root)
-        {
-            return this.BuildVariableAccessesPerAstNode(root, this.BuildVariableAccessGraph(root));
-        }
-
-        public NodeVariableAccessMapping BuildVariableModificationsPerAstNode(
-            Node root,
-            FunctionVariableAccessMapping modificationGraph)
-        {
-            var extractor = new ModifyInfoExtractor();
-            return this.AggregateNodeVariableInfo(root, modificationGraph, extractor);
-        }
-
-        public NodeVariableAccessMapping BuildVariableModificationsPerAstNode(
-            Node root)
-        {
-            return this.BuildVariableModificationsPerAstNode(root, this.BuildVariableModificationGraph(root));
-        }
-
-        private FunctionVariableAccessMapping
+        // TODO make private as is only used in tests
+        public static FunctionVariableAccessMapping
             TransitiveCallClosure(
+                ICallGraphGenerator callGraphGenerator,
                 Node root,
                 INodeInfoExtractor variablesExtractor)
         {
-            var callGraph = this.callGraphGenerator.BuildCallGraph(root);
+            var callGraph = callGraphGenerator.BuildCallGraph(root);
             var callGraphClosure = callGraph.TransitiveClosure();
-            var functions = this.AggregateFunctionDeclarations(root).ToList();
+            var functions = AggregateFunctionDeclarations(root).ToList();
             return functions.ToDictionary(fun => fun, function =>
             {
-                var result = this.AggregateFunctionVariables(function, variablesExtractor);
+                var result = AggregateFunctionVariables(function, variablesExtractor);
                 callGraphClosure[function]
-                    .Select(foo => this.AggregateFunctionVariables(foo, variablesExtractor))
+                    .Select(foo => AggregateFunctionVariables(foo, variablesExtractor))
                     .ToList()
                     .ForEach(x => result.UnionWith(x));
                 return (IReadOnlyCollection<VariableDeclaration>)result;
             });
         }
 
-        private IEnumerable<FunctionDeclaration> AggregateFunctionDeclarations(Node root)
+        public NodeVariableAccessMapping GetVariableInfoPerAstNode(Node root, VariableInfo variableInfo)
         {
-            var result = root.Children().SelectMany(this.AggregateFunctionDeclarations);
-            if (root is FunctionDeclaration functionDeclaration)
-            {
-                return result.Append(functionDeclaration);
-            }
-
-            return result;
+            var extractor = this.infoExtractors[variableInfo];
+            var accessGraph = TransitiveCallClosure(this.callGraphGenerator, root, extractor);
+            return this.AggregateNodeVariableInfo(root, accessGraph, extractor);
         }
 
-        private NodeVariableAccessMapping AggregateNodeVariableInfo(
-            Node root,
-            FunctionVariableAccessMapping infoPerFunction,
-            INodeInfoExtractor infoExtractor)
-        {
-            var dictionary = root.Children()
-                .SelectMany(child => this.AggregateNodeVariableInfo(child, infoPerFunction, infoExtractor))
-                .ToDictionary(x => x.Key, x => x.Value);
-
-            var rootSet = new HashSet<VariableDeclaration>(infoExtractor.ExtractInfo(root));
-
-            if (!(root is FunctionDeclaration))
-            {
-                root.Children().ToList().ForEach(child => rootSet.UnionWith(dictionary[child]));
-            }
-
-            if (root is FunctionCall call)
-            {
-                rootSet.UnionWith(infoPerFunction[call.Declaration]);
-            }
-
-            dictionary[root] = rootSet;
-            return dictionary;
-        }
-
-        private HashSet<VariableDeclaration> AggregateFunctionVariables(
+        private static HashSet<VariableDeclaration> AggregateFunctionVariables(
             FunctionDeclaration functionDeclaration,
             INodeInfoExtractor infoExtractor)
         {
@@ -147,37 +78,39 @@ namespace KJU.Core.AST.VariableAccessGraph
             return variables;
         }
 
-        private class AccessInfoExtractor : INodeInfoExtractor
+        private static IEnumerable<FunctionDeclaration> AggregateFunctionDeclarations(Node root)
         {
-            public IEnumerable<VariableDeclaration> ExtractInfo(Node node)
+            var result = root.Children().SelectMany(AggregateFunctionDeclarations);
+            if (root is FunctionDeclaration functionDeclaration)
             {
-                switch (node)
-                {
-                    case Variable variable:
-                        return new List<VariableDeclaration>() { variable.Declaration };
-
-                    default:
-                        return new List<VariableDeclaration>();
-                }
+                return result.Append(functionDeclaration);
             }
+
+            return result;
         }
 
-        private class ModifyInfoExtractor : INodeInfoExtractor
+        private NodeVariableAccessMapping AggregateNodeVariableInfo(
+            Node root,
+            FunctionVariableAccessMapping infoPerFunction,
+            INodeInfoExtractor infoExtractor)
         {
-            public IEnumerable<VariableDeclaration> ExtractInfo(Node node)
-            {
-                switch (node)
-                {
-                    case Assignment assignment:
-                        return new List<VariableDeclaration>() { assignment.Lhs.Declaration };
+            var dictionary = root.Children()
+                .SelectMany(child => this.AggregateNodeVariableInfo(child, infoPerFunction, infoExtractor))
+                .ToDictionary(x => x.Key, x => x.Value);
 
-                    case CompoundAssignment compoundAssignment:
-                        return new List<VariableDeclaration>() { compoundAssignment.Lhs.Declaration };
+            var descendantsDeclarations = root is FunctionDeclaration
+                ? new List<VariableDeclaration>()
+                : root.Children().SelectMany(child => dictionary[child]);
 
-                    default:
-                        return new List<VariableDeclaration>();
-                }
-            }
+            var callDeclarations = root is FunctionCall call
+                ? infoPerFunction[call.Declaration]
+                : new List<VariableDeclaration>();
+
+            dictionary[root] = new HashSet<VariableDeclaration>(
+                infoExtractor.ExtractInfo(root)
+                    .Concat(descendantsDeclarations)
+                    .Concat(callDeclarations));
+            return dictionary;
         }
     }
 }
