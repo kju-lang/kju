@@ -1,0 +1,172 @@
+fun write(a: Int): Unit import
+
+
+/* counts permutations of numbers [1, ..., mx] by recursively enumerating all sequences */
+fun countPerms(mx: Int): Int {
+    /* checks if two numbers are different */
+    fun diff2(a1: Int, a2: Int): Bool {
+        return a1 != a2;
+    };
+
+    /* checks if three numbers are pairwise different */
+    fun diff3(a1: Int, a2: Int, a3: Int): Bool {
+        return diff2(a1, a2) && diff2(a2, a3) && diff2(a3, a1);
+    };
+
+    /* checks if four numbers are pairwise different */
+    fun diff4(a1: Int, a2: Int, a3: Int, a4: Int): Bool {
+        return diff2(a1, a2) && diff3(a1, a3, a4) && diff3(a2, a3, a4);
+    };
+
+    /* checks if five numbers are pairwise different */
+    fun diff5(a1: Int, a2: Int, a3: Int, a4: Int, a5: Int): Bool {
+        return diff2(a1, a2) && diff4(a1, a3, a4, a5) && diff4(a2, a3, a4, a5);
+    };
+
+    /* checks if six numbers are pairwise different */
+    fun diff6(a1: Int, a2: Int, a3: Int, a4: Int, a5: Int, a6: Int): Bool {
+        return diff2(a1, a2) && diff5(a1, a3, a4, a5, a6) && diff5(a2, a3, a4, a5, a6);
+    };
+
+    /* checks if seven numbers are pairwise different */
+    fun diff7(a1: Int, a2: Int, a3: Int, a4: Int, a5: Int, a6: Int, a7: Int): Bool {
+        return diff2(a1, a2) && diff6(a1, a3, a4, a5, a6, a7) && diff6(a2, a3, a4, a5, a6, a7);
+    };
+
+    fun boolToInt(x: Bool): Int {
+        if (x) then {
+            return 1;
+        } else {
+            return 0;
+        };
+    };
+
+    fun fun1(a1: Int): Int {
+        if (mx == 1) then {
+            return 1;
+        } else {};
+
+        fun fun2(a1: Int, a2: Int): Int {
+            if (mx == 2) then {
+                return boolToInt(diff2(a1, a2));
+            } else {};
+
+            fun fun3(a1: Int, a2: Int, a3: Int): Int {
+                if (mx == 3) then {
+                    return boolToInt(diff3(a1, a2, a3));
+                } else {};
+
+                fun fun4(a1: Int, a2: Int, a3: Int, a4: Int): Int {
+                    if (mx == 4) then {
+                        return boolToInt(diff4(a1, a2, a3, a4));
+                    } else {};
+
+                    fun fun5(a1: Int, a2: Int, a3: Int, a4: Int, a5: Int): Int {
+                        if (mx == 5) then {
+                            return boolToInt(diff5(a1, a2, a3, a4, a5));
+                        } else {};
+
+                        fun fun6(a1: Int, a2: Int, a3: Int, a4: Int, a5: Int, a6: Int): Int {
+                            if (mx == 6) then {
+                                return boolToInt(diff6(a1, a2, a3, a4, a5, a6));
+                            } else {};
+
+                            fun fun7(a1: Int, a2: Int, a3: Int, a4: Int, a5: Int, a6: Int, a7: Int): Int {
+                                if (mx == 7) then {
+                                    return boolToInt(diff7(a1, a2, a3, a4, a5, a6, a7));
+                                } else {
+                                    /* I would print that I'm a failure but can't into printing strings yet */
+                                    write(-1);
+
+                                    return 0;
+                                };
+                            };
+
+                            var x: Int = 1;
+                            var ans: Int = 0;
+
+                            while (x <= mx) {
+                                ans += fun7(a1, a2, a3, a4, a5, a6, x);
+                                x += 1;
+                            };
+
+                            return ans;
+                        };
+
+                        var x: Int = 1;
+                        var ans: Int = 0;
+
+                        while (x <= mx) {
+                            ans += fun6(a1, a2, a3, a4, a5, x);
+                            x += 1;
+                        };
+
+                        return ans;
+                    };
+
+                    var x: Int = 1;
+                    var ans: Int = 0;
+
+                    while (x <= mx) {
+                        ans += fun5(a1, a2, a3, a4, x);
+                        x += 1;
+                    };
+
+                    return ans;
+                };
+
+                var x: Int = 1;
+                var ans: Int = 0;
+
+                while (x <= mx) {
+                    ans += fun4(a1, a2, a3, x);
+                    x += 1;
+                };
+
+                return ans;
+            };
+
+            var x: Int = 1;
+            var ans: Int = 0;
+
+            while (x <= mx) {
+                ans += fun3(a1, a2, x);
+                x += 1;
+            };
+
+            return ans;
+        };
+
+        var x: Int = 1;
+        var ans: Int = 0;
+
+        while (x <= mx) {
+            ans += fun2(a1, x);
+            x += 1;
+        };
+
+        return ans;
+    };
+
+    var x: Int = 1;
+    var ans: Int = 0;
+
+    while (x <= mx) {
+        ans += fun1(x);
+        x += 1;
+    };
+
+    return ans;
+}
+
+fun kju(): Unit
+{
+    var n: Int = 7;
+    var curr: Int = 1;
+
+    /* Expected output: 1 2 6 24 120 720 5040 */
+    while (curr <= n) {
+        write(countPerms(curr));
+        curr += 1;
+    };
+}

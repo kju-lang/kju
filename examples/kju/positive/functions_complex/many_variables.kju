@@ -1,0 +1,46 @@
+fun write(a: Int): Unit import
+
+
+fun solve(
+    a01: Int, a02: Int, a03: Int, a04: Int, a05: Int, a06: Int, a07: Int, a08: Int, a09: Int,
+    a10: Int, a11: Int, a12: Int, a13: Int, a14: Int, a15: Int, a16: Int, a17: Int, a18: Int): Int {
+
+    var b01: Int = a01 + a02;
+    var b02: Int = a03 + a04;
+    var b03: Int = a05 + a06;
+    var b04: Int = a07 + a08;
+    var b05: Int = a09 + a10;
+    var b06: Int = a11 + a12;
+    var b07: Int = a13 + a14;
+    var b08: Int = a15 + a16;
+    var b09: Int = a17 + a18;
+
+    var c01: Int = b01 + b02;
+    var c02: Int = b03 + b04;
+    var c03: Int = b05 + b06;
+    var c04: Int = b07 + b08;
+    var c05: Int = b09;
+
+    var d: Int = c01 + c02;
+    var e: Int = c03 + c04;
+    var f: Int = c05;
+
+    var g: Int =
+        d * 3 / 3 +
+        e * 5 / 5 +
+        f * 7 / 7;
+
+    return g;
+}
+
+fun kju(): Unit
+{
+    var result: Int =
+        solve(
+            1, 2, 3, 4, 5, 6, 7, 8, 9,
+            10, 11, 12, 13, 14, 15, 16, 17, 18
+        );
+
+    /* Expected output: 171 */
+    write(result);
+}
