@@ -3,6 +3,8 @@ image: microsoft/dotnet:latest
 
 before_script:
   - 'export PATH="$PATH:/root/.dotnet/tools"'
+  - 'apt-get update'
+  - 'apt-get install -y nasm build-essential'
   - 'dotnet restore'
 
 
