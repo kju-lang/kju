@@ -111,7 +111,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             IReadOnlyDictionary<VirtualRegister, int> spilledRegisterToIndexMapping,
             Function function)
         {
-            var auxiliaryReads = instruction.Uses
+            var auxiliaryWrites = instruction.Defines
                 .Where(spilled.Contains)
                 .SelectMany(register =>
                 {
@@ -125,7 +125,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     return this.instructionSelector.GetInstructions(tree);
                 });
 
-            var auxiliaryWrites = instruction.Defines
+            var auxiliaryReads = instruction.Uses
                 .Where(spilled.Contains)
                 .SelectMany(register =>
                 {
@@ -138,9 +138,6 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     var tree = new Tree(writeOperation, new UnconditionalJump(null));
                     return this.instructionSelector.GetInstructions(tree);
                 });
-
-            instruction.Uses = instruction.Uses.Where(register => !spilled.Contains(register)).ToList();
-            instruction.Defines = instruction.Defines.Where(register => !spilled.Contains(register)).ToList();
 
             return auxiliaryReads.Append(instruction).Concat(auxiliaryWrites);
         }
