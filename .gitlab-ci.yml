@@ -7,41 +7,10 @@ before_script:
   - 'apt-get install -y nasm build-essential'
   - 'dotnet restore'
 
-
-debug build KJU.Application:
-  script:
-    - 'dotnet build --configuration Debug src/KJU.Application'
-  artifacts:
-    paths:
-      - src/KJU.Application/bin
-
-debug build KJU.Core:
-  script:
-    - 'dotnet build --configuration Debug src/KJU.Core'
-  artifacts:
-    paths:
-      - src/KJU.Core/bin
-
-
-release build KJU.Application:
-  script:
-    - 'dotnet build --configuration Release src/KJU.Application'
-  artifacts:
-    paths:
-      - src/KJU.Application/bin
-
-release build KJU.Core:
-  script:
-    - 'dotnet build --configuration Release src/KJU.Core'
-  artifacts:
-    paths:
-      - src/KJU.Core/bin
-
-
 test:
   script:
     - 'dotnet tool install --global dotnet-xunit-to-junit'
-    - 'dotnet test /p:CollectCoverage=true src/KJU.Tests --logger:xunit'
+    - 'dotnet test /p:CollectCoverage=true src/KJU.Tests --logger:xunit -c Release'
     - 'dotnet-xunit-to-junit  src/KJU.Tests/TestResults/TestResults.xml src/KJU.Tests/TestResults/TestResults.junit.xml'
   artifacts:
     reports:
