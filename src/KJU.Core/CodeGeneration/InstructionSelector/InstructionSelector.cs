@@ -88,9 +88,9 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
 
                 case FunctionCall call:
                 {
-                    return call.TargetAfter == null
-                        ? instructions
-                        : instructions.Append(new CallInstruction(call.Func));
+                    if (call.TargetAfter != null)
+                        throw new NotImplementedException("non-trivial calls not supported yet");
+                    return instructions.Append(new CallInstruction(call.Func));
                 }
 
                 case UnconditionalJump jmp:

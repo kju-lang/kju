@@ -63,6 +63,7 @@ namespace KJU.Core.Intermediate.Function
             var preCall = this.RspAlignmentNodes(savedRsp)
                 .Concat(this.PassArguments(caller, callArguments))
                 .Append(new ClearDF())
+                .Append(new Comment($"call {this.MangledName}"))
                 .Append(new UsesDefinesNode(null, HardwareRegisterUtils.CallerSavedRegisters));
 
             var postCall = new List<Node>
@@ -89,7 +90,8 @@ namespace KJU.Core.Intermediate.Function
                 }.Append(new Comment("Save callee saved registers."))
                 .Concat(this.calleeSavedMapping.Select(kvp => kvp.Value.CopyFrom(kvp.Key)))
                 .Append(new Comment("Retrieve arguments."))
-                .Concat(this.RetrieveArguments());
+                .Concat(this.RetrieveArguments())
+                .Append(new Comment("Function body."));
 
             return operations.MakeTreeChain(this.labelFactory, after);
         }

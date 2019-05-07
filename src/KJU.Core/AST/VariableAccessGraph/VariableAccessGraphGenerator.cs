@@ -95,7 +95,7 @@ namespace KJU.Core.AST.VariableAccessGraph
                 ? new List<VariableDeclaration>()
                 : root.Children().SelectMany(child => result[child]);
 
-            var callDeclarations = root is FunctionCall call
+            var callDeclarations = (root is FunctionCall call && infoPerFunction.ContainsKey(call.Declaration))
                 ? infoPerFunction[call.Declaration]
                 : new List<VariableDeclaration>();
 
