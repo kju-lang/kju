@@ -72,6 +72,8 @@
                 if (options.GenExe)
                 {
                     var oPath = resultPath.AddExtension("o");
+                    var stdlibPath = resultPath.AddExtension("stdlib.o");
+                    File.WriteAllBytes(stdlibPath, BundledStdlib.data);
                     var arguments = $"{asmPath} -f elf64 -o {oPath}";
                     var nasmExitCode = RunProcess("nasm", arguments);
                     if (nasmExitCode != 0)
@@ -80,7 +82,7 @@
                     }
 
                     var exePath = resultPath;
-                    var gccExitCode = RunProcess(@"gcc", $"{oPath} src/native/io.o -o {exePath}"); // TODO: find path to stdlib
+                    var gccExitCode = RunProcess(@"gcc", $"{oPath} {stdlibPath} -o {exePath}");
                     if (gccExitCode != 0)
                     {
                         throw new ArtifactGenerationException(

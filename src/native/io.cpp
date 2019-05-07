@@ -25,5 +25,11 @@ void write(long long val) {
     printf("%lld\n", val);
     #endif
 }
-}
 
+__attribute__((sysv_abi))
+void abort() {
+    fflush(stdout);
+    fprintf(stderr, "abort\n");
+    ::abort();
+}
+}

@@ -12,7 +12,7 @@ namespace KJU.Core.Filenames
 
         public static string RemoveExtension(this string input)
         {
-            return Regex.Replace(input, @"(\.[^.]*)*$", string.Empty);
+            return Regex.Replace(input, @"(\.[^.]*)$", string.Empty);
         }
 
         public static string AddExtension(this string input, string extension)
