@@ -35,7 +35,7 @@ namespace KJU.Tests.Examples
             .Select(example => new object[] { example });
 
         [DataTestMethod]
-        [Timeout(2000)]
+        [Timeout(6000)]
         [DynamicData(nameof(Positive))]
         public void PositiveExamples(IKjuExample example)
         {
@@ -45,7 +45,7 @@ namespace KJU.Tests.Examples
         }
 
         [DataTestMethod]
-        [Timeout(2000)]
+        [Timeout(6000)]
         [DynamicData(nameof(Negative))]
         public void NegativeExamples(IKjuExample example)
         {
@@ -57,7 +57,7 @@ namespace KJU.Tests.Examples
         }
 
         [DataTestMethod]
-        [Timeout(2000)]
+        [Timeout(6000)]
         [DynamicData(nameof(PositiveDisabled))]
         public void PositiveDisabledExamples(IKjuExample example)
         {
@@ -72,7 +72,7 @@ namespace KJU.Tests.Examples
         }
 
         [DataTestMethod]
-        [Timeout(2000)]
+        [Timeout(6000)]
         [DynamicData(nameof(NegativeDisabled))]
         public void NegativeDisabledExamples(IKjuExample example)
         {

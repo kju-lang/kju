@@ -41,7 +41,7 @@ namespace KJU.Tests.Examples
         }
 
         [DataTestMethod]
-        [Timeout(2000)]
+        [Timeout(6000)]
         [DynamicData(nameof(Positive))]
         public void PositiveExamples(IKjuExample example)
         {
