@@ -23,6 +23,7 @@ namespace KJU.Tests.Filenames
             Assert.AreEqual("example.ast.dot", Extensions.ChangeExtension("example", "ast.dot"));
             Assert.AreEqual("example.ast.dot", Extensions.ChangeExtension("example.kju", "ast.dot"));
             Assert.AreEqual("example.kju", Extensions.ChangeExtension("example.ast.dot", "kju"));
+            Assert.AreEqual("../example.kju", Extensions.ChangeExtension("../example.ast.dot", "kju"));
         }
     }
 }
