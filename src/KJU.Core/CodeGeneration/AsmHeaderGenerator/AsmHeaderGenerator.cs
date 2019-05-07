@@ -4,13 +4,12 @@ namespace KJU.Core.CodeGeneration.AsmHeaderGenerator
     {
         public string GenerateHeader()
         {
-            return @"global _start
+            return @"global main
 section .text
-_start:
+main:
 call _ZN3KJU3kjuEv
-mov RAX, 60       
-mov RDI, 0       
-syscall          
+xor RAX, RAX
+ret
 ";
         }
     }

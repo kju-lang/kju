@@ -25,7 +25,7 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
                 case AST.FunctionDeclaration functionDeclaration:
                 {
                     var mangledName = this.nameMangler.GetMangledName(functionDeclaration, parent?.MangledName);
-                    var function = new Function.Function(parent, mangledName, functionDeclaration.Parameters);
+                    var function = new Function.Function(parent, mangledName, functionDeclaration.Parameters, isForeign: functionDeclaration.IsForeign);
                     functionDeclaration.IntermediateFunction = function;
                     newParent = function;
                     break;

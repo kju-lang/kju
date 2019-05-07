@@ -19,6 +19,9 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
 
         public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
         {
+            if (this.Function.IsForeign)
+                yield return $"extern {this.Function.MangledName}";
+
             yield return $"call {this.Function.MangledName}";
         }
     }

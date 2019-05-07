@@ -20,7 +20,8 @@ namespace KJU.Core.Intermediate.Function
         public Function(
             Function parent,
             string mangledName,
-            IEnumerable<AST.VariableDeclaration> parameters)
+            IEnumerable<AST.VariableDeclaration> parameters,
+            bool isForeign = false)
         {
             // RBP is handled separately, since it has a set place on the stack frame
             this.calleeSavedMapping = HardwareRegisterUtils.CalleeSavedRegisters
@@ -29,6 +30,7 @@ namespace KJU.Core.Intermediate.Function
             this.link = new Variable(this, this.ReserveStackFrameLocation());
             this.parent = parent;
             this.MangledName = mangledName;
+            this.IsForeign = isForeign;
             this.arguments = parameters.Select(parameter =>
             {
                 var location = new VirtualRegister();
@@ -41,6 +43,8 @@ namespace KJU.Core.Intermediate.Function
         public string MangledName { get; }
 
         public int StackBytes { get; set; }
+
+        public bool IsForeign { get; }
 
         private int StackArgumentsCount =>
             Math.Max(0, this.arguments.Count + 1 - HardwareRegisterUtils.ArgumentRegisters.Count);
@@ -135,16 +139,16 @@ namespace KJU.Core.Intermediate.Function
             };
         }
 
-/*
-        Argument position on wrt. stack frame (if needed):
-               |             ...            |
-               | (i+7)th argument           | rbp + 16 + 8i
-               |             ...            |
-               | 7th argument               | rbp + 16
-               | return stack pointer value | rbp + 8
-        rbp -> | previous rbp value         |
-        Static link is the last argument, either in register or on stack.
-*/
+        /*
+                Argument position on wrt. stack frame (if needed):
+                       |             ...            |
+                       | (i+7)th argument           | rbp + 16 + 8i
+                       |             ...            |
+                       | 7th argument               | rbp + 16
+                       | return stack pointer value | rbp + 8
+                rbp -> | previous rbp value         |
+                Static link is the last argument, either in register or on stack.
+        */
 
         private IEnumerable<Node> PassArguments(Function caller, IEnumerable<VirtualRegister> argRegisters)
         {

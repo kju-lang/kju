@@ -80,7 +80,7 @@
                     }
 
                     var exePath = resultPath;
-                    var gccExitCode = RunProcess(@"gcc", $"{oPath} -o {exePath} -nostdlib");
+                    var gccExitCode = RunProcess(@"gcc", $"{oPath} src/native/io.o -o {exePath}"); // TODO: find path to stdlib
                     if (gccExitCode != 0)
                     {
                         throw new ArtifactGenerationException(
