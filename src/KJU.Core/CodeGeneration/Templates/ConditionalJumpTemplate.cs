@@ -39,7 +39,7 @@ namespace KJU.Core.CodeGeneration.Templates
                 var hardwareRegister = this.register.ToHardware(registerAssignment);
 
                 yield return $"test {hardwareRegister}, {hardwareRegister}";
-                yield return $"jz {this.label}";
+                yield return $"jnz {this.label}";
             }
         }
     }
