@@ -457,4 +457,40 @@ namespace KJU.Core.AST
             return $"{this.UnaryOperationType}";
         }
     }
+
+    public class ArrayAccess : Expression
+    {
+        public ArrayAccess(Expression lhs, Expression index)
+        {
+            this.Lhs = lhs;
+            this.Index = index;
+        }
+
+        public Expression Lhs { get; set; }
+
+        public Expression Index { get; set; }
+
+        public override string ToString()
+        {
+            return $"ArrayAccess {this.Lhs} {this.Index}";
+        }
+    }
+
+    public class ArrayAlloc : Expression
+    {
+        public ArrayAlloc(DataType elementType, Expression size)
+        {
+            this.ElementType = elementType;
+            this.Size = size;
+        }
+
+        public DataType ElementType { get; set; }
+
+        public Expression Size { get; set; }
+
+        public override string ToString()
+        {
+            return $"ArrayAlloc {this.ElementType} {this.Size}";
+        }
+    }
 }
