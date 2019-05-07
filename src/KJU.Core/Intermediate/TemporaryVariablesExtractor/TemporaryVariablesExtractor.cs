@@ -81,9 +81,9 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
         {
             operationNode.LeftValue = this.ReplaceWithBlock(operationNode.LeftValue);
 
-            var result = new List<Expression>();
             var modifiedVariables = this.variableAccess.Modifies[operationNode.LeftValue];
             var usedVariables = this.variableAccess.Accesses[operationNode.RightValue];
+            var result = new List<Expression>();
             if (modifiedVariables.Any(x => usedVariables.Contains(x)))
             {
                 var tmpDecl = new VariableDeclaration(
@@ -116,18 +116,16 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
             {
                 if (argument is AST.Variable variableArgument)
                 {
-                    var modifiedByAnotherArgument = funCall
+                    var isModifiedByAnotherArgument = funCall
                         .Arguments
                         .Skip(i + 1)
                         .Any(followingArgument => this.variableAccess.Modifies[followingArgument]
                             .Contains(variableArgument.Declaration));
-                    if (modifiedByAnotherArgument)
+                    if (isModifiedByAnotherArgument)
                     {
                         var tmpDeclaration = new VariableDeclaration(argument.Type, "tmp", argument)
                         {
-                            IntermediateVariable = new Intermediate.Variable(
-                                this.function,
-                                new VirtualRegister())
+                            IntermediateVariable = new Intermediate.Variable(this.function, new VirtualRegister())
                         };
                         var tmpVariable = new AST.Variable("tmp")
                             { Declaration = tmpDeclaration, Type = argument.Type };

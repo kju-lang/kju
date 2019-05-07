@@ -31,7 +31,7 @@ namespace KJU.Core.Intermediate.Function
             this.MangledName = mangledName;
             this.arguments = parameters.Select(parameter =>
             {
-                var location = new VirtualRegister(); // Why not virtual register?
+                var location = new VirtualRegister();
                 var variable = new Variable(this, location);
                 parameter.IntermediateVariable = variable;
                 return variable;

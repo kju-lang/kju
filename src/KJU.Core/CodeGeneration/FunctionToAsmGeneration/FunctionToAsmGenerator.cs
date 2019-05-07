@@ -112,9 +112,9 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 .SelectMany(register =>
                 {
                     var id = spilledRegisterToIndexMapping[register] + 1;
-                    var registerVariable = new Intermediate.Variable(function, register);
+                    var registerVariable = new Variable(function, register);
                     var memoryLocation = new MemoryLocation(function, function.StackBytes + (8 * id));
-                    var memoryVariable = new Intermediate.Variable(function, memoryLocation);
+                    var memoryVariable = new Variable(function, memoryLocation);
                     var readOperation = function.GenerateRead(registerVariable);
                     var writeOperation = function.GenerateWrite(memoryVariable, readOperation);
                     var tree = new Tree(writeOperation, new UnconditionalJump(null));
@@ -126,9 +126,9 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 .SelectMany(register =>
                 {
                     var id = spilledRegisterToIndexMapping[register] + 1;
-                    var registerVariable = new Intermediate.Variable(function, register);
+                    var registerVariable = new Variable(function, register);
                     var memoryLocation = new MemoryLocation(function, function.StackBytes + (8 * id));
-                    var memoryVariable = new Intermediate.Variable(function, memoryLocation);
+                    var memoryVariable = new Variable(function, memoryLocation);
                     var readOperation = function.GenerateRead(memoryVariable);
                     var writeOperation = function.GenerateWrite(registerVariable, readOperation);
                     var tree = new Tree(writeOperation, new UnconditionalJump(null));
