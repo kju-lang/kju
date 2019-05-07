@@ -211,6 +211,30 @@ class DeclareVariable(typing.NamedTuple):
     def render_python(self):
         return '%s = %s' % (self.name, self.expr.render_python())
 
+class Nop(typing.NamedTuple):
+    def render_kju(self): return ''
+    def render_python(self): return 'pass'
+
+class WriteVariable(typing.NamedTuple):
+    name: str
+    value: Any
+
+    @classmethod
+    def generate(self):
+        kind = random.choice(['bool', 'int', 'int'])
+        if len(variables[kind]) == 0:
+            return Nop()
+
+        name = random.choice(variables[kind])
+        expr = generate(kind)
+        return WriteVariable(name, expr)
+
+    def render_kju(self):
+        return '%s = %s;' % (self.name, self.value.render_kju())
+
+    def render_python(self):
+        return '%s = %s' % (self.name, self.value.render_python())
+
 class Print(typing.NamedTuple):
     expr: Any
 
@@ -233,6 +257,8 @@ def generate_stmt():
         return If.generate()
     if r == 1:
         return Print.generate()
+    if r == 2:
+        return WriteVariable.generate()
 
     return DeclareVariable.generate()
 
@@ -283,12 +309,15 @@ class If(typing.NamedTuple):
 
 out = sys.argv[1]
 
-for i in range(10):
+function_count = 10
+stmt_count = 30
+
+for i in range(function_count):
     Function.generate()
 
 variables = {'bool': [], 'int': []}
 main = Block([
-    generate_stmt() for i in range(30)
+    generate_stmt() for i in range(stmt_count)
 ])
 
 with open('%s.kju' % out, 'w') as w:

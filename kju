@@ -2,4 +2,4 @@
 
 basedir="$(dirname "$(readlink -f "$0")")"
 
-dotnet run --project "$basedir/src/KJU.Application" -- "$@"
+dotnet run -c Release --project "$basedir/src/KJU.Application" -- "$@"
