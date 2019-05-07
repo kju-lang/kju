@@ -31,7 +31,12 @@
             public override IEnumerable<string> ToASM(
                 IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
-                yield return $"sub {HardwareRegister.RSP}, {this.KjuFunction.StackBytes}";
+                int stackBytes = this.KjuFunction.StackBytes;
+
+                // always pad stack to 16 bytes
+                if (stackBytes % 16 == 8) stackBytes += 8;
+
+                yield return $"sub {HardwareRegister.RSP}, {stackBytes}";
             }
         }
     }

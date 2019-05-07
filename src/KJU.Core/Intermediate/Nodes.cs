@@ -472,16 +472,16 @@ namespace KJU.Core.Intermediate
 
     public class AlignStackPointer : Node
     {
-        public AlignStackPointer(bool offsetByQword)
+        public AlignStackPointer(int offset)
         {
-            this.OffsetByQword = offsetByQword;
+            this.Offset = offset;
         }
 
-        public bool OffsetByQword { get; }
+        public int Offset { get; }
 
         public override List<object> Match(Node template)
         {
-            return template is AlignStackPointer ? new List<object> { this.OffsetByQword } : null;
+            return template is AlignStackPointer ? new List<object> { this.Offset } : null;
         }
     }
 

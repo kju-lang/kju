@@ -62,18 +62,24 @@ namespace KJU.Core.Intermediate.Function
             ILabel onReturn,
             Function caller)
         {
-            var savedRsp = new VirtualRegister();
-
-            var preCall = this.RspAlignmentNodes(savedRsp)
+            int needStackOffset = this.StackArgumentsCount % 2 == 1 ? 8 : 0;
+            var preCall = new List<Node>
+                {
+                    new AlignStackPointer(offset: needStackOffset),
+                }
+                .Append(new Comment($"Pass arguments"))
                 .Concat(this.PassArguments(caller, callArguments))
                 .Append(new ClearDF())
-                .Append(new Comment($"call {this.MangledName}"))
+                .Append(new Comment($"Call {this.MangledName}"))
                 .Append(new UsesDefinesNode(null, HardwareRegisterUtils.CallerSavedRegisters));
 
             var postCall = new List<Node>
             {
+                new Comment($"Copy function result to variable"),
                 result.CopyFrom(HardwareRegister.RAX),
-                HardwareRegister.RSP.CopyFrom(savedRsp),
+                new Comment($"Restore RSP aligment"),
+                new AlignStackPointer(offset: -needStackOffset),
+                new Comment($"End of call"),
             };
 
             var controlFlow = new FunctionCall(this, postCall.MakeTreeChain(this.labelFactory, onReturn));
@@ -128,15 +134,6 @@ namespace KJU.Core.Intermediate.Function
             }
 
             return result;
-        }
-
-        private IEnumerable<Node> RspAlignmentNodes(VirtualRegister savedRsp)
-        {
-            return new List<Node>
-            {
-                savedRsp.CopyFrom(HardwareRegister.RSP),
-                new AlignStackPointer(offsetByQword: this.StackArgumentsCount % 2 == 1),
-            };
         }
 
         /*

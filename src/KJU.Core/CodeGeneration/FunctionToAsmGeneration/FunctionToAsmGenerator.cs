@@ -113,7 +113,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 {
                     var id = spilledRegisterToIndexMapping[register] + 1;
                     var registerVariable = new Variable(function, register);
-                    var memoryLocation = new MemoryLocation(function, function.StackBytes + (8 * id));
+                    var memoryLocation = new MemoryLocation(function, -(function.StackBytes + (8 * id)));
                     var memoryVariable = new Variable(function, memoryLocation);
                     var readOperation = function.GenerateRead(registerVariable);
                     var writeOperation = function.GenerateWrite(memoryVariable, readOperation);
@@ -127,7 +127,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 {
                     var id = spilledRegisterToIndexMapping[register] + 1;
                     var registerVariable = new Variable(function, register);
-                    var memoryLocation = new MemoryLocation(function, function.StackBytes + (8 * id));
+                    var memoryLocation = new MemoryLocation(function, -(function.StackBytes + (8 * id)));
                     var memoryVariable = new Variable(function, memoryLocation);
                     var readOperation = function.GenerateRead(memoryVariable);
                     var writeOperation = function.GenerateWrite(registerVariable, readOperation);
