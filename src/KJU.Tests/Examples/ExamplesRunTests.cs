@@ -105,14 +105,7 @@ namespace KJU.Tests.Examples
         [DynamicData(nameof(PositiveDisabled))]
         public void PositiveDisabledExamples(IKjuExample example)
         {
-            try
-            {
-                this.PositiveExamples(example);
-            }
-            catch (Exception ex)
-            {
-                Assert.Inconclusive($"{ex}");
-            }
+            Assert.Inconclusive("unknown");
         }
     }
 }

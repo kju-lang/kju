@@ -61,14 +61,7 @@ namespace KJU.Tests.Examples
         [DynamicData(nameof(PositiveDisabled))]
         public void PositiveDisabledExamples(IKjuExample example)
         {
-            try
-            {
-                this.PositiveExamples(example);
-            }
-            catch (Exception ex)
-            {
-                Assert.Inconclusive($"{ex}");
-            }
+            Assert.Inconclusive("unknown");
         }
 
         [DataTestMethod]
@@ -76,14 +69,7 @@ namespace KJU.Tests.Examples
         [DynamicData(nameof(NegativeDisabled))]
         public void NegativeDisabledExamples(IKjuExample example)
         {
-            try
-            {
-                this.NegativeExamples(example);
-            }
-            catch (Exception ex)
-            {
-                Assert.Inconclusive($"{ex}");
-            }
+            Assert.Inconclusive("unknown");
         }
     }
 }
