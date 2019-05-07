@@ -23,7 +23,6 @@ namespace KJU.Tests.Examples
         <Executable>true</Executable>
         <Timeout>10000</Timeout>
         <Input></Input>
-        <ExpectedOutput></ExpectedOutput>
         <NormalizeOutput>true</NormalizeOutput>
         <Ends>true</Ends>
     </Execution>
