@@ -15,7 +15,7 @@ namespace KJU.Core.Intermediate.Function
         private readonly Dictionary<HardwareRegister, VirtualRegister> calleeSavedMapping;
         private readonly Variable link;
         private readonly Function parent;
-        private readonly List<Variable> arguments;
+        private readonly List<AST.VariableDeclaration> parameters;
 
         public Function(
             Function parent,
@@ -31,13 +31,7 @@ namespace KJU.Core.Intermediate.Function
             this.parent = parent;
             this.MangledName = mangledName;
             this.IsForeign = isForeign;
-            this.arguments = parameters.Select(parameter =>
-            {
-                var location = new VirtualRegister();
-                var variable = new Variable(this, location);
-                parameter.IntermediateVariable = variable;
-                return variable;
-            }).ToList();
+            this.parameters = parameters.ToList();
         }
 
         public string MangledName { get; }
@@ -47,7 +41,7 @@ namespace KJU.Core.Intermediate.Function
         public bool IsForeign { get; }
 
         private int StackArgumentsCount =>
-            Math.Max(0, this.arguments.Count + 1 - HardwareRegisterUtils.ArgumentRegisters.Count);
+            Math.Max(0, this.parameters.Count + 1 - HardwareRegisterUtils.ArgumentRegisters.Count);
 
         public MemoryLocation ReserveStackFrameLocation()
         {
@@ -177,9 +171,10 @@ namespace KJU.Core.Intermediate.Function
             var argumentsVirtualRegisters = registerArguments
                 .Concat(memoryArguments);
 
-            return this.arguments
+            return this.parameters
+                .Select(parameter => parameter.IntermediateVariable)
                 .Append(this.link)
-                .Zip(argumentsVirtualRegisters, this.GenerateWrite);
+                .Zip(argumentsVirtualRegisters, (a, b) => this.GenerateWrite(a, b));
         }
 
         public Node GenerateRead(Variable variable)
