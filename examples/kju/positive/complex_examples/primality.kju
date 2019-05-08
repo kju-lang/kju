@@ -2,6 +2,9 @@
  * Why do Java developers wear glasses? Because they can't C#
  */
 
+fun write(a: Int): Unit import
+fun abort(): Unit import
+
 /* Miller-Rabin primality test */
 fun isPrimeFast(n : Int) : Bool
 {
@@ -156,10 +159,13 @@ fun kju() : Unit
         then
         {
             /* Something very-very bad have just happened */
+            write(i);
+            abort();
         }
         else
         {
             i = i + 1;
         };
     };
+    write(i);
 }
