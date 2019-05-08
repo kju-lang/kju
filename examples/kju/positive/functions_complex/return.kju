@@ -1,0 +1,16 @@
+fun write(a: Int): Unit import
+
+
+fun returnOuter(): Int {
+    fun returnInner(a01: Int, a02: Int, a03: Int, a04: Int, a05: Int, a06: Int, a07: Int): Int {
+        return a04;
+    };
+
+    return returnInner(1, 2, 3, 4, 5, 6, 7);
+}
+
+fun kju(): Unit
+{
+    /* Expected output: 4 */
+    write(returnOuter());
+}

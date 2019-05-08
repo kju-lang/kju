@@ -2,6 +2,14 @@ fun write(a: Int): Unit import
 
 
 fun searchInOdd(value: Int): Int {
+    fun add(result: Int, value: Int): Int {
+        if (result == -1) then {
+            return -1;
+        } else {
+            return result + value;
+        };
+    };
+
     /* find first number in [a1 <= a2 <= ... <= a31] which is at least x */
     fun search(
         a01: Int, a02: Int, a03: Int, a04: Int, a05: Int, a06: Int, a07: Int, a08: Int,
@@ -25,12 +33,12 @@ fun searchInOdd(value: Int): Int {
 
         fun search3(a01: Int, a02: Int, a03: Int): Int {
             if (a02 > x) then {
-                return search1(a03);
+                return search1(a01);
             } else {
                 if (a02 == x) then {
                     return 2;
                 } else {
-                    return search1(a01);
+                    return add(search1(a03), 2);
                 };
             };
         };
@@ -47,20 +55,20 @@ fun searchInOdd(value: Int): Int {
                     return 4;
                 } else {
                     if (a08 > x) then {
-                        return 4 + search3(a05, a06, a07);
+                        return add(search3(a05, a06, a07), 4);
                     } else {
                         if (a08 == x) then {
                             /* found */
                             return 8;
                         } else {
                             if (a12 > x) then {
-                                return 8 + search3(a09, a10, a11);
+                                return add(search3(a09, a10, a11), 8);
                             } else {
                                 if (a12 == x) then {
                                     /* found */
                                     return 12;
                                 } else {
-                                    return 12 + search3(a13, a14, a15);
+                                    return add(search3(a13, a14, a15), 12);
                                 };
                             };
                         };
@@ -76,7 +84,7 @@ fun searchInOdd(value: Int): Int {
             a25: Int, a26: Int, a27: Int, a28: Int, a29: Int, a30: Int, a31: Int): Int {
 
             if (a16 < x) then {
-                return 15 + search15(a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31);
+                return add(search15(a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31), 16);
             } else {
                 if (a16 > x) then {
                     return search15(a01, a02, a03, a04, a05, a06, a07, a08, a09, a10, a11, a12, a13, a14, a15);
