@@ -1,3 +1,13 @@
+fun write(a: Int): Unit import
+
+fun writeBool(b: Bool): Unit {
+    if (b) then {
+        write(1);
+    } else {
+        write(0);
+    };
+}
+
 fun kju():Unit{
 	var a:Bool=3==5;
 	var b:Bool=3!=5;
@@ -5,4 +15,11 @@ fun kju():Unit{
 	var d:Bool=3<=5;
 	var e:Bool=3>5;
 	var f:Bool=3>=5;
+
+    writeBool(a);
+    writeBool(b);
+    writeBool(c);
+    writeBool(d);
+    writeBool(e);
+    writeBool(f);
 }

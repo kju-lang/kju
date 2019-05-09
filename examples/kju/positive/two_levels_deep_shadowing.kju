@@ -1,13 +1,24 @@
+fun write(a: Int): Unit import
+
 fun f(): Unit {
 	var a: Int = 1;
+	write(a);
 
 	fun g(): Unit {
 		var b: Bool;
+		write(a);
 
 		fun h(): Unit {
 			var a: Int = 3;
+			write(a);
 		};
+
+        h();
+        write(a);
 	};
+
+    g();
+    write(a);
 }
 
-fun kju(): Unit {}
+fun kju(): Unit { f(); }

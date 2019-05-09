@@ -1,5 +1,19 @@
+fun write(a: Int): Unit import
+
+fun writeBool(b: Bool): Unit {
+    if (b) then {
+        write(1);
+    } else {
+        write(0);
+    };
+}
+
 fun kju():Unit{
 	var a:Bool=true||false;
 	var b:Bool=true&&false;
 	var c:Bool=!true;
+
+    writeBool(a);
+    writeBool(b);
+    writeBool(c);
 }

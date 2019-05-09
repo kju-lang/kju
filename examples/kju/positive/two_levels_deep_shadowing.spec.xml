@@ -1,0 +1,11 @@
+<Spec>
+    <Execution>
+        <ExpectedOutput>
+            1
+            1
+            3
+            1
+            1
+        </ExpectedOutput>
+    </Execution>
+</Spec>
