@@ -1,4 +1,7 @@
+fun write(a: Int): Unit import
+
 fun kju():Unit{
     var x:Int=0;
     x+x;
+    write(x);
 }

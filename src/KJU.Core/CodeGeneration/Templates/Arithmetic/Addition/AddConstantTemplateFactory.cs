@@ -73,28 +73,20 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic.Addition
                 VirtualRegister result)
                 : base(
                     new List<VirtualRegister> { input },
-                    new List<VirtualRegister> { result },
-                    new List<Tuple<VirtualRegister, VirtualRegister>>
-                    {
-                        new Tuple<VirtualRegister, VirtualRegister>(input, result),
-                    })
+                    new List<VirtualRegister> { result })
             {
                 this.input = input;
                 this.constant = constant;
                 this.result = result;
             }
 
-            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(
+                IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var inputHardware = this.input.ToHardware(registerAssignment);
                 var resultHardware = this.result.ToHardware(registerAssignment);
-
-                if (resultHardware != inputHardware)
-                {
-                    yield return $"mov {resultHardware}, {inputHardware}";
-                }
-
-                yield return $"add {resultHardware}, {this.constant}";
+                var sign = this.constant < 0 ? "-" : "+";
+                yield return $"lea {resultHardware}, [{inputHardware}{sign}{Math.Abs(this.constant)}]";
             }
         }
     }

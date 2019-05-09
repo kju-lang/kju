@@ -1,6 +1,5 @@
 fun write(a: Int): Unit import
 
-
 fun solve(
     a01: Int, a02: Int, a03: Int, a04: Int, a05: Int, a06: Int, a07: Int, a08: Int, a09: Int,
     a10: Int, a11: Int, a12: Int, a13: Int, a14: Int, a15: Int, a16: Int, a17: Int, a18: Int): Int {

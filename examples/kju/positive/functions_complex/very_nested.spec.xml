@@ -1,4 +1,15 @@
 <Spec>
     <IsDisabled>true</IsDisabled>
+    <Execution>
+        <ExpectedOutput>
+            1
+            2
+            6
+            24
+            120
+            720
+            5040
+        </ExpectedOutput>
+    </Execution>
 </Spec>
 

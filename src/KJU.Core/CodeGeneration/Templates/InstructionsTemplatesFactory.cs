@@ -22,15 +22,18 @@ namespace KJU.Core.CodeGeneration.Templates
             var comparisonTemplates = new ComparisonTemplateFactory().GetTemplates();
             var logicalOperationTemplates = new LogicalOperationTemplateFactory().GetTemplates();
             var unaryOperationTemplates = new UnaryTemplateFactory().GetTemplates();
+            var memoryWriteLeaTemplates = new MemoryWriteLeaTemplateFactory().GetTemplates();
+            var memoryReadLeaTemplates = new MemoryReadLeaTemplateFactory().GetTemplates();
             var templates = new List<InstructionTemplate>
             {
                 new RegisterWriteTemplate(),
                 new RegisterReadTemplate(),
+                new MemoryReadTemplate(),
+                new MemoryWriteTemplate(),
+
                 new BooleanImmediateValueTemplate(),
                 new IntegerImmediateValueTemplate(),
                 new UnitImmediateValueTemplate(),
-                new MemoryReadTemplate(),
-                new MemoryWriteTemplate(),
                 new GeneralAddTemplate(),
                 new SubTemplate(),
                 new GeneralMultiplicationTemplate(),
@@ -55,6 +58,8 @@ namespace KJU.Core.CodeGeneration.Templates
             templates.AddRange(powerOf2);
             templates.AddRange(multiplicationConstant);
             templates.AddRange(addConstant);
+            templates.AddRange(memoryWriteLeaTemplates);
+            templates.AddRange(memoryReadLeaTemplates);
             return templates;
         }
     }

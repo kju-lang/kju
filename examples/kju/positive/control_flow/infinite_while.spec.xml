@@ -1,4 +1,7 @@
 <Spec>
-    <Execution><Executable>false</Executable></Execution>
+    <Execution>
+        <Timeout>100</Timeout>
+        <Ends>false</Ends>
+    </Execution>
 </Spec>
 

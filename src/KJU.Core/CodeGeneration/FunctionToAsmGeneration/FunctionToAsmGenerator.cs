@@ -58,7 +58,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             {
                 var interferenceCopyGraphPair = this.livenessAnalyzer.GetInterferenceCopyGraphs(instructionSequence);
 
-                var allowedHardwareRegisters = HardwareRegisterUtils.RegistersForColoring;
+                var allowedHardwareRegisters = HardwareRegister.Values;
 
                 var allocationResult =
                     this.registerAllocator.Allocate(interferenceCopyGraphPair, allowedHardwareRegisters);
@@ -153,7 +153,8 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     .Select(label =>
                     {
                         var nopInstruction = new NopInstruction();
-                        var nopInstructionBlock = new List<Instruction> { nopInstruction } as IReadOnlyList<Instruction>;
+                        var nopInstructionBlock =
+                            new List<Instruction> { nopInstruction } as IReadOnlyList<Instruction>;
                         label.Tree = new Tree(null, new UnconditionalJump(null));
                         return new CodeBlock(label, nopInstructionBlock);
                     });

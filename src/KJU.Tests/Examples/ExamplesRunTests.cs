@@ -17,16 +17,16 @@ namespace KJU.Tests.Examples
 
         public static readonly ICompiler Compiler = new Compiler();
 
-        public static IEnumerable<object[]> Positive { get; } = new KjuExamplesGetter().Examples
+        public static IEnumerable<object[]> Executable { get; } = new KjuExamplesGetter().Examples
             .Where(example => !example.IsDisabled)
             .Where(example => example.IsPositive)
             .Where(example => example.Executable)
             .Select(example => new object[] { example });
 
-        public static IEnumerable<object[]> PositiveDisabled { get; } = new KjuExamplesGetter().Examples
-            .Where(example => example.IsDisabled)
+        public static IEnumerable<object[]> NotExecutable { get; } = new KjuExamplesGetter().Examples
+            .Where(example => !example.IsDisabled)
             .Where(example => example.IsPositive)
-            .Where(example => example.Executable)
+            .Where(example => !example.Executable)
             .Select(example => new object[] { example });
 
         [ClassInitialize]
@@ -42,8 +42,8 @@ namespace KJU.Tests.Examples
 
         [DataTestMethod]
         [Timeout(6000)]
-        [DynamicData(nameof(Positive))]
-        public void PositiveExamples(IKjuExample example)
+        [DynamicData(nameof(Executable))]
+        public void ExecutableExamples(IKjuExample example)
         {
             var options = new Program.Options
             {
@@ -82,15 +82,19 @@ namespace KJU.Tests.Examples
             }
             else
             {
+                var exitCode = process.ExitCode;
                 if (!example.Ends)
                 {
-                    Assert.Fail($"Should not end but ended.");
+                    Assert.Fail($"Should not end but ended with exit code {exitCode}.");
                 }
+
+                Assert.AreEqual(
+                    example.ExpectedExitCode,
+                    exitCode,
+                    $"Process returned with wrong exit code.");
             }
 
             var processOutput = process.StandardOutput.ReadToEnd();
-            var exitCode = process.ExitCode;
-            Assert.AreEqual(0, exitCode, $"Process returned with non zero code: {exitCode}.");
 
             var outputCheckResult = example.OutputChecker.CheckOutput(processOutput);
             outputCheckResult.Notes.ForEach(Console.WriteLine);
@@ -102,8 +106,8 @@ namespace KJU.Tests.Examples
 
         [DataTestMethod]
         [Timeout(2000)]
-        [DynamicData(nameof(PositiveDisabled))]
-        public void PositiveDisabledExamples(IKjuExample example)
+        [DynamicData(nameof(NotExecutable))]
+        public void NotExecutableExamples(IKjuExample example)
         {
             Assert.Inconclusive("unknown");
         }

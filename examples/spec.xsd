@@ -1,0 +1,30 @@
+<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+    <xsd:complexType name="ExpectedMagicStringsType">
+        <xsd:sequence>
+            <xsd:element name='MagicString' type="xsd:string" minOccurs='0' maxOccurs='unbounded'/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ExecutionType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name='Executable' type="xsd:boolean" minOccurs='0' maxOccurs='1'/>
+            <xsd:element name='Timeout' type="xsd:integer" minOccurs='0' maxOccurs='1'/>
+            <xsd:element name='Input' type="xsd:string" minOccurs='0' maxOccurs='1'/>
+            <xsd:element name='ExpectedOutput' type="xsd:string" minOccurs='0' maxOccurs='1'/>
+            <xsd:element name='NormalizeOutput' type="xsd:boolean" minOccurs='0' maxOccurs='1'/>
+            <xsd:element name='Ends' type="xsd:boolean" minOccurs='0' maxOccurs='1'/>
+            <xsd:element name='ExpectedExitCode' type="xsd:unsignedByte" minOccurs='0' maxOccurs='1'/>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:element name='Spec'>
+        <xsd:complexType>
+            <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name='IsPositive' type="xsd:boolean" minOccurs='0' maxOccurs='1'/>
+                <xsd:element name='IsDisabled' type="xsd:boolean" minOccurs='0' maxOccurs='1'/>
+                <xsd:element name='ExpectedMagicStrings' type="ExpectedMagicStringsType" minOccurs='0' maxOccurs='1'/>
+                <xsd:element name='Execution' type="ExecutionType" minOccurs='0' maxOccurs='1'/>
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>

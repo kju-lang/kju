@@ -1,4 +1,6 @@
 <Spec>
-    <Execution><Executable>false</Executable></Execution>
+    <Execution>
+        <ExpectedExitCode>136</ExpectedExitCode>
+    </Execution>
 </Spec>
 

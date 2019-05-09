@@ -1,3 +1,5 @@
+fun write(a: Int): Unit import
+
 fun kju():Unit{
 	var a:Int = 1;
 	var b:Int = 2;
@@ -25,5 +27,6 @@ fun kju():Unit{
 	var x:Int = 24;
 	var y:Int = 25;
 	var z:Int = 26;
-	var aa:Int = a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+v+w+x+y+z;
+	var aa:Int = a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z;
+	write(aa);
 }

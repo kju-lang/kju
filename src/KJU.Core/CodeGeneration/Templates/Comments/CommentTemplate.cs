@@ -16,21 +16,5 @@ namespace KJU.Core.CodeGeneration.Templates.Comments
             var value = fill.GetString(0);
             return new CommentInstruction(value);
         }
-
-        private class CommentInstruction : Instruction
-        {
-            private readonly string value;
-
-            public CommentInstruction(string value)
-            {
-                this.value = value;
-            }
-
-            public override IEnumerable<string> ToASM(
-                IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
-            {
-                yield return $"; {this.value}";
-            }
-        }
     }
 }

@@ -1,0 +1,6 @@
+<Spec>
+    <Execution>
+        <Executable>false</Executable>
+        <ExpectedOutput>171</ExpectedOutput>
+    </Execution>
+</Spec>

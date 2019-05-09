@@ -1,0 +1,5 @@
+<Spec>
+    <Execution>
+        <ExpectedExitCode>139</ExpectedExitCode>
+    </Execution>
+</Spec>

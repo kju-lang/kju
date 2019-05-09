@@ -24,6 +24,8 @@ namespace KJU.Tests.Examples
 
         int Timeout { get; }
 
+        int ExpectedExitCode { get; }
+
         IOutputChecker OutputChecker { get; }
 
         IEnumerable<string> ExpectedMagicStrings { get; }

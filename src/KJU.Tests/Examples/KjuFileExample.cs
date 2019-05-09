@@ -21,10 +21,11 @@ namespace KJU.Tests.Examples
     </ExpectedMagicStrings>
     <Execution>
         <Executable>true</Executable>
-        <Timeout>10000</Timeout>
+        <Timeout>1000</Timeout>
         <Input></Input>
         <NormalizeOutput>true</NormalizeOutput>
         <Ends>true</Ends>
+        <ExpectedExitCode>0</ExpectedExitCode>
     </Execution>
 </Spec>
 ";
@@ -33,15 +34,11 @@ namespace KJU.Tests.Examples
 
         private readonly XDocument defaultSpec;
 
-        public KjuFileExample(string path)
+        public KjuFileExample(string path, XDocument specs)
         {
             this.Path = path;
 
-            var specPath = this.Path.ChangeExtension("spec.xml");
-            if (File.Exists(specPath))
-            {
-                this.spec = XDocument.Load(specPath);
-            }
+            this.spec = specs;
 
             this.defaultSpec = XDocument.Parse(DefaultSpecText);
         }
@@ -65,6 +62,8 @@ namespace KJU.Tests.Examples
         public bool Ends => bool.Parse(this.GetProperty("/Spec/Execution/Ends"));
 
         public int Timeout => int.Parse(this.GetProperty("/Spec/Execution/Timeout"));
+
+        public int ExpectedExitCode => int.Parse(this.GetProperty("/Spec/Execution/ExpectedExitCode"));
 
         public IOutputChecker OutputChecker =>
             this.ExpectedOutput != null

@@ -1,7 +1,10 @@
+fun write(a: Int): Unit import
 
 
 fun kju():Unit{
 	var a:Int=5;
 	var x:Int=+a;
 	var y:Int=-a;
+	write(x);
+	write(y);
 }

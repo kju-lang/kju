@@ -1,3 +1,5 @@
+fun write(a: Int): Unit import
+
 fun kju(): Unit
 {
 	var a: Int;
@@ -18,4 +20,5 @@ fun kju(): Unit
 			c=c+1;
 		};
 	};
+	write(c);
 }

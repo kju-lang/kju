@@ -32,7 +32,10 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                 VirtualRegister rhs,
                 VirtualRegister result)
                 : base(
-                    new List<VirtualRegister> { lhs, rhs, HardwareRegister.RDX }, // RDX must be defined to 0 so rhs must not be RDX
+                    new List<VirtualRegister>
+                    {
+                        lhs, rhs, HardwareRegister.RDX, HardwareRegister.RAX
+                    }, // RDX must be defined to 0 so rhs must not be RDX
                     new List<VirtualRegister>
                     {
                         result,
@@ -49,7 +52,8 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                 this.result = result;
             }
 
-            public override IEnumerable<string> ToASM(IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
+            public override IEnumerable<string> ToASM(
+                IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
                 var lhsHardware = this.lhs.ToHardware(registerAssignment);
                 var rhsHardware = this.rhs.ToHardware(registerAssignment);

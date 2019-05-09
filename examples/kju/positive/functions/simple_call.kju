@@ -1,8 +1,0 @@
-fun kju(): Unit
-{
-	var a: Int=f();
-}
-fun f(): Int 
-{ 
-    return 5;
-}

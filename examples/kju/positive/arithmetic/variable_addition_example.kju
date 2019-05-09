@@ -1,5 +1,8 @@
+fun write(a: Int): Unit import
+
 fun kju():Unit{
     var x:Int=2;
     var y:Int=2;
     var z:Int=x+y;
+    write(z);
 }

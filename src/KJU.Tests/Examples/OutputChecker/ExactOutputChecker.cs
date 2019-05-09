@@ -38,7 +38,7 @@ namespace KJU.Tests.Examples.OutputChecker
             var comparisonNotes = expected.Zip(actual, (x, y) => new { Expected = x, Actual = y })
                 .Select((x, index) => new { Index = index, x.Expected, x.Actual })
                 .Where(x => !x.Expected.Equals(x.Actual))
-                .Select(x => $"Outputs differ in line {x.Index}. Expected: {x.Expected}, actual: {x.Actual}");
+                .Select(x => $"Outputs differ in line {x.Index + 1}. Expected: {x.Expected}, actual: {x.Actual}");
 
             diffs.AddRange(comparisonNotes);
 

@@ -32,7 +32,7 @@ namespace KJU.Core.CodeGeneration.Templates.Arithmetic
                 VirtualRegister rhs,
                 VirtualRegister result)
                 : base(
-                    new List<VirtualRegister> { lhs, rhs, HardwareRegister.RDX },
+                    new List<VirtualRegister> { lhs, rhs, HardwareRegister.RDX, HardwareRegister.RAX },
                     new List<VirtualRegister>
                     {
                         result,

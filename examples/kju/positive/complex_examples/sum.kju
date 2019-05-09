@@ -1,3 +1,5 @@
+fun write(a: Int): Unit import
+
 /* This program computes 1 + 2 + .. + n in a very unusual way :) */
 
 fun a(n : Int) : Int
@@ -25,5 +27,5 @@ fun c(n : Int) : Int
 
 fun kju() : Unit
 {
-    a(5);
+    write(a(5));
 }

@@ -1,4 +1,8 @@
 <Spec>
-    <Execution><Executable>false</Executable></Execution>
+    <Execution>
+        <Executable>false</Executable>
+        <ExpectedOutput>
+            
+        </ExpectedOutput>
+    </Execution>
 </Spec>
-
