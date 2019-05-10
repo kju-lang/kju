@@ -35,6 +35,16 @@ namespace KJU.Core.Lexer
         RParen,
 
         /// <summary>
+        /// [
+        /// </summary>
+        LBracket,
+
+        /// <summary>
+        /// ]
+        /// </summary>
+        RBracket,
+
+        /// <summary>
         /// ,
         /// </summary>
         Comma,

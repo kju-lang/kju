@@ -19,6 +19,8 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.RBrace, "}" },
                 { KjuAlphabet.LParen, "\\(" },
                 { KjuAlphabet.RParen, "\\)" },
+                { KjuAlphabet.LBracket, "\\[" },
+                { KjuAlphabet.RBracket, "\\]" },
                 { KjuAlphabet.Comma, "," },
                 { KjuAlphabet.Colon, ":" },
                 { KjuAlphabet.Semicolon, ";" },
