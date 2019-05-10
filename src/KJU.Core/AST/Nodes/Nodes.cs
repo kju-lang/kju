@@ -378,6 +378,61 @@ namespace KJU.Core.AST
         }
     }
 
+    public class ArrayAssignment : Expression
+    {
+        public ArrayAssignment(ArrayAccess lhs, Expression value)
+        {
+            this.Lhs = lhs;
+            this.Value = value;
+        }
+
+        public ArrayAccess Lhs { get; }
+
+        public Expression Value { get; }
+
+        public override IEnumerable<Node> Children()
+        {
+            var result = new List<Node> { this.Lhs };
+            if (this.Value != null)
+                result.Add(this.Value);
+            return result;
+        }
+
+        public override string ToString()
+        {
+            return $"ArrayAssignment";
+        }
+    }
+
+    public class ArrayCompoundAssignment : Expression
+    {
+        public ArrayCompoundAssignment(ArrayAccess lhs, ArithmeticOperationType operation, Expression value)
+        {
+            this.Lhs = lhs;
+            this.Operation = operation;
+            this.Value = value;
+        }
+
+        public ArrayAccess Lhs { get; }
+
+        public ArithmeticOperationType Operation { get; }
+
+        public Expression Value { get; }
+
+        public override IEnumerable<Node> Children()
+        {
+            List<Node> result = new List<Node>() { this.Lhs };
+            if (this.Value != null)
+                result.Add(this.Value);
+            return result;
+        }
+
+        public override string ToString()
+        {
+            return $"{this.Operation} ArrayAssignment";
+        }
+    }
+
     public abstract class BinaryOperation : Expression
     {
         public Expression LeftValue { get; set; }
