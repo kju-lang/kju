@@ -151,12 +151,11 @@ namespace KJU.Core.Intermediate.Function
                 .Select(argVR => new RegisterRead(argVR))
                 .Append(readStaticLink).ToList();
 
-            return values.Zip(
+            return values.Skip(HardwareRegisterUtils.ArgumentRegisters.Count).Reverse()
+                        .Select(value => new Push(value)).
+                        Concat<Node>(values.Zip(
                     HardwareRegisterUtils.ArgumentRegisters,
-                    (value, hwReg) => new RegisterWrite(hwReg, value))
-                .Concat<Node>(
-                    values.Skip(HardwareRegisterUtils.ArgumentRegisters.Count).Reverse()
-                        .Select(value => new Push(value)));
+                    (value, hwReg) => new RegisterWrite(hwReg, value)));
         }
 
         private IEnumerable<Node> RetrieveArguments()
@@ -174,7 +173,8 @@ namespace KJU.Core.Intermediate.Function
             return this.parameters
                 .Select(parameter => parameter.IntermediateVariable)
                 .Append(this.link)
-                .Zip(argumentsVirtualRegisters, (a, b) => this.GenerateWrite(a, b));
+                .Zip(argumentsVirtualRegisters, (a, b) => this.GenerateWrite(a, b))
+                .Reverse();
         }
 
         public Node GenerateRead(Variable variable)
