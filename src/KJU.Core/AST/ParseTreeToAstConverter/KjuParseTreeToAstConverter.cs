@@ -817,7 +817,8 @@ namespace KJU.Core.AST
                             message);
                 }
 
-                Console.WriteLine(branch);
+                primaryExpression.InputRange = firstChild.InputRange;
+
                 return branch
                     .Children
                     .Skip(1)
