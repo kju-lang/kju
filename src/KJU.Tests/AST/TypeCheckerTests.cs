@@ -1,11 +1,13 @@
 ﻿namespace KJU.Tests.AST
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using Core.Diagnostics;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
     using KJU.Core.AST.TypeChecker;
+    using KJU.Core.AST.Types;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using Util;
@@ -273,6 +275,189 @@
                 TypeChecker.AssignedValueHasNoTypeDiagnostic,
                 TypeChecker.IncorrectOperandTypeDiagnostic,
                 TypeChecker.IncorrectReturnTypeDiagnostic);
+        }
+
+        [TestMethod]
+        public void ArrayCorrect()
+        {
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            diagnosticsMock.Setup(foo => foo.Add(It.IsAny<Diagnostic[]>())).Throws(new Exception("Diagnostics not empty."));
+            var diagnostics = diagnosticsMock.Object;
+
+            /*
+             * function f(p : [int]) : [int] {
+             *    p[2] = 3;
+             *    p[1] += 2;
+             *    return p;
+             * }
+             *
+             * function kju() : Unit {
+             *    var t : [int] = new (int, 5);
+             *    f(t)[4];
+             * }
+             *
+             */
+
+            var t = new VariableDeclaration(
+                ArrayType.GetInstance(IntType.Instance),
+                "t",
+                new ArrayAlloc(IntType.Instance, new IntegerLiteral(5)));
+            var p = new VariableDeclaration(
+                ArrayType.GetInstance(IntType.Instance),
+                "a",
+                null);
+
+            var f = new FunctionDeclaration(
+                "f",
+                ArrayType.GetInstance(IntType.Instance),
+                new List<VariableDeclaration>
+                {
+                    p
+                },
+                new InstructionBlock(
+                    new List<Expression>
+                    {
+                        new ArrayAssignment(
+                            new ArrayAccess(
+                                new Variable("p") { Declaration = p, Type = ArrayType.GetInstance(IntType.Instance) },
+                                new IntegerLiteral(2)),
+                            new IntegerLiteral(3)),
+                        new ArrayCompoundAssignment(
+                            new ArrayAccess(
+                                new Variable("p") { Declaration = p, Type = ArrayType.GetInstance(IntType.Instance) },
+                                new IntegerLiteral(1)),
+                            ArithmeticOperationType.Addition,
+                            new IntegerLiteral(2)),
+                        new ReturnStatement(
+                            new Variable("p") { Declaration = p, Type = ArrayType.GetInstance(IntType.Instance) })
+                    }),
+                false);
+
+            var kju = new FunctionDeclaration(
+                "kju",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
+                    {
+                        t,
+                        new ArrayAccess(
+                            new FunctionCall(
+                                "f", new List<Expression>
+                                {
+                                    new Variable("t")
+                                    {
+                                        Declaration = t,
+                                        Type = ArrayType.GetInstance(IntType.Instance),
+                                    },
+                                }) { DeclarationCandidates = new List<FunctionDeclaration>() { f } },
+                            new IntegerLiteral(4)),
+                    }),
+                false);
+
+            var functions = new List<FunctionDeclaration> { f, kju };
+            var root = new Program(functions);
+
+            this.typeChecker.Run(root, diagnostics);
+        }
+
+        [TestMethod]
+        public void ArrayAccessResult()
+        {
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            diagnosticsMock.Setup(foo => foo.Add(It.IsAny<Diagnostic[]>())).Throws(new Exception("Diagnostics not empty."));
+            var diagnostics = diagnosticsMock.Object;
+
+            //  var x: Bool = a[0]. // where a is [bool]
+
+            var a = new VariableDeclaration(
+                ArrayType.GetInstance(BoolType.Instance),
+                "a",
+                null);
+
+            var kju = new FunctionDeclaration(
+                "kju",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
+                    {
+                        new VariableDeclaration(
+                            BoolType.Instance,
+                            "x",
+                            new ArrayAccess(
+                                new Variable("a") { Declaration = a, Type = ArrayType.GetInstance(BoolType.Instance) },
+                                new IntegerLiteral(0))),
+                    }),
+                false);
+            var functions = new List<FunctionDeclaration> { kju };
+            var root = new Program(functions);
+
+            this.typeChecker.Run(root, diagnostics);
+        }
+
+        [TestMethod]
+        public void ArrayErrors()
+        {
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
+
+            /*
+             * function f() : Unit {
+             *     a[2]; // and a is int
+             *     b[true];
+             *     c[1] = true; // a is [int]
+             *     d[1] += 1; // a is [bool]
+             *     new (int, true);
+             * }
+             */
+
+            var a = new VariableDeclaration(IntType.Instance, "a", null);
+            var b = new VariableDeclaration(ArrayType.GetInstance(IntType.Instance), "b", null);
+            var c = new VariableDeclaration(ArrayType.GetInstance(IntType.Instance), "c", null);
+            var d = new VariableDeclaration(ArrayType.GetInstance(BoolType.Instance), "d", null);
+
+            var fun1 = new FunctionDeclaration(
+                "kju",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    new List<Expression>
+                    {
+                        new ArrayAccess(
+                            new Variable("a") { Declaration = a, Type = ArrayType.GetInstance(IntType.Instance) },
+                            new IntegerLiteral(2)),
+                        new ArrayAccess(
+                            new Variable("b") { Declaration = b, Type = ArrayType.GetInstance(IntType.Instance) },
+                            new BoolLiteral(true)),
+                        new ArrayAssignment(
+                            new ArrayAccess(
+                                new Variable("c") { Declaration = c, Type = ArrayType.GetInstance(IntType.Instance) },
+                                new IntegerLiteral(1)),
+                            new BoolLiteral(true)),
+                        new ArrayCompoundAssignment(
+                            new ArrayAccess(
+                                new Variable("d") { Declaration = d, Type = ArrayType.GetInstance(BoolType.Instance) },
+                                new IntegerLiteral(1)),
+                            ArithmeticOperationType.Addition,
+                            new IntegerLiteral(1)),
+                        new ArrayAlloc(
+                            IntType.Instance,
+                            new BoolLiteral(true)),
+                    }),
+                false);
+
+            var root = new Program(new List<FunctionDeclaration>() { fun1 });
+
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
+
+            MockDiagnostics.Verify(
+                diagnosticsMock,
+                TypeChecker.IncorrectArrayAccessUseDiagnostic,
+                TypeChecker.IncorrectArrayIndexTypeDiagnostic,
+                TypeChecker.IncorrectArrayTypeDiagnostic,
+                TypeChecker.IncorrectArrayTypeDiagnostic,
+                TypeChecker.IncorrectArraySizeTypeDiagnostic);
         }
 
         private static Node GenUntypedAst()

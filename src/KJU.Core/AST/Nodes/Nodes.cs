@@ -534,6 +534,11 @@ namespace KJU.Core.AST
 
         public Expression Index { get; set; }
 
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node> { this.Lhs, this.Index };
+        }
+
         public override string ToString()
         {
             return $"ArrayAccess {this.Lhs} {this.Index}";
@@ -551,6 +556,11 @@ namespace KJU.Core.AST
         public DataType ElementType { get; set; }
 
         public Expression Size { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node> { this.Size };
+        }
 
         public override string ToString()
         {

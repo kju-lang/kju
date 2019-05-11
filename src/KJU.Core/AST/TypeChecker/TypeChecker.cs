@@ -6,6 +6,7 @@ namespace KJU.Core.AST.TypeChecker
     using BuiltinTypes;
     using Diagnostics;
     using Lexer;
+    using Types;
 
     public class TypeChecker : IPhase
     {
@@ -17,6 +18,10 @@ namespace KJU.Core.AST.TypeChecker
         public const string IncorrectOperandTypeDiagnostic = "TypeChecker.IncorrectOperandType";
         public const string IncorrectComparisonTypeDiagnostic = "TypeChecker.IncorrectComparisonType";
         public const string IncorrectUnaryExpressionTypeDiagnostic = "TypeChecker.IncorrectUnaryExpressionType";
+        public const string IncorrectArraySizeTypeDiagnostic = "TypeChecker.IncorrectArraySizeType";
+        public const string IncorrectArrayIndexTypeDiagnostic = "TypeChecker.IncorrectArrayIndexType";
+        public const string IncorrectArrayTypeDiagnostic = "TypeChecker.IncorrectArrayType";
+        public const string IncorrectArrayAccessUseDiagnostic = "TypeChecker.IncorrectArrayAccessUse";
         public const string AssignedValueHasNoTypeDiagnostic = "TypeChecker.AssignedValueHasNoType";
         public const string FunctionOverloadNotFoundDiagnostic = "TypeChecker.FunctionOverloadNotFound";
 
@@ -386,6 +391,130 @@ namespace KJU.Core.AST.TypeChecker
                         logicalBinaryOperation.Type = BoolType.Instance;
                         break;
                     case BreakStatement _:
+                        break;
+                    case ArrayAlloc arrayAlloc:
+                        var elementType = arrayAlloc.ElementType;
+                        var sizeType = arrayAlloc.Size.Type;
+                        if (elementType == null)
+                        {
+                            throw new TypeCheckerInternalException("Array type is null");
+                        }
+
+                        if (sizeType == null)
+                        {
+                            throw new TypeCheckerInternalException("Size type is null");
+                        }
+                        else if (!sizeType.Equals(IntType.Instance))
+                        {
+                            var message = $"Incorrect array size type: expected {IntType.Instance}, got {sizeType}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectArraySizeTypeDiagnostic,
+                                message,
+                                new List<Range> { arrayAlloc.Size.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+
+                        arrayAlloc.Type = ArrayType.GetInstance(elementType);
+                        break;
+                    case ArrayAccess arrayAccess:
+                        var array = arrayAccess.Lhs;
+                        var index = arrayAccess.Index;
+
+                        if (array.Type == null)
+                        {
+                            throw new TypeCheckerInternalException("Array type is null");
+                        }
+                        else if (!(array.Type is ArrayType))
+                        {
+                            var message = $"Expected array type, got {array.Type}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectArrayAccessUseDiagnostic,
+                                message,
+                                new List<Range> { array.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+
+                        if (index.Type == null)
+                        {
+                            throw new TypeCheckerInternalException("Index type is null");
+                        }
+                        else if (!index.Type.Equals(IntType.Instance))
+                        {
+                            var message = $"Incorrect array index type: expected {IntType.Instance}, got {index.Type}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectArrayIndexTypeDiagnostic,
+                                message,
+                                new List<Range> { index.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+
+                        arrayAccess.Type = (array.Type as ArrayType)?.ElementType;
+                        break;
+                    case ArrayAssignment arrayAssignment:
+                        var elType = arrayAssignment.Lhs.Type;
+                        var valueType = arrayAssignment.Value.Type;
+
+                        if (elType == null)
+                        {
+                            throw new TypeCheckerInternalException("Element type is null");
+                        }
+
+                        if (valueType == null)
+                        {
+                            throw new TypeCheckerInternalException("Value type is null");
+                        }
+
+                        if (!elType.Equals(valueType))
+                        {
+                            var message = $"Array assignment type mismatch: {elType}, value type {valueType}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectArrayTypeDiagnostic,
+                                message,
+                                new List<Range> { arrayAssignment.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+
+                        arrayAssignment.Type = elType;
+                        break;
+                    case ArrayCompoundAssignment arrayCompoundAssignment:
+                        var elType2 = arrayCompoundAssignment.Lhs.Type;
+                        var valueType2 = arrayCompoundAssignment.Value.Type;
+
+                        if (elType2 == null)
+                        {
+                            throw new TypeCheckerInternalException("Element type is null");
+                        }
+                        else if (!elType2.Equals(IntType.Instance))
+                        {
+                            var message = $"Array compound assignment element type mismatch: got {elType2}, expected {IntType.Instance}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectArrayTypeDiagnostic,
+                                message,
+                                new List<Range> { arrayCompoundAssignment.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+
+                        if (valueType2 == null)
+                        {
+                            throw new TypeCheckerInternalException("Value type is null");
+                        }
+                        else if (!valueType2.Equals(IntType.Instance))
+                        {
+                            var message = $"Array compound assignment value type mismatch: got {valueType2}, expected {IntType.Instance}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectArrayTypeDiagnostic,
+                                message,
+                                new List<Range> { arrayCompoundAssignment.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+
+                        arrayCompoundAssignment.Type = IntType.Instance;
                         break;
                     case Expression e:
                         this.exceptions.Add(
