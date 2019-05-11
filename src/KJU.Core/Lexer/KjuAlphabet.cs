@@ -95,6 +95,11 @@ namespace KJU.Core.Lexer
         Continue,
 
         /// <summary>
+        /// new
+        /// </summary>
+        New,
+
+        /// <summary>
         /// var
         /// </summary>
         Var,
@@ -304,6 +309,17 @@ namespace KJU.Core.Lexer
         /// </summary>
         WhileStatement,
 
+        /// <summary>
+        /// For array allocation
+        /// new ([Int], 5)
+        /// </summary>
+        ArrayAlloc,
+
+        /// <summary>
+        /// a[5]. Only once!
+        /// </summary>
+        ArrayAccess,
+
         Expression,
         ExpressionAssignment,
         ExpressionOr,
@@ -320,6 +336,7 @@ namespace KJU.Core.Lexer
         /// </summary>
         Literal,
         Statement,
+
         Eof
     }
 }

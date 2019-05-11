@@ -26,7 +26,7 @@ namespace KJU.Core.Parser
                 CreateListRegex(KjuAlphabet.FunctionParameter.ToRegex(), Comma.ToRegex()),
                 RParen.ToRegex(),
                 Colon.ToRegex(),
-                TypeIdentifier.ToRegex(),
+                KjuAlphabet.TypeIdentifier.ToRegex(),
                 Sum(
                     KjuAlphabet.Block.ToRegex(),
                     KjuAlphabet.Import.ToRegex()))
@@ -54,7 +54,10 @@ namespace KJU.Core.Parser
         public static readonly Rule<KjuAlphabet> FunctionParameter = new Rule<KjuAlphabet>
         {
             Lhs = KjuAlphabet.FunctionParameter,
-            Rhs = Concat(VariableFunctionIdentifier.ToRegex(), Colon.ToRegex(), TypeIdentifier.ToRegex())
+            Rhs = Concat(
+                VariableFunctionIdentifier.ToRegex(),
+                Colon.ToRegex(),
+                KjuAlphabet.TypeIdentifier.ToRegex())
         };
 
         public static readonly Rule<KjuAlphabet> FunctionCall = new Rule<KjuAlphabet>
@@ -64,6 +67,15 @@ namespace KJU.Core.Parser
                 LParen.ToRegex(),
                 CreateListRegex(KjuAlphabet.Expression.ToRegex(), Comma.ToRegex()),
                 RParen.ToRegex())
+        };
+
+        public static readonly Rule<KjuAlphabet> TypeIdentifier = new Rule<KjuAlphabet>()
+        {
+            Lhs = KjuAlphabet.TypeIdentifier,
+            Rhs = Concat(
+                   LBracket.ToRegex(),
+                    KjuAlphabet.TypeIdentifier.ToRegex(),
+                    RBracket.ToRegex())
         };
 
         public static readonly Rule<KjuAlphabet> IfStatement = new Rule<KjuAlphabet>
@@ -102,7 +114,7 @@ namespace KJU.Core.Parser
                 Var.ToRegex(),
                 VariableFunctionIdentifier.ToRegex(),
                 Colon.ToRegex(),
-                TypeIdentifier.ToRegex(),
+                KjuAlphabet.TypeIdentifier.ToRegex(),
                 Concat(Assign.ToRegex(), KjuAlphabet.Expression.ToRegex()).Optional())
         };
 
@@ -203,11 +215,37 @@ namespace KJU.Core.Parser
             Rhs = Sum(DecimalLiteral.ToRegex(), BooleanLiteral.ToRegex())
         };
 
+        public static readonly Rule<KjuAlphabet> ArrayAlloc = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.ArrayAlloc,
+            Rhs = Concat(
+                New.ToRegex(),
+                LParen.ToRegex(),
+                KjuAlphabet.TypeIdentifier.ToRegex(),
+                Comma.ToRegex(),
+                KjuAlphabet.Expression.ToRegex(),
+                RParen.ToRegex())
+        };
+
+        public static readonly Rule<KjuAlphabet> ArrayAccess = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.ArrayAccess,
+            Rhs = Concat(
+                LBracket.ToRegex(),
+                KjuAlphabet.Expression.ToRegex(),
+                RBracket.ToRegex())
+        };
+
         public static readonly Rule<KjuAlphabet> ExpressionAtom = new Rule<KjuAlphabet>
         {
             Lhs = KjuAlphabet.ExpressionAtom,
             Rhs = Sum(
-                KjuAlphabet.VariableUse.ToRegex(),
+                Concat(
+                    KjuAlphabet.ArrayAlloc.ToRegex(),
+                    KjuAlphabet.ArrayAccess.ToRegex().Starred()),
+                Concat(
+                    KjuAlphabet.VariableUse.ToRegex(),
+                    KjuAlphabet.ArrayAccess.ToRegex().Starred()),
                 KjuAlphabet.Literal.ToRegex(),
                 Concat(
                     LParen.ToRegex(),
@@ -225,12 +263,16 @@ namespace KJU.Core.Parser
                 FunctionParameter,
                 FunctionCall,
 
+                TypeIdentifier,
+
                 Block,
                 Instruction,
                 NotDelimeteredInstruction,
                 Statement,
                 IfStatement,
                 WhileStatement,
+                ArrayAlloc,
+                ArrayAccess,
                 ReturnStatement,
                 VariableDeclaration,
 
@@ -246,7 +288,7 @@ namespace KJU.Core.Parser
                 ExpressionAtom,
 
                 VariableUse,
-                Literal,
+                Literal
             })
         };
 

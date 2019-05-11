@@ -57,7 +57,8 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.MinusAssign, "-=" },
                 { KjuAlphabet.StarAssign, "\\*=" },
                 { KjuAlphabet.SlashAssign, "/=" },
-                { KjuAlphabet.PercentAssign, "%=" }
+                { KjuAlphabet.PercentAssign, "%=" },
+                { KjuAlphabet.New, "new" }
             };
 
             return new Lexer<KjuAlphabet>(tokenCategories, KjuAlphabet.Eof, KjuAlphabet.None, resolver.ResolveWithMinValue);
