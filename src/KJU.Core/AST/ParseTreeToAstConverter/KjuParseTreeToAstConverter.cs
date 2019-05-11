@@ -268,9 +268,6 @@ namespace KJU.Core.AST
 
             private Expression GeneralToAst(ParseTree<KjuAlphabet> parseTree, IDiagnostics diagnostics)
             {
-                Console.WriteLine(parseTree.Category);
-                Console.WriteLine(parseTree);
-
                 if (this.symbolToGenFunction.ContainsKey(parseTree.Category))
                 {
                     return this.symbolToGenFunction[parseTree.Category](parseTree as Brunch<KjuAlphabet>, diagnostics);
@@ -828,9 +825,17 @@ namespace KJU.Core.AST
                     {
                         var mainBranch = parseTree as Brunch<KjuAlphabet>;
                         var expressionBranch = mainBranch.Children[1] as Brunch<KjuAlphabet>;
-                        return this.ExpressionToAst(expressionBranch, diagnostics);
+                        var ret = this.ExpressionToAst(expressionBranch, diagnostics);
+                        ret.InputRange = expressionBranch.InputRange;
+
+                        return ret;
                     })
-                    .Aggregate(primaryExpression, (agg, expr) => new ArrayAccess(agg, expr));
+                    .Aggregate(primaryExpression, (agg, expr) =>
+                    {
+                        var ret = new ArrayAccess(agg, expr);
+                        ret.InputRange = new Range(agg.InputRange.Begin, expr.InputRange.End);
+                        return ret;
+                    });
             }
         }
     }
