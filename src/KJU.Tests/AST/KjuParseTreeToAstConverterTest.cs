@@ -6,6 +6,7 @@ namespace KJU.Tests.AST
     using System.Text;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
+    using KJU.Core.AST.Types;
     using KJU.Core.Diagnostics;
     using KJU.Core.Lexer;
     using KJU.Core.Parser;
@@ -17,7 +18,6 @@ namespace KJU.Tests.AST
     public class KjuParseTreeToAstConverterTest
     {
         private readonly Diagnostics diagnostics;
-        private readonly Dictionary<DataType, string> dataTypeToString;
         private readonly Dictionary<ComparisonType, string> comparisionTypeToString;
         private readonly Dictionary<ArithmeticOperationType, string> arithmeticOperationTypeToString;
         private readonly Dictionary<LogicalBinaryOperationType, string> logicalBinaryOperationTypeToString;
@@ -26,13 +26,6 @@ namespace KJU.Tests.AST
         public KjuParseTreeToAstConverterTest()
         {
             this.diagnostics = new Mock<Diagnostics>().Object;
-
-            this.dataTypeToString = new Dictionary<DataType, string>()
-            {
-                [BoolType.Instance] = "Bool",
-                [IntType.Instance] = "Int",
-                [UnitType.Instance] = "Unit",
-            };
 
             this.arithmeticOperationTypeToString = new Dictionary<ArithmeticOperationType, string>()
             {
@@ -398,6 +391,129 @@ namespace KJU.Tests.AST
             MockDiagnostics.Verify(diag, KjuParseTreeToAstConverter.AssignmentLhsErrorDiagnosticsType);
         }
 
+        [TestMethod]
+        public void ArrayCreate()
+        {
+            string code = @"
+                fun kju(): Unit {
+                    var x : [[[Int]]];
+                }
+                ";
+            string expected = "P<fun kju Unit<block<var x [[[Int]]]<>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void ArrayDeclarationWithDefinition()
+        {
+            string code = @"
+                fun kju(): Unit {
+                    var x : [[[Int]]] = new ([[Int]], 5);
+                }
+                ";
+            string expected = "P<fun kju Unit<block<var x [[[Int]]]<alloc [[Int]]<int 5>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void ArrayAccessOneDim()
+        {
+            string code = @"
+                fun kju(): Unit {
+                    x[1];
+                }
+                ";
+            string expected = "P<fun kju Unit<block<access<var x | int 1>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void ArrayAccessMultiDim()
+        {
+            string code = @"
+                fun kju(): Unit {
+                    x[1][2][3];
+                }
+                ";
+            string expected = "P<fun kju Unit<block<access<access<access<var x | int 1> | int 2> | int 3>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void ArrayAssignmentOneDim()
+        {
+            string code = @"
+                fun kju(): Unit {
+                    x[1] = 2;
+                }
+                ";
+            string expected = "P<fun kju Unit<block<array_assign<access<var x | int 1> | int 2>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void ArrayAssignmentMultiDim()
+        {
+            string code = @"
+                fun kju(): Unit {
+                    x[1][2][3] = y[4];
+                }
+                ";
+            string expected = "P<fun kju Unit<block<array_assign<access<access<access<var x | int 1> | int 2> | int 3> | access<var y | int 4>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void ArrayCompoundAssignmentOneDim()
+        {
+            string code = @"
+                fun kju(): Unit {
+                    x[1] += 2;
+                }
+                ";
+            string expected = "P<fun kju Unit<block<array_assign +<access<var x | int 1> | int 2>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void ArrayCompoundAssignmentMultiDim()
+        {
+            string code = @"
+                fun kju(): Unit {
+                    x[1][2][3] %= y[4];
+                }
+                ";
+            string expected = "P<fun kju Unit<block<array_assign %<access<access<access<var x | int 1> | int 2> | int 3> | access<var y | int 4>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void FunctionReturnNew()
+        {
+            string code = @"
+                fun f() : [Int] {
+                    return new (Int, 5);
+                }
+                ";
+            string expected = "P<fun f [Int]<block<return<alloc Int<int 5>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
+        public void FunctionAccess()
+        {
+            string code = @"
+                fun f() : [Int] {
+                    return new (Int, 5);
+                }
+                fun kju(): Unit {
+                    x[1][2][3] *= f()[4];
+                }
+                ";
+            string expected = "P<fun f [Int]<block<return<alloc Int<int 5>>>> | fun kju Unit<block<array_assign *<access<access<access<var x | int 1> | int 2> | int 3> | access<call f<> | int 4>>>>>";
+            this.TestTemplate(code, expected);
+        }
+
         private void TestTemplate(string code, string expectedAstSerialization)
         {
             var ast = KjuCompilerUtils.GenerateAst(code, this.diagnostics);
@@ -421,14 +537,14 @@ namespace KJU.Tests.AST
                     builder.Append("P");
                     break;
                 case FunctionDeclaration functionDeclaration:
-                    var retType = this.dataTypeToString[functionDeclaration.ReturnType];
+                    var retType = this.DataTypeToString(functionDeclaration.ReturnType);
                     builder.Append($"fun {functionDeclaration.Identifier} {retType}");
                     break;
                 case InstructionBlock _:
                     builder.Append("block");
                     break;
                 case VariableDeclaration variableDeclaration:
-                    var type = this.dataTypeToString[variableDeclaration.VariableType];
+                    var type = this.DataTypeToString(variableDeclaration.VariableType);
                     builder.Append($"var {variableDeclaration.Identifier} {type}");
                     break;
                 case WhileStatement _:
@@ -464,6 +580,19 @@ namespace KJU.Tests.AST
                 case CompoundAssignment compoundAssignment:
                     var op = this.arithmeticOperationTypeToString[compoundAssignment.Operation];
                     builder.Append($"assign {op}");
+                    break;
+                case ArrayAssignment _:
+                    builder.Append($"array_assign");
+                    break;
+                case ArrayCompoundAssignment compoundAssignment:
+                    var arrayOp = this.arithmeticOperationTypeToString[compoundAssignment.Operation];
+                    builder.Append($"array_assign {arrayOp}");
+                    break;
+                case ArrayAlloc alloc:
+                    builder.Append($"alloc {this.DataTypeToString(alloc.ElementType)}");
+                    break;
+                case ArrayAccess access:
+                    builder.Append($"access");
                     break;
                 case ArithmeticOperation arithmeticOperation:
                     op = this.arithmeticOperationTypeToString[arithmeticOperation.OperationType];
@@ -503,6 +632,23 @@ namespace KJU.Tests.AST
             }
 
             builder.Append(">");
+        }
+
+        private string DataTypeToString(DataType type)
+        {
+            switch (type)
+            {
+                case BoolType _:
+                    return "Bool";
+                case IntType _:
+                    return "Int";
+                case UnitType _:
+                    return "Unit";
+                case ArrayType arrayType:
+                    return $"[{this.DataTypeToString(arrayType.ElementType)}]";
+                default:
+                    throw new Exception("Incorrect DataType");
+            }
         }
     }
 }
