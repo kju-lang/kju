@@ -6,6 +6,7 @@ namespace KJU.Core.AST
     using Diagnostics;
     using Lexer;
     using Parser;
+    using Types;
 
     public class KjuParseTreeToAstConverter : IParseTreeToAstConverter<KjuAlphabet>
     {
@@ -93,6 +94,7 @@ namespace KJU.Core.AST
                         [KjuAlphabet.FunctionParameter] = this.FunctionParameterToAst,
                         [KjuAlphabet.IfStatement] = this.IfStatementToAst,
                         [KjuAlphabet.WhileStatement] = this.WhileStatementToAst,
+                        [KjuAlphabet.ArrayAlloc] = this.ArrayAllocToAst,
                         [KjuAlphabet.ReturnStatement] = this.ReturnStatementToAst,
                         [KjuAlphabet.VariableDeclaration] = this.VariableDeclarationToAst,
                         [KjuAlphabet.VariableUse] = this.VariableUseToAst,
@@ -266,6 +268,9 @@ namespace KJU.Core.AST
 
             private Expression GeneralToAst(ParseTree<KjuAlphabet> parseTree, IDiagnostics diagnostics)
             {
+                Console.WriteLine(parseTree.Category);
+                Console.WriteLine(parseTree);
+
                 if (this.symbolToGenFunction.ContainsKey(parseTree.Category))
                 {
                     return this.symbolToGenFunction[parseTree.Category](parseTree as Brunch<KjuAlphabet>, diagnostics);
@@ -276,7 +281,7 @@ namespace KJU.Core.AST
                 }
             }
 
-            private DataType TypeIdentifierAst(Token<KjuAlphabet> token, IDiagnostics diagnostics)
+            private DataType TypeIdentifierAstToken(Token<KjuAlphabet> token, IDiagnostics diagnostics)
             {
                 switch (token.Text)
                 {
@@ -294,6 +299,27 @@ namespace KJU.Core.AST
                             new List<Range> { token.InputRange });
                         diagnostics.Add(diag);
                         throw new ParseTreeToAstConverterException("unexpected type identifier");
+                }
+            }
+
+            private DataType TypeIdentifierAst(ParseTree<KjuAlphabet> tree, IDiagnostics diagnostics)
+            {
+                switch (tree)
+                {
+                    case Token<KjuAlphabet> token:
+                        return this.TypeIdentifierAstToken(token, diagnostics);
+                    case Brunch<KjuAlphabet> brunch:
+                        var parseTreeChild = brunch.Children[1];
+                        var childDataType = this.TypeIdentifierAst(parseTreeChild, diagnostics);
+                        return ArrayType.GetInstance(childDataType);
+                    default:
+                        var diag = new Diagnostic(
+                            DiagnosticStatus.Error,
+                            TypeIdentifierErrorDiagnosticsType,
+                            $"Unexpected parse tree type in type identification: '{tree}'",
+                            new List<Range>());
+                        diagnostics.Add(diag);
+                        throw new ParseTreeToAstConverterException("Unexpected parse tree type in type identification");
                 }
             }
 
@@ -315,7 +341,7 @@ namespace KJU.Core.AST
                             identifier = ((Token<KjuAlphabet>)child).Text;
                             break;
                         case KjuAlphabet.TypeIdentifier:
-                            type = this.TypeIdentifierAst((Token<KjuAlphabet>)child, diagnostics);
+                            type = this.TypeIdentifierAst(child, diagnostics);
                             break;
                         case KjuAlphabet.Block:
                             body = this.BlockToAst((Brunch<KjuAlphabet>)child, diagnostics);
@@ -377,7 +403,7 @@ namespace KJU.Core.AST
                             identifier = ((Token<KjuAlphabet>)child).Text;
                             break;
                         case KjuAlphabet.TypeIdentifier:
-                            type = this.TypeIdentifierAst((Token<KjuAlphabet>)child, diagnostics);
+                            type = this.TypeIdentifierAst(child, diagnostics);
                             break;
                     }
                 }
@@ -441,6 +467,26 @@ namespace KJU.Core.AST
                 return ret;
             }
 
+            private Expression ArrayAllocToAst(Brunch<KjuAlphabet> brunch, IDiagnostics diagnostics)
+            {
+                DataType type = null;
+                Expression size = null;
+                foreach (var child in brunch.Children)
+                {
+                    switch (child.Category)
+                    {
+                        case KjuAlphabet.TypeIdentifier:
+                            type = this.TypeIdentifierAst(child, diagnostics);
+                            break;
+                        case KjuAlphabet.Expression:
+                            size = this.ExpressionToAst(child as Brunch<KjuAlphabet>, diagnostics);
+                            break;
+                    }
+                }
+
+                return new ArrayAlloc(type, size);
+            }
+
             private Expression ReturnStatementToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
                 Expression value = null;
@@ -472,7 +518,7 @@ namespace KJU.Core.AST
                             identifier = ((Token<KjuAlphabet>)child).Text;
                             break;
                         case KjuAlphabet.TypeIdentifier:
-                            type = this.TypeIdentifierAst(child as Token<KjuAlphabet>, diagnostics);
+                            type = this.TypeIdentifierAst(child, diagnostics);
                             break;
                         case KjuAlphabet.Expression:
                             value = this.ExpressionToAst(child as Brunch<KjuAlphabet>, diagnostics);
@@ -531,32 +577,49 @@ namespace KJU.Core.AST
                 else
                 {
                     var operatorSymbol = branch.Children[1].Category;
-                    var variable = this.ExpressionLogicalOrToAst(
+                    var lhs = this.ExpressionLogicalOrToAst(
                         (Brunch<KjuAlphabet>)branch.Children[0],
-                        diagnostics) as AST.Variable;
+                        diagnostics);
                     var rightValue =
                         this.ExpressionAssignmentToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
 
-                    if (variable == null)
+                    switch (lhs)
                     {
-                        diagnostics.Add(new Diagnostic(
-                            DiagnosticStatus.Error,
-                            AssignmentLhsErrorDiagnosticsType,
-                            "{0} Left operand of an assignment is not a variable",
-                            new List<Range> { branch.Children[0].InputRange }));
+                        case Variable variable:
+                            if (operatorSymbol == KjuAlphabet.Assign)
+                            {
+                                ret = new Assignment(variable, rightValue);
+                            }
+                            else
+                            {
+                                var type = this.symbolToOperationType[operatorSymbol];
+                                ret = new CompoundAssignment(variable, type, rightValue);
+                            }
 
-                        throw new ParseTreeToAstConverterException(
-                            "Left operand of an assignment is not a variable");
-                    }
+                            break;
 
-                    if (operatorSymbol == KjuAlphabet.Assign)
-                    {
-                        ret = new Assignment(variable, rightValue);
-                    }
-                    else
-                    {
-                        var type = this.symbolToOperationType[operatorSymbol];
-                        ret = new CompoundAssignment(variable, type, rightValue);
+                        case ArrayAccess access:
+                            if (operatorSymbol == KjuAlphabet.Assign)
+                            {
+                                ret = new ArrayAssignment(access, rightValue);
+                            }
+                            else
+                            {
+                                var type = this.symbolToOperationType[operatorSymbol];
+                                ret = new ArrayCompoundAssignment(access, type, rightValue);
+                            }
+
+                            break;
+
+                        default:
+                            diagnostics.Add(new Diagnostic(
+                                DiagnosticStatus.Error,
+                                AssignmentLhsErrorDiagnosticsType,
+                                "{0} Left operand of an assignment is not a variable nor array access",
+                                new List<Range> { branch.Children[0].InputRange }));
+
+                            throw new ParseTreeToAstConverterException(
+                                "Left operand of an assignment is not a variable nor array access");
                     }
                 }
 
@@ -717,32 +780,57 @@ namespace KJU.Core.AST
 
             private Expression ExpressionAtomToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                // Literal
                 if (branch.Children.Count == 1)
                 {
                     var ret = this.GeneralToAst(branch.Children[0], diagnostics);
                     ret.InputRange = branch.InputRange;
                     return ret;
                 }
-                else
-                {
-                    foreach (var child in branch.Children)
-                    {
-                        if (child.Category == KjuAlphabet.Statement)
-                        {
-                            var ast = this.StatementToAst(child as Brunch<KjuAlphabet>, diagnostics);
-                            this.enclosedWithParentheses.Add(ast);
-                            return ast;
-                        }
-                    }
 
-                    diagnostics.Add(new Diagnostic(
-                        DiagnosticStatus.Error,
-                        AstConversionErrorDiagnosticsType,
-                        "{0} ExpressionAtom with > 1 child doesn't contain a Statement",
-                        new List<Range> { branch.InputRange }));
-                    throw new ParseTreeToAstConverterException(
-                        "ExpressionAtom with more than 1 child should contain '( statement )'");
+                // (Statement)
+                foreach (var child in branch.Children)
+                {
+                    if (child.Category == KjuAlphabet.Statement)
+                    {
+                        var ast = this.StatementToAst(child as Brunch<KjuAlphabet>, diagnostics);
+                        this.enclosedWithParentheses.Add(ast);
+                        return ast;
+                    }
                 }
+
+                Expression primaryExpression = null;
+                var firstChild = branch.Children[0];
+                switch (firstChild.Category)
+                {
+                    case KjuAlphabet.VariableUse:
+                        primaryExpression = this.VariableUseToAst(firstChild as Brunch<KjuAlphabet>, diagnostics);
+                        break;
+                    case KjuAlphabet.ArrayAlloc:
+                        primaryExpression = this.ArrayAllocToAst(firstChild as Brunch<KjuAlphabet>, diagnostics);
+                        break;
+                    default:
+                        const string message = "ExpressionAtom with > 1 children should contain Statement of be either VarUse or ArrayAlloc";
+                        diagnostics.Add(new Diagnostic(
+                            DiagnosticStatus.Error,
+                            AstConversionErrorDiagnosticsType,
+                            $"{{0}} {message}",
+                            new List<Range> { branch.InputRange }));
+                        throw new ParseTreeToAstConverterException(
+                            message);
+                }
+
+                Console.WriteLine(branch);
+                return branch
+                    .Children
+                    .Skip(1)
+                    .Select(parseTree =>
+                    {
+                        var mainBranch = parseTree as Brunch<KjuAlphabet>;
+                        var expressionBranch = mainBranch.Children[1] as Brunch<KjuAlphabet>;
+                        return this.ExpressionToAst(expressionBranch, diagnostics);
+                    })
+                    .Aggregate(primaryExpression, (agg, expr) => new ArrayAccess(agg, expr));
             }
         }
     }
