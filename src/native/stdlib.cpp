@@ -32,4 +32,9 @@ void abort() {
     fprintf(stderr, "abort\n");
     ::abort();
 }
+
+__attribute__((sysv_abi))
+long long allocate(long long size) {
+    return ((long long) malloc(size));
+}
 }

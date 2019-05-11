@@ -78,6 +78,14 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
                     return this.ConvertNode(expr, after);
                 case AST.UnaryOperation expr:
                     return this.ConvertNode(expr, after);
+                case AST.ArrayAccess expr:
+                    return this.ConvertNode(expr, after);
+                case AST.ArrayAssignment expr:
+                    return this.ConvertNode(expr, after);
+                case AST.ArrayCompoundAssignment expr:
+                    return this.ConvertNode(expr, after);
+                case AST.ArrayAlloc expr:
+                    return this.ConvertNode(expr, after);
                 default:
                     throw new FunctionBodyGeneratorException($"Unknown node type: {node.Type}");
             }
@@ -255,10 +263,21 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return this.ConvertNode(this.SplitCompoundAssignment(node), after);
         }
 
+        private Computation ConvertNode(AST.ArrayCompoundAssignment node, ILabel after)
+        {
+            return this.ConvertNode(this.SplitArrayCompoundAssignment(node), after);
+        }
+
         private AST.Assignment SplitCompoundAssignment(AST.CompoundAssignment node)
         {
             var operation = new AST.ArithmeticOperation(node.Operation, node.Lhs, node.Value);
             return new AST.Assignment(node.Lhs, operation);
+        }
+
+        private AST.ArrayAssignment SplitArrayCompoundAssignment(AST.ArrayCompoundAssignment node)
+        {
+            var operation = new AST.ArithmeticOperation(node.Operation, node.Lhs, node.Value);
+            return new AST.ArrayAssignment(node.Lhs, operation);
         }
 
         private Computation ConvertNode(AST.ArithmeticOperation node, ILabel after)
@@ -317,6 +336,96 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             Computation operand = this.GenerateExpression(node.Value, after);
             Node result = new UnaryOperation(operand.Result, node.UnaryOperationType);
             return new Computation(operand.Start, result);
+        }
+
+        private Computation ConvertNode(AST.ArrayAccess node, ILabel after)
+        {
+            var right = new VirtualRegister();
+            var left = new VirtualRegister();
+
+            var read = new MemoryRead(new RegisterRead(left));
+            var add = new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, new RegisterRead(right), read);
+            var root = new MemoryRead(add);
+
+            var finalLabel = this.labelFactory.GetLabel(new Tree(root, new UnconditionalJump(after)));
+
+            var rightLabel = this.labelFactory.WithLabel(label =>
+            {
+                var rightComp = this.GenerateExpression(node.Index, label);
+                var rightRoot = new RegisterWrite(right, rightComp.Result);
+                return (
+                new Tree(rightRoot, new UnconditionalJump(finalLabel)),
+                rightComp.Start);
+            });
+
+            var leftLabel = this.labelFactory.WithLabel(label =>
+            {
+                var leftComp = this.GenerateExpression(node.Lhs, label);
+                var leftRoot = new RegisterWrite(left, leftComp.Result);
+                return (
+                new Tree(leftRoot, new UnconditionalJump(rightLabel)),
+                leftComp.Start);
+            });
+
+            return new Computation(leftLabel, root);
+        }
+
+        private Computation ConvertNode(AST.ArrayAssignment node, ILabel after)
+        {
+            var right = new VirtualRegister();
+            var left = new VirtualRegister();
+            var value = new VirtualRegister();
+
+            var read = new MemoryRead(new RegisterRead(left));
+            var add = new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, new RegisterRead(right), read);
+            var valueRead = new RegisterRead(value);
+            var root = new MemoryWrite(add, valueRead);
+
+            var finalLabel = this.labelFactory.GetLabel(new Tree(root, new UnconditionalJump(after)));
+
+            var valueLabel = this.labelFactory.WithLabel(label =>
+            {
+                var valueComp = this.GenerateExpression(node.Value, label);
+                var valueRoot = new RegisterWrite(value, valueComp.Result);
+                return (
+                new Tree(valueRoot, new UnconditionalJump(finalLabel)),
+                valueComp.Start);
+            });
+
+            var rightLabel = this.labelFactory.WithLabel(label =>
+            {
+                var rightComp = this.GenerateExpression(node.Lhs.Index, label);
+                var rightRoot = new RegisterWrite(right, rightComp.Result);
+                return (
+                new Tree(rightRoot, new UnconditionalJump(valueLabel)),
+                rightComp.Start);
+            });
+
+            var leftLabel = this.labelFactory.WithLabel(label =>
+            {
+                var leftComp = this.GenerateExpression(node.Lhs, label);
+                var leftRoot = new RegisterWrite(left, leftComp.Result);
+                return (
+                new Tree(leftRoot, new UnconditionalJump(rightLabel)),
+                leftComp.Start);
+            });
+
+            return new Computation(leftLabel, valueRead);
+        }
+
+        private Computation ConvertNode(AST.ArrayAlloc node, ILabel after)
+        {
+            var mul = new AST.ArithmeticOperation(AST.ArithmeticOperationType.Multiplication, new AST.IntegerLiteral(8), node.Size);
+            var call = new AST.FunctionCall("allocate", new List<AST.Expression> { mul });
+            var par = new AST.VariableDeclaration(new AST.BuiltinTypes.IntType(), "size", null);
+            var decl = new AST.FunctionDeclaration("allocate", AST.Types.ArrayType.GetInstance(node.ElementType), new List<AST.VariableDeclaration> { par }, null, true);
+            var nameMangler = new NameMangler.NameMangler();
+            var mangledName = nameMangler.GetMangledName(decl, null);
+            var function = new Function.Function(null, mangledName, decl.Parameters, decl.IsEntryPoint(), isForeign: decl.IsForeign);
+            decl.IntermediateFunction = function;
+
+            call.Declaration = decl;
+            return this.ConvertNode(call, after);
         }
     }
 }
