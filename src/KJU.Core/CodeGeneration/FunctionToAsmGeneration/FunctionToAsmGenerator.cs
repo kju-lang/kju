@@ -10,6 +10,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     using Intermediate.Function;
     using LivenessAnalysis;
     using RegisterAllocation;
+    using Templates;
 
     public class FunctionToAsmGenerator : IFunctionToAsmGenerator
     {
@@ -39,15 +40,40 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             return ConstructResult(instructionSequence, allocation, function);
         }
 
+        private static IEnumerable<string> UsefulLabels(IEnumerable<CodeBlock> instructionSequence)
+        {
+            foreach (var instruction in instructionSequence.SelectMany(block => block.Instructions))
+            {
+                // No call, since we only look for local labels.
+                switch (instruction)
+                {
+                    case UnconditionalJumpInstruction instr:
+                        yield return instr.Label.Id;
+                        break;
+                    case ConditionalJumpTemplate.ConditionalJumpInstruction instr:
+                        yield return instr.Label;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
         private static IEnumerable<string> ConstructResult(
             IEnumerable<CodeBlock> instructionSequence,
             RegisterAllocationResult allocation,
             Function function)
         {
+            var usefulLabels = new HashSet<string>(UsefulLabels(instructionSequence));
             return instructionSequence.SelectMany(codeBlock =>
             {
-                return codeBlock.Instructions.SelectMany(instruction => instruction.ToASM(allocation.Allocation))
-                    .Prepend($"{codeBlock.Label.Id}:");
+                var ret = codeBlock.Instructions.SelectMany(instruction => instruction.ToASM(allocation.Allocation));
+                if (!usefulLabels.Contains(codeBlock.Label.Id))
+                {
+                    return ret;
+                }
+
+                return ret.Prepend($"{codeBlock.Label.Id}:");
             }).Prepend($"{function.MangledName}:");
         }
 

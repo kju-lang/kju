@@ -119,6 +119,7 @@ namespace KJU.Core.AST
                     .Select(child => this.FunctionDeclarationToAst(child, diagnostics))
                     .ToList();
                 var ast = new Program(functions);
+                ast.InputRange = parseTree.InputRange;
 
                 this.FlipToLeftAssignmentAst(ast);
                 this.enclosedWithParentheses.Clear();
@@ -161,18 +162,23 @@ namespace KJU.Core.AST
 
             private static Expression TokenAst(Token<KjuAlphabet> token, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 switch (token.Category)
                 {
                     case KjuAlphabet.Break:
-                        return new BreakStatement();
+                        ret = new BreakStatement();
+                        break;
                     case KjuAlphabet.Continue:
-                        return new ContinueStatement();
+                        ret = new ContinueStatement();
+                        break;
                     case KjuAlphabet.DecimalLiteral:
                         var intValue = long.Parse(token.Text);
-                        return new IntegerLiteral(intValue);
+                        ret = new IntegerLiteral(intValue);
+                        break;
                     case KjuAlphabet.BooleanLiteral:
                         var boolValue = bool.Parse(token.Text);
-                        return new BoolLiteral(boolValue);
+                        ret = new BoolLiteral(boolValue);
+                        break;
                     default:
                         var diag = new Diagnostic(
                             DiagnosticStatus.Error,
@@ -182,6 +188,9 @@ namespace KJU.Core.AST
                         diagnostics.Add(diag);
                         throw new ParseTreeToAstConverterException("Unexpected category in token");
                 }
+
+                ret.InputRange = token.InputRange;
+                return ret;
             }
 
             private void FlipToLeftAssignmentAst(Node ast)
@@ -323,6 +332,7 @@ namespace KJU.Core.AST
                     parameters,
                     body,
                     isForeign);
+                ast.InputRange = branch.InputRange;
 
                 return ast;
             }
@@ -334,19 +344,25 @@ namespace KJU.Core.AST
                     .Cast<Brunch<KjuAlphabet>>()
                     .Select(child => this.InstructionToAst(child, diagnostics))
                     .ToList();
-                return new InstructionBlock(instructions);
+                var ret = new InstructionBlock(instructions);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression InstructionToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
-                return branch.Children.Count == 1
+                var ret = branch.Children.Count == 1
                     ? new UnitLiteral()
                     : this.NotDelimeteredInstructionToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression NotDelimeteredInstructionToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
-                return this.StatementToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                var ret = this.StatementToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private VariableDeclaration FunctionParameterToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
@@ -366,7 +382,9 @@ namespace KJU.Core.AST
                     }
                 }
 
-                return new VariableDeclaration(type, identifier, null);
+                var ret = new VariableDeclaration(type, identifier, null);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private List<Expression> FunctionCallArgumentsToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
@@ -396,7 +414,9 @@ namespace KJU.Core.AST
                     }
                 }
 
-                return new IfStatement(condition, blockList[0], blockList[1]);
+                var ret = new IfStatement(condition, blockList[0], blockList[1]);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private WhileStatement WhileStatementToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
@@ -416,7 +436,9 @@ namespace KJU.Core.AST
                     }
                 }
 
-                return new WhileStatement(condition, body);
+                var ret = new WhileStatement(condition, body);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ReturnStatementToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
@@ -432,7 +454,9 @@ namespace KJU.Core.AST
                     }
                 }
 
-                return new ReturnStatement(value);
+                var ret = new ReturnStatement(value);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private VariableDeclaration VariableDeclarationToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
@@ -456,42 +480,53 @@ namespace KJU.Core.AST
                     }
                 }
 
-                return new VariableDeclaration(type, identifier, value);
+                var ret = new VariableDeclaration(type, identifier, value);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression VariableUseToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 string id = ((Token<KjuAlphabet>)branch.Children[0]).Text;
                 if (branch.Children.Count == 1)
                 {
                     // Value
-                    return new Variable(id);
+                    ret = new Variable(id);
                 }
                 else
                 {
                     // Function call
                     var arguments =
                         this.FunctionCallArgumentsToAst((Brunch<KjuAlphabet>)branch.Children[1], diagnostics);
-                    return new FunctionCall(id, arguments);
+                    ret = new FunctionCall(id, arguments);
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression StatementToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
                 var child = branch.Children[0];
-                return this.GeneralToAst(child, diagnostics);
+                var ret = this.GeneralToAst(child, diagnostics);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
-                return this.ExpressionAssignmentToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                var ret = this.ExpressionAssignmentToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionAssignmentToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 if (branch.Children.Count == 1)
                 {
-                    return this.ExpressionLogicalOrToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                    ret = this.ExpressionLogicalOrToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                 }
                 else
                 {
@@ -516,21 +551,25 @@ namespace KJU.Core.AST
 
                     if (operatorSymbol == KjuAlphabet.Assign)
                     {
-                        return new Assignment(variable, rightValue);
+                        ret = new Assignment(variable, rightValue);
                     }
                     else
                     {
                         var type = this.symbolToOperationType[operatorSymbol];
-                        return new CompoundAssignment(variable, type, rightValue);
+                        ret = new CompoundAssignment(variable, type, rightValue);
                     }
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionLogicalOrToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 if (branch.Children.Count == 1)
                 {
-                    return this.ExpressionLogicalAndToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                    ret = this.ExpressionLogicalAndToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                 }
                 else
                 {
@@ -539,15 +578,19 @@ namespace KJU.Core.AST
                         this.ExpressionLogicalAndToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                     var rightValue =
                         this.ExpressionLogicalOrToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
-                    return new LogicalBinaryOperation(type, leftValue, rightValue);
+                    ret = new LogicalBinaryOperation(type, leftValue, rightValue);
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionLogicalAndToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 if (branch.Children.Count == 1)
                 {
-                    return this.ExpressionEqualsNotEqualsToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                    ret = this.ExpressionEqualsNotEqualsToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                 }
                 else
                 {
@@ -557,15 +600,19 @@ namespace KJU.Core.AST
                         diagnostics);
                     var rightValue =
                         this.ExpressionLogicalAndToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
-                    return new LogicalBinaryOperation(logicalOperationType, leftValue, rightValue);
+                    ret = new LogicalBinaryOperation(logicalOperationType, leftValue, rightValue);
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionEqualsNotEqualsToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 if (branch.Children.Count == 1)
                 {
-                    return this.ExpressionLessThanGreaterThanToAst(
+                    ret = this.ExpressionLessThanGreaterThanToAst(
                         (Brunch<KjuAlphabet>)branch.Children[0],
                         diagnostics);
                 }
@@ -577,15 +624,19 @@ namespace KJU.Core.AST
                         diagnostics);
                     var rightValue =
                         this.ExpressionEqualsNotEqualsToAst(branch.Children[2] as Brunch<KjuAlphabet>, diagnostics);
-                    return new Comparison(comparisonType, leftValue, rightValue);
+                    ret = new Comparison(comparisonType, leftValue, rightValue);
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionLessThanGreaterThanToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 if (branch.Children.Count == 1)
                 {
-                    return this.ExpressionPlusMinusToAst(branch.Children[0] as Brunch<KjuAlphabet>, diagnostics);
+                    ret = this.ExpressionPlusMinusToAst(branch.Children[0] as Brunch<KjuAlphabet>, diagnostics);
                 }
                 else
                 {
@@ -593,15 +644,19 @@ namespace KJU.Core.AST
                     var leftValue = this.ExpressionPlusMinusToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                     var rightValue =
                         this.ExpressionLessThanGreaterThanToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
-                    return new Comparison(comparisonType, leftValue, rightValue);
+                    ret = new Comparison(comparisonType, leftValue, rightValue);
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionPlusMinusToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 if (branch.Children.Count == 1)
                 {
-                    return this.ExpressionTimesDivideModuloToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                    ret = this.ExpressionTimesDivideModuloToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                 }
                 else
                 {
@@ -611,15 +666,19 @@ namespace KJU.Core.AST
                         diagnostics);
                     var rightValue =
                         this.ExpressionPlusMinusToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
-                    return new ArithmeticOperation(operationType, leftValue, rightValue);
+                    ret = new ArithmeticOperation(operationType, leftValue, rightValue);
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionTimesDivideModuloToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 if (branch.Children.Count == 1)
                 {
-                    return this.ExpressionLogicalNotToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                    ret = this.ExpressionLogicalNotToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                 }
                 else
                 {
@@ -628,15 +687,19 @@ namespace KJU.Core.AST
                         this.ExpressionLogicalNotToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                     var rightValue =
                         this.ExpressionTimesDivideModuloToAst((Brunch<KjuAlphabet>)branch.Children[2], diagnostics);
-                    return new ArithmeticOperation(operationType, leftValue, rightValue);
+                    ret = new ArithmeticOperation(operationType, leftValue, rightValue);
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionLogicalNotToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
+                Expression ret = null;
                 if (branch.Children.Count == 1)
                 {
-                    return this.ExpressionAtomToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
+                    ret = this.ExpressionAtomToAst((Brunch<KjuAlphabet>)branch.Children[0], diagnostics);
                 }
                 else
                 {
@@ -645,15 +708,20 @@ namespace KJU.Core.AST
                     var operationType = this.symbolToUnaryOperationType[operationTokenCategory];
                     var expression =
                         this.ExpressionLogicalNotToAst((Brunch<KjuAlphabet>)branch.Children[1], diagnostics);
-                    return new UnaryOperation(operationType, expression);
+                    ret = new UnaryOperation(operationType, expression);
                 }
+
+                ret.InputRange = branch.InputRange;
+                return ret;
             }
 
             private Expression ExpressionAtomToAst(Brunch<KjuAlphabet> branch, IDiagnostics diagnostics)
             {
                 if (branch.Children.Count == 1)
                 {
-                    return this.GeneralToAst(branch.Children[0], diagnostics);
+                    var ret = this.GeneralToAst(branch.Children[0], diagnostics);
+                    ret.InputRange = branch.InputRange;
+                    return ret;
                 }
                 else
                 {

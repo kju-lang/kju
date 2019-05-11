@@ -23,7 +23,10 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
         public ILabel BuildFunctionBody(AST.InstructionBlock body)
         {
-            var guardEpilogue = this.function.GenerateEpilogue(new UnitImmediateValue());
+            Node retVal = new UnitImmediateValue();
+            if (this.function.IsEntryPoint)
+                retVal = new IntegerImmediateValue(0);
+            var guardEpilogue = this.function.GenerateEpilogue(retVal);
             var afterPrologue = this.ConvertNode(body, guardEpilogue);
             return this.function.GeneratePrologue(afterPrologue.Start);
         }
@@ -161,9 +164,23 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
         {
             var result = this.labelFactory.WithLabel(epilogueLabel =>
             {
-                Computation value = node.Value == null
-                    ? new Computation(epilogueLabel, new UnitImmediateValue())
-                    : this.GenerateExpression(node.Value, epilogueLabel);
+                Computation value;
+                if (node.Value == null)
+                {
+                    if (this.function.IsEntryPoint)
+                    {
+                        value = new Computation(epilogueLabel, new IntegerImmediateValue(0));
+                    }
+                    else
+                    {
+                        value = new Computation(epilogueLabel, new UnitImmediateValue());
+                    }
+                }
+                else
+                {
+                    value = this.GenerateExpression(node.Value, epilogueLabel);
+                }
+
                 return (this.function.GenerateEpilogue(value.Result).Tree, value);
             });
             return new Computation(result.Start);

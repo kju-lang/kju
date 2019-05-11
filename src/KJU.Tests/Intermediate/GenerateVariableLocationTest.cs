@@ -31,16 +31,16 @@ namespace KJU.Tests.Intermediate
              *
              */
 
-            var functionA = new Function(null, "a", new List<KJU.Core.AST.VariableDeclaration>());
+            var functionA = new Function(null, "a", new List<KJU.Core.AST.VariableDeclaration>(), false);
 
             functionA.ReserveStackFrameLocation();
             functionA.ReserveStackFrameLocation();
 
-            var functionB = new Function(functionA, "b", new List<KJU.Core.AST.VariableDeclaration>());
+            var functionB = new Function(functionA, "b", new List<KJU.Core.AST.VariableDeclaration>(), false);
 
             functionB.ReserveStackFrameLocation();
 
-            var functionC = new Function(functionB, "c", new List<KJU.Core.AST.VariableDeclaration>());
+            var functionC = new Function(functionB, "c", new List<KJU.Core.AST.VariableDeclaration>(), false);
 
             var variableALocation = functionA.ReserveStackFrameLocation();
             var variableA = new Variable(functionA, variableALocation);

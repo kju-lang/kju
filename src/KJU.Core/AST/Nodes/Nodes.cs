@@ -73,6 +73,11 @@ namespace KJU.Core.AST
             return left.SequenceEqual(right);
         }
 
+        public bool IsEntryPoint()
+        {
+            return this.Identifier == "kju" && this.Parameters.Count == 0;
+        }
+
         public override IEnumerable<Node> Children()
         {
             return this.Body != null ? new List<Node>(this.Parameters) { this.Body } : new List<Node>(this.Parameters);

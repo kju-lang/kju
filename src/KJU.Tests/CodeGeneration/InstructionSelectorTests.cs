@@ -1,4 +1,4 @@
-﻿#pragma warning disable SA1008 // Opening parenthesis must not be followed by a space.
+#pragma warning disable SA1008 // Opening parenthesis must not be followed by a space.
 namespace KJU.Tests.CodeGeneration
 {
     using System;
@@ -36,7 +36,7 @@ namespace KJU.Tests.CodeGeneration
         {
             var template = new ReserveStackMemoryTemplate();
             var templates = new List<InstructionTemplate> { template };
-            var root = new ReserveStackMemory(new Function(null, "abc", new List<VariableDeclaration>()) { StackBytes = 16 });
+            var root = new ReserveStackMemory(new Function(null, "abc", new List<VariableDeclaration>(), false) { StackBytes = 16 });
             var tree = new Tree(root, new Ret());
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);

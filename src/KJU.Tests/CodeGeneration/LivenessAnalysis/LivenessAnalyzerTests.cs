@@ -365,7 +365,7 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
         private ILabel AddFunctionCallBlock(
             List<CodeBlock> instructions, List<Instruction> block, ILabel target)
         {
-            var label = this.GetLabel(new FunctionCall(new Function(null, "abc", new List<KJU.Core.AST.VariableDeclaration>()), target));
+            var label = this.GetLabel(new FunctionCall(new Function(null, "abc", new List<KJU.Core.AST.VariableDeclaration>(), false), target));
             instructions.Add(new CodeBlock(label, block));
             return label;
         }

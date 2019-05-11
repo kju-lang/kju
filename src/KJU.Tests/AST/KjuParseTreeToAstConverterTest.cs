@@ -69,7 +69,7 @@ namespace KJU.Tests.AST
         [TestMethod]
         public void VariableDeclaration()
         {
-            string code = @"  
+            string code = @"
                 fun kju ( param : Int ) : Unit {
                     var variable : Bool ;
                 }";
@@ -414,6 +414,7 @@ namespace KJU.Tests.AST
 
         private void SerializeAst(Node ast, StringBuilder builder)
         {
+            Assert.IsNotNull(ast.InputRange, $"Input range of ast node {ast} is not set");
             switch (ast)
             {
                 case Program _:

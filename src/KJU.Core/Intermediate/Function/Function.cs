@@ -21,6 +21,7 @@ namespace KJU.Core.Intermediate.Function
             Function parent,
             string mangledName,
             IEnumerable<AST.VariableDeclaration> parameters,
+            bool isEntryPoint,
             bool isForeign = false)
         {
             // RBP is handled separately, since it has a set place on the stack frame
@@ -31,6 +32,7 @@ namespace KJU.Core.Intermediate.Function
             this.parent = parent;
             this.MangledName = mangledName;
             this.IsForeign = isForeign;
+            this.IsEntryPoint = isEntryPoint;
             this.parameters = parameters.ToList();
         }
 
@@ -39,6 +41,8 @@ namespace KJU.Core.Intermediate.Function
         public int StackBytes { get; set; }
 
         public bool IsForeign { get; }
+
+        public bool IsEntryPoint { get; }
 
         private int StackArgumentsCount =>
             Math.Max(0, this.parameters.Count + 1 - HardwareRegisterUtils.ArgumentRegisters.Count);

@@ -21,17 +21,18 @@ namespace KJU.Core.CodeGeneration.Templates
             return new ConditionalJumpInstruction(input, label);
         }
 
-        private class ConditionalJumpInstruction : Instruction
+        public class ConditionalJumpInstruction : Instruction
         {
             private readonly VirtualRegister register;
-            private readonly string label;
 
             public ConditionalJumpInstruction(VirtualRegister register, string label)
                 : base(new List<VirtualRegister> { register })
             {
                 this.register = register;
-                this.label = label;
+                this.Label = label;
             }
+
+            public string Label { get; }
 
             public override IEnumerable<string> ToASM(
                 IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
@@ -39,7 +40,7 @@ namespace KJU.Core.CodeGeneration.Templates
                 var hardwareRegister = this.register.ToHardware(registerAssignment);
 
                 yield return $"test {hardwareRegister}, {hardwareRegister}";
-                yield return $"jnz {this.label}";
+                yield return $"jnz {this.Label}";
             }
         }
     }
