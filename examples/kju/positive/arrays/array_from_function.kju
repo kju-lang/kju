@@ -11,7 +11,7 @@ fun ay(): [Int]
 }
 fun kju(): Unit
 {
-	var foo = ay();
+	var foo : [Int] = ay();
 	var i:Int;
 	i=0;
 	while(i!=5)
