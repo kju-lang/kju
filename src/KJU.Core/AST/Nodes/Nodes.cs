@@ -1,11 +1,11 @@
 #pragma warning disable SA1649 // File name must match first type name
 #pragma warning disable SA1402 // File may only contain a single class
-
 namespace KJU.Core.AST
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using AST.Nodes;
     using KJU.Core.Intermediate.Function;
 
     public class Expression : Node
@@ -383,17 +383,17 @@ namespace KJU.Core.AST
         }
     }
 
-    public class ArrayAssignment : Expression
+    public class ArrayAssignment : Expression, IArrayAssignment
     {
-        public ArrayAssignment(ArrayAccess lhs, Expression value)
+        public ArrayAssignment(Expression lhs, Expression value)
         {
             this.Lhs = lhs;
             this.Value = value;
         }
 
-        public ArrayAccess Lhs { get; }
+        public Expression Lhs { get; set; }
 
-        public Expression Value { get; }
+        public Expression Value { get; set; }
 
         public override IEnumerable<Node> Children()
         {
@@ -409,20 +409,20 @@ namespace KJU.Core.AST
         }
     }
 
-    public class ArrayCompoundAssignment : Expression
+    public class ArrayCompoundAssignment : Expression, IArrayAssignment
     {
-        public ArrayCompoundAssignment(ArrayAccess lhs, ArithmeticOperationType operation, Expression value)
+        public ArrayCompoundAssignment(Expression lhs, ArithmeticOperationType operation, Expression value)
         {
             this.Lhs = lhs;
             this.Operation = operation;
             this.Value = value;
         }
 
-        public ArrayAccess Lhs { get; }
+        public Expression Lhs { get; set; }
 
         public ArithmeticOperationType Operation { get; }
 
-        public Expression Value { get; }
+        public Expression Value { get; set; }
 
         public override IEnumerable<Node> Children()
         {
@@ -438,8 +438,14 @@ namespace KJU.Core.AST
         }
     }
 
-    public abstract class BinaryOperation : Expression
+    public class BinaryOperation : Expression
     {
+        public BinaryOperation(Expression lhs, Expression rhs)
+        {
+            this.LeftValue = lhs;
+            this.RightValue = rhs;
+        }
+
         public Expression LeftValue { get; set; }
 
         public Expression RightValue { get; set; }
@@ -453,10 +459,9 @@ namespace KJU.Core.AST
     public class ArithmeticOperation : BinaryOperation
     {
         public ArithmeticOperation(ArithmeticOperationType operationType, Expression leftValue, Expression rightValue)
+            : base(leftValue, rightValue)
         {
             this.OperationType = operationType;
-            this.LeftValue = leftValue;
-            this.RightValue = rightValue;
         }
 
         public ArithmeticOperationType OperationType { get; set; }
@@ -470,10 +475,9 @@ namespace KJU.Core.AST
     public class Comparison : BinaryOperation
     {
         public Comparison(ComparisonType operationType, Expression leftValue, Expression rightValue)
+            : base(leftValue, rightValue)
         {
             this.OperationType = operationType;
-            this.LeftValue = leftValue;
-            this.RightValue = rightValue;
         }
 
         public ComparisonType OperationType { get; set; }
@@ -490,10 +494,9 @@ namespace KJU.Core.AST
             LogicalBinaryOperationType binaryOperationType,
             Expression leftValue,
             Expression rightValue)
+            : base(leftValue, rightValue)
         {
             this.BinaryOperationType = binaryOperationType;
-            this.LeftValue = leftValue;
-            this.RightValue = rightValue;
         }
 
         public LogicalBinaryOperationType BinaryOperationType { get; set; }

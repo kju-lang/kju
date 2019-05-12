@@ -3,7 +3,8 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
     using System.Collections.Generic;
     using System.Linq;
     using AST;
-    using KJU.Core.AST.VariableAccessGraph;
+    using AST.Nodes;
+    using AST.VariableAccessGraph;
 
     internal class TemporaryVariablesExtractor
     {
@@ -32,6 +33,15 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                 case VariableDeclaration variable:
                     return this.ExtractFromVariable(variable);
 
+                case ArrayAlloc arrayAlloc:
+                    return this.ExtractTemporaryVariables(arrayAlloc.Size);
+
+                case ArrayAccess arrayAccess:
+                    return this.ExtractFromArrayAccess(arrayAccess);
+
+                case IArrayAssignment arrayAssignment:
+                    return this.ExtractFromArrayAssignment(arrayAssignment);
+
                 case WhileStatement whileNode:
                     return this.ExtractFromWhile(whileNode);
 
@@ -55,6 +65,7 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
 
                 case UnitLiteral _:
                     return new List<Expression>();
+
                 case BinaryOperation operationNode:
                     return this.ExtractFromOperationNode(operationNode);
 
@@ -66,8 +77,10 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
 
                 case AST.UnaryOperation unaryOperation:
                     return this.ExtractTemporaryVariables(unaryOperation.Value);
+
                 case BreakStatement _:
                     return new List<Expression>();
+
                 case null:
                     throw new TemporaryVariablesExtractorException(
                         $"Null AST node. Should this ever happen?");
@@ -145,6 +158,22 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                 };
             }).ToList();
             return new List<Expression>();
+        }
+
+        private List<Expression> ExtractFromArrayAccess(ArrayAccess access)
+        {
+            var binaryOperation = new BinaryOperation(access.Lhs, access.Index);
+            var result = this.ExtractFromOperationNode(binaryOperation);
+            (access.Lhs, access.Index) = (binaryOperation.LeftValue, binaryOperation.RightValue);
+            return result;
+        }
+
+        private List<Expression> ExtractFromArrayAssignment(IArrayAssignment arrayAssignment)
+        {
+            var binaryOperation = new BinaryOperation(arrayAssignment.Lhs, arrayAssignment.Value);
+            var result = this.ExtractFromOperationNode(binaryOperation);
+            (arrayAssignment.Lhs, arrayAssignment.Value) = (binaryOperation.LeftValue, binaryOperation.RightValue);
+            return result;
         }
 
         private List<Expression> ExtractFromIf(IfStatement ifNode)

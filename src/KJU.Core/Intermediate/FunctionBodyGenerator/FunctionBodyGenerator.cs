@@ -3,7 +3,6 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using TemporaryVariablesExtractor;
 
     public class FunctionBodyGenerator
@@ -338,14 +337,14 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             return new Computation(operand.Start, result);
         }
 
-        private Computation ConvertNode(AST.ArrayAccess node, ILabel after)
+        private Computation ArrayAccessMemoryLocation(AST.ArrayAccess node, VirtualRegister addrRegister, ILabel after)
         {
             var right = new VirtualRegister();
             var left = new VirtualRegister();
 
             var read = new MemoryRead(new RegisterRead(left));
-            var add = new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, new RegisterRead(right), read);
-            var root = new MemoryRead(add);
+            var addrValue = new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, new RegisterRead(right), read);
+            var root = new RegisterWrite(addrRegister, addrValue);
 
             var finalLabel = this.labelFactory.GetLabel(new Tree(root, new UnconditionalJump(after)));
 
@@ -354,8 +353,8 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
                 var rightComp = this.GenerateExpression(node.Index, label);
                 var rightRoot = new RegisterWrite(right, rightComp.Result);
                 return (
-                new Tree(rightRoot, new UnconditionalJump(finalLabel)),
-                rightComp.Start);
+                    new Tree(rightRoot, new UnconditionalJump(finalLabel)),
+                    rightComp.Start);
             });
 
             var leftLabel = this.labelFactory.WithLabel(label =>
@@ -363,54 +362,57 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
                 var leftComp = this.GenerateExpression(node.Lhs, label);
                 var leftRoot = new RegisterWrite(left, leftComp.Result);
                 return (
-                new Tree(leftRoot, new UnconditionalJump(rightLabel)),
-                leftComp.Start);
+                    new Tree(leftRoot, new UnconditionalJump(rightLabel)),
+                    leftComp.Start);
             });
 
             return new Computation(leftLabel, root);
         }
 
+        private Computation ArrayAccessMemoryLocation(AST.Expression expr, VirtualRegister addrRegister, ILabel after)
+        {
+            const string errorMessage = "Incorrect access in ArrayAccessMemoryLocation";
+            switch (expr)
+            {
+                case AST.ArrayAccess access:
+                    return this.ArrayAccessMemoryLocation(access, addrRegister, after);
+
+                case BlockWithResult block:
+                    var blockAccess = block.Result as AST.ArrayAccess;
+                    if (blockAccess == null)
+                    {
+                        throw new FunctionBodyGeneratorException(errorMessage);
+                    }
+
+                    var resultComputation = this.ArrayAccessMemoryLocation(blockAccess, addrRegister, after);
+                    var bodyComputation = this.GenerateExpression(block.Body, resultComputation.Start);
+                    return bodyComputation;
+
+                default:
+                    throw new FunctionBodyGeneratorException(errorMessage);
+            }
+        }
+
+        private Computation ConvertNode(AST.ArrayAccess node, ILabel after)
+        {
+            var addrRegister = new VirtualRegister();
+            var root = new RegisterRead(addrRegister);
+            var finalLabel = this.labelFactory.GetLabel(new Tree(root, new UnconditionalJump(after)));
+            return this.ArrayAccessMemoryLocation(node, addrRegister, finalLabel);
+        }
+
         private Computation ConvertNode(AST.ArrayAssignment node, ILabel after)
         {
-            var right = new VirtualRegister();
-            var left = new VirtualRegister();
-            var value = new VirtualRegister();
+            var addrRegister = new VirtualRegister();
+            var addr = new RegisterRead(addrRegister);
 
-            var read = new MemoryRead(new RegisterRead(left));
-            var add = new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, new RegisterRead(right), read);
-            var valueRead = new RegisterRead(value);
-            var root = new MemoryWrite(add, valueRead);
+            var rhsRegister = new VirtualRegister();
+            var rhsValue = new RegisterRead(rhsRegister);
 
+            var root = new MemoryWrite(addr, rhsValue);
             var finalLabel = this.labelFactory.GetLabel(new Tree(root, new UnconditionalJump(after)));
 
-            var valueLabel = this.labelFactory.WithLabel(label =>
-            {
-                var valueComp = this.GenerateExpression(node.Value, label);
-                var valueRoot = new RegisterWrite(value, valueComp.Result);
-                return (
-                new Tree(valueRoot, new UnconditionalJump(finalLabel)),
-                valueComp.Start);
-            });
-
-            var rightLabel = this.labelFactory.WithLabel(label =>
-            {
-                var rightComp = this.GenerateExpression(node.Lhs.Index, label);
-                var rightRoot = new RegisterWrite(right, rightComp.Result);
-                return (
-                new Tree(rightRoot, new UnconditionalJump(valueLabel)),
-                rightComp.Start);
-            });
-
-            var leftLabel = this.labelFactory.WithLabel(label =>
-            {
-                var leftComp = this.GenerateExpression(node.Lhs, label);
-                var leftRoot = new RegisterWrite(left, leftComp.Result);
-                return (
-                new Tree(leftRoot, new UnconditionalJump(rightLabel)),
-                leftComp.Start);
-            });
-
-            return new Computation(leftLabel, valueRead);
+            return this.ArrayAccessMemoryLocation(node.Lhs, addrRegister, finalLabel);
         }
 
         private Computation ConvertNode(AST.ArrayAlloc node, ILabel after)
