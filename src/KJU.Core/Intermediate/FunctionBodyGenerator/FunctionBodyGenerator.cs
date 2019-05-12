@@ -339,8 +339,8 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
         private Computation ArrayAccessMemoryLocation(AST.ArrayAccess node, VirtualRegister addrRegister, ILabel after)
         {
-            var right = new VirtualRegister();
             var left = new VirtualRegister();
+            var right = new VirtualRegister();
 
             var read = new MemoryRead(new RegisterRead(left));
             var addrValue = new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, new RegisterRead(right), read);
@@ -417,14 +417,33 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
         private Computation ConvertNode(AST.ArrayAlloc node, ILabel after)
         {
-            var mul = new AST.ArithmeticOperation(AST.ArithmeticOperationType.Multiplication, new AST.IntegerLiteral(8), node.Size);
-            var call = new AST.FunctionCall("allocate", new List<AST.Expression> { mul });
-            var par = new AST.VariableDeclaration(new AST.BuiltinTypes.IntType(), "size", null);
-            var decl = new AST.FunctionDeclaration("allocate", AST.Types.ArrayType.GetInstance(node.ElementType), new List<AST.VariableDeclaration> { par }, null, true);
+            var size = new AST.ArithmeticOperation(
+                AST.ArithmeticOperationType.Multiplication,
+                new AST.IntegerLiteral(8),
+                node.Size);
+
+            var call = new AST.FunctionCall("allocate", new List<AST.Expression> { size });
+
+            var parameter = new AST.VariableDeclaration(new AST.BuiltinTypes.IntType(), "size", null);
+
+            var decl = new AST.FunctionDeclaration(
+                "allocate",
+                AST.Types.ArrayType.GetInstance(node.ElementType),
+                new List<AST.VariableDeclaration> { parameter },
+                null,
+                true);
+
             var nameMangler = new NameMangler.NameMangler();
             var mangledName = nameMangler.GetMangledName(decl, null);
-            var function = new Function.Function(null, mangledName, decl.Parameters, decl.IsEntryPoint(), isForeign: decl.IsForeign);
-            decl.IntermediateFunction = function;
+
+            var func = new Function.Function(
+                null,
+                mangledName,
+                decl.Parameters,
+                decl.IsEntryPoint(),
+                decl.IsForeign);
+
+            decl.IntermediateFunction = func;
 
             call.Declaration = decl;
             return this.ConvertNode(call, after);
