@@ -38,8 +38,7 @@ namespace KJU.Core.Diagnostics
 
         private string FormatMessage(Diagnostic diag)
         {
-            string formattedMessage = string.Format(diag.Message, diag.Ranges.ToArray());
-            return $"{statusPrefix[diag.Status]} ({diag.Type}): {formattedMessage}";
+            return $"{statusPrefix[diag.Status]} ({diag.ToString()}";
         }
     }
 }

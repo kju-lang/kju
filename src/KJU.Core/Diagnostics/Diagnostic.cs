@@ -29,7 +29,8 @@ namespace KJU.Core.Diagnostics
 
         public override string ToString()
         {
-            return $"{this.Type}: {string.Format(this.Message, this.Ranges.ToArray())}";
+            string message = this.Message + " " + string.Join(" ; ", this.Ranges.Select(x => x.ToString()).ToArray());
+            return $"{this.Type}: {message}";
         }
     }
 }
