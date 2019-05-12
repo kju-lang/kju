@@ -5,6 +5,14 @@
 fun write(a: Int): Unit import
 fun abort(): Unit import
 
+fun writeBool(b: Bool): Unit {
+    if (b) then {
+        write(1);
+    } else {
+        write(0);
+    };
+}
+
 /* Miller-Rabin primality test */
 fun isPrimeFast(n : Int) : Bool
 {
@@ -14,6 +22,27 @@ fun isPrimeFast(n : Int) : Bool
         return true;
     }
     else {};
+
+	if (n == 3)
+    then
+    {
+        return true;
+    }
+    else {};
+    
+    if (n == 5)
+        then
+        {
+            return true;
+        }
+        else {};
+        
+    if (n == 7)
+		then
+		{
+			return true;
+		}
+		else {};
 
     if (n <= 1)
     then
@@ -82,13 +111,14 @@ fun checkCompositeWitness(a : Int, n : Int) : Int
             return 0;
         }
         else {};
+        r = r - 1;
     };
     return 1;
 }
 
 fun fastPower(a : Int, n : Int, mod : Int) : Int
 {
-    var result : Int = 0;
+    var result : Int = 1;
     while (n > 0)
     {
         if (n % 2 == 1)
@@ -155,10 +185,14 @@ fun kju() : Unit
     var i : Int = 1;
     while (i <= 1000)
     {
-        if (isPrimeSlow(i) != isPrimeFast(i))
+    	var primeSlow : Bool = isPrimeSlow(i);
+    	var primeFast : Bool = isPrimeFast(i);
+        if ( primeSlow != primeFast)
         then
         {
             /* Something very-very bad have just happened */
+            writeBool(primeSlow);
+            writeBool(primeFast);
             write(i);
             abort();
         }

@@ -1,8 +1,7 @@
 <Spec>
     <Execution>
-        <Executable>false</Executable>
         <ExpectedOutput>
-            
+            1001
         </ExpectedOutput>
     </Execution>
 </Spec>
