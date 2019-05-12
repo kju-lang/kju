@@ -1,7 +1,7 @@
 fun write(a: Int): Unit import
 fun kju(): Unit
 {
-	var foo = new(Int,5);
+	var foo:[Int] = new(Int,5);
 	foo[0]=2;
 	foo[1]=42;
 	foo[2]=1337;

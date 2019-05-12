@@ -1,8 +1,8 @@
 fun write(a: Int): Unit import
 fun kju(): Unit
 {
-	var ax = new(Int,1);
-	var bx = new(Int,1);
+	var ax : [Int] = new(Int,1);
+	var bx : [Int] = new(Int,1);
 	ax[0] = 1;
 	bx[0] = 2;
 	bx = ax;

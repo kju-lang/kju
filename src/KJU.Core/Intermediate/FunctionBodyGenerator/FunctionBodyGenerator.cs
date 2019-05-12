@@ -340,12 +340,14 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
         private Computation ArrayAccessMemoryLocation(AST.ArrayAccess node, ILabel after)
         {
             var addrRegister = new VirtualRegister();
-            var left = new VirtualRegister();
+            var arrayAddressRegister = new VirtualRegister();
             var right = new VirtualRegister();
 
-            var read = new MemoryRead(new RegisterRead(left));
-            var addrValue = new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, new RegisterRead(right), read);
-            var root = new RegisterWrite(addrRegister, addrValue);
+            var shiftValue = new ArithmeticBinaryOperation(
+                AST.ArithmeticOperationType.Multiplication, new IntegerImmediateValue(8), new RegisterRead(right));
+
+            var root = new ArithmeticBinaryOperation(
+                AST.ArithmeticOperationType.Addition, shiftValue, new RegisterRead(arrayAddressRegister));
 
             var finalLabel = this.labelFactory.GetLabel(new Tree(root, new UnconditionalJump(after)));
 
@@ -361,7 +363,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             var leftLabel = this.labelFactory.WithLabel(label =>
             {
                 var leftComp = this.GenerateExpression(node.Lhs, label);
-                var leftRoot = new RegisterWrite(left, leftComp.Result);
+                var leftRoot = new RegisterWrite(arrayAddressRegister, leftComp.Result);
                 return (
                     new Tree(leftRoot, new UnconditionalJump(rightLabel)),
                     leftComp.Start);
@@ -406,8 +408,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
             var getAddrLabel = this.labelFactory.WithLabel(label =>
             {
                 var addrComputation = this.ArrayAccessMemoryLocation(node, label);
-                var addrValue = new MemoryRead(addrComputation.Result);
-                var addrRegisterWriteNode = new RegisterWrite(addrRegister, addrValue);
+                var addrRegisterWriteNode = new RegisterWrite(addrRegister, addrComputation.Result);
                 return (
                     new Tree(addrRegisterWriteNode, new UnconditionalJump(finalLabel)),
                     addrComputation.Start);
