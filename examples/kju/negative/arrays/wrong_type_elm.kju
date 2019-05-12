@@ -1,0 +1,5 @@
+fun kju(): Unit
+{
+	var ay: [Bool] = new(Bool,5);
+	ay[2]=42;
+}

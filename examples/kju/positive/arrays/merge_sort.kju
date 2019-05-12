@@ -1,0 +1,87 @@
+fun read(): Int import
+fun write(a: Int): Unit import
+fun memcopy(fx: [Int], tx: [Int], start: Int, size: Int): Unit
+{
+	var i:Int =0;
+	while(i!=size)
+	{
+		tx[start+i]=fx[start+i];
+		i+=1;
+	};
+}
+
+fun merg(fx: [Int], tx: [Int], begin: Int, size: Int): Unit
+{
+	var halfsz: Int = size/2;
+	var i: Int=0;
+	var j: Int =halfsz;
+	var out:Int = 0;
+	while(i!=halfsz && j!=size)
+	{
+		if fx[begin+i]<=fx[begin+j] then{
+			tx[begin+out]=fx[begin+i];
+			i+=1;
+		}
+		else
+		{
+			tx[begin+out]=fx[begin+j];
+			j+=1;
+		};
+		out+=1;
+	};
+	while(i!=halfsz)
+	{
+			tx[begin+out]=fx[begin+i];
+			i+=1;
+	};
+	while(j!=size)
+	{
+			tx[begin+out]=fx[begin+j];
+			j+=1;
+
+	};
+}
+fun sortimpl(ax: [Int], tempx: [Int], begin: Int, size: Int): Unit
+{
+	if size<=1 then
+	{
+		return;
+	}else{};
+	if size == 2 then
+	{
+		if ay[begin] > ay[begin+1] then{
+			var tmp:Int=ay[begin];
+			ay[begin]=ay[begin+1];
+			ay[begin+1]=tmp;
+		}else{};
+		return;
+	}else{};
+	var halfsz:Int = size/2;
+	sortimpl(ax,tempx,begin,halfsz);
+	sortimpl(ax,tempx,begin+halfsz,size-halfsz);
+	merg(ax,tempx,begin,size);
+	memcopy(tempx,ax,begin,size);
+}
+
+fun sort(ax: [Int], tempx: [Int], size: Int): Unit
+{
+	sortimpl(ax,bx,0,size);
+}
+fun kju(): Unit
+{
+	var size:Int = read();
+	var ay:[Int] = new(Int,size);
+	var temp:[Int] = new(Int,size);
+	var i:Int=0;
+	while(i!=size)
+	{
+		ay[i]=read();
+		i+=1;
+	};
+	i=0;
+	while(i!=size)
+	{
+		write(ay[i]);
+		i+=1;
+	};
+}

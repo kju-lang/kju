@@ -1,0 +1,10 @@
+<Spec>
+	<Execution><ExpectedOutput>
+		2
+		42
+		8675309
+		476
+		997
+	</ExpectedOutput></Execution>
+	<IsDisabled>true</IsDisabled>
+</Spec>

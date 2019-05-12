@@ -1,0 +1,13 @@
+<Spec>
+	<Execution>
+		<Input>1 2 3 4 5</Input>
+		<ExpectedOutput>
+			1
+			2
+			3
+			4
+			5
+		</ExpectedOutput>
+		</Execution>
+	<IsDisabled>true</IsDisabled>
+</Spec>

@@ -1,0 +1,18 @@
+<Spec>
+<Execution>
+		<Input>10 71828 18284 59045 23536 2874 71352 66249 77572 47093 69995</Input>
+		<ExpectedOutput>
+			2874
+			18284
+			23536
+			47093
+			59045
+			66249
+			69995
+			71352
+			71828
+			77572
+		</ExpectedOutput>
+		</Execution>
+	<IsDisabled>true</IsDisabled>
+</Spec>

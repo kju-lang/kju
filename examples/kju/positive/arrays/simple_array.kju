@@ -1,0 +1,19 @@
+fun write(a: Int): Unit import
+fun read(): Int import
+
+fun kju(): Unit
+{
+	var ay: [Int] = new(Int,5);
+	var i: Int = 0;
+	while(i!=5)
+	{
+		ay[i]=read();
+		i=i+1;
+	};
+	i=0;
+	while(i!=5)
+	{
+		write(ay[i]);
+		i=i+1;
+	};
+}

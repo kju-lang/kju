@@ -1,0 +1,22 @@
+fun write(a: Int): Unit import
+fun ay(xd: [Int]): Unit
+{
+	xd[2]=8675309;
+}
+fun kju(): Unit
+{
+	var foo = new(Int,5);
+	foo[0]=23;
+	foo[1]=42;
+	foo[2]=1337;
+	foo[3]=476;
+	foo[4]=997;
+	ay(foo)
+	var i:Int;
+	i=0;
+	while(i!=5)
+	{
+		write(foo[i]);
+		i=i+1;
+	};
+}

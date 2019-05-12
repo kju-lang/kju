@@ -1,0 +1,16 @@
+fun read(): Int import
+fun write(a: Int): Unit import
+
+fun kju(): Unit
+{
+	var ay: [[[[[[[Int]]]]]]] = new([[[[[[Int]]]]]],1);
+	ay[0]=new([[[[[Int]]]]],1);
+	ay[0][0]=new([[[[Int]]]],1);
+	ay[0][0][0]=new([[[Int]]],1);
+	ay[0][0][0][0]=new([[Int]],1);
+	ay[0][0][0][0][0]=new([Int],1);
+	ay[0][0][0][0][0][0]=new(Int,1);
+	ay[0][0][0][0][0][0][0]=read();
+	ay[0][0][0][0][0][0][0]+=1;
+	write(ay[0][0][0][0][0][0][0]);
+}
