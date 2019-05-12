@@ -390,6 +390,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
                     return bodyComputation;
 
                 default:
+                    Console.WriteLine($"default {expr}");
                     throw new FunctionBodyGeneratorException(errorMessage);
             }
         }
@@ -428,7 +429,7 @@ namespace KJU.Core.Intermediate.FunctionBodyGenerator
 
             var getAddrLabel = this.labelFactory.WithLabel(label =>
             {
-                var addrComputation = this.ArrayAccessMemoryLocation(node, label);
+                var addrComputation = this.ArrayAccessMemoryLocation(node.Lhs, label);
                 var addrRegisterWriteNode = new RegisterWrite(addrRegister, addrComputation.Result);
                 return (
                     new Tree(addrRegisterWriteNode, new UnconditionalJump(finalLabel)),
