@@ -241,16 +241,15 @@ namespace KJU.Core.Parser
             Lhs = KjuAlphabet.ExpressionAtom,
             Rhs = Sum(
                 Concat(
-                    KjuAlphabet.ArrayAlloc.ToRegex(),
+                    Sum(
+                        KjuAlphabet.ArrayAlloc.ToRegex(),
+                        KjuAlphabet.VariableUse.ToRegex(),
+                        Concat(
+                            LParen.ToRegex(),
+                            KjuAlphabet.Statement.ToRegex(),
+                            RParen.ToRegex())),
                     KjuAlphabet.ArrayAccess.ToRegex().Starred()),
-                Concat(
-                    KjuAlphabet.VariableUse.ToRegex(),
-                    KjuAlphabet.ArrayAccess.ToRegex().Starred()),
-                KjuAlphabet.Literal.ToRegex(),
-                Concat(
-                    LParen.ToRegex(),
-                    KjuAlphabet.Statement.ToRegex(),
-                    RParen.ToRegex()))
+                KjuAlphabet.Literal.ToRegex())
         };
 
         public static readonly Grammar<KjuAlphabet> Instance = new Grammar<KjuAlphabet>

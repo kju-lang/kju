@@ -1,0 +1,7 @@
+fun write(a : Int) : Unit import
+fun kju() : Unit
+{
+  var x : [Int];
+  (x = new (Int, 10))[1] = 5;
+  write(x[1]);
+}

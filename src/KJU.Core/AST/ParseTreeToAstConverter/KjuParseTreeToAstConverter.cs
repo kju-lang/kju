@@ -785,43 +785,47 @@ namespace KJU.Core.AST
                     return ret;
                 }
 
-                // (Statement)
-                foreach (var child in branch.Children)
-                {
-                    if (child.Category == KjuAlphabet.Statement)
-                    {
-                        var ast = this.StatementToAst(child as Brunch<KjuAlphabet>, diagnostics);
-                        this.enclosedWithParentheses.Add(ast);
-                        return ast;
-                    }
-                }
-
-                Expression primaryExpression = null;
+                var skip = 1;
                 var firstChild = branch.Children[0];
+                Expression primaryExpression = null;
+
                 switch (firstChild.Category)
                 {
                     case KjuAlphabet.VariableUse:
                         primaryExpression = this.VariableUseToAst(firstChild as Brunch<KjuAlphabet>, diagnostics);
+                        primaryExpression.InputRange = firstChild.InputRange;
                         break;
                     case KjuAlphabet.ArrayAlloc:
                         primaryExpression = this.ArrayAllocToAst(firstChild as Brunch<KjuAlphabet>, diagnostics);
+                        primaryExpression.InputRange = firstChild.InputRange;
                         break;
                     default:
-                        const string message = "ExpressionAtom with > 1 children should contain Statement of be either VarUse or ArrayAlloc";
-                        diagnostics.Add(new Diagnostic(
-                            DiagnosticStatus.Error,
-                            AstConversionErrorDiagnosticsType,
-                            $"{{0}} {message}",
-                            new List<Range> { branch.InputRange }));
-                        throw new ParseTreeToAstConverterException(
-                            message);
-                }
+                    {
+                        if (branch.Children[1].Category == KjuAlphabet.Statement)
+                        {
+                            skip = 3;
+                            primaryExpression = this.StatementToAst(branch.Children[1] as Brunch<KjuAlphabet>, diagnostics);
+                            this.enclosedWithParentheses.Add(primaryExpression);
+                        }
+                        else
+                        {
+                            const string message = "ExpressionAtom with > 1 children should contain Statement of be either VarUse or ArrayAlloc";
+                            diagnostics.Add(new Diagnostic(
+                                DiagnosticStatus.Error,
+                                AstConversionErrorDiagnosticsType,
+                                $"{{0}} {message}",
+                                new List<Range> { branch.InputRange }));
+                            throw new ParseTreeToAstConverterException(
+                                message);
+                        }
 
-                primaryExpression.InputRange = firstChild.InputRange;
+                        break;
+                    }
+                }
 
                 return branch
                     .Children
-                    .Skip(1)
+                    .Skip(skip)
                     .Select(parseTree =>
                     {
                         var mainBranch = parseTree as Brunch<KjuAlphabet>;
