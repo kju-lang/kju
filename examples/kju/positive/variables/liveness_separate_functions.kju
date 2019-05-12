@@ -1,0 +1,42 @@
+fun read(): Int import
+fun write(a: Int): Unit import
+
+
+fun sum(p : Int) : Int {
+    var var1 : Int = p*1;
+    var var2 : Int = p*2;
+    var var3 : Int = p*3;
+    var var4 : Int = p*4;
+    return (var1 + var2 + var3 + var4);
+}
+
+fun testcase(): Unit {
+    var in : Int = read();
+
+    var var1 : Int = in + 1;
+    var var2 : Int = in + 2;
+    var var3 : Int = in + 3;
+    var var4 : Int = in + 4;
+
+    var s : Int;
+    s = 0;
+    if ((in % 2) == 1) then {
+        var1 = in;
+        s += sum(var1);
+        s += sum(var2);
+        s += sum(var4);
+    } else {
+        var2 = in;
+        s += sum(var1);
+        s += sum(var2);
+        s += sum(var3);
+    };
+
+    write(s);
+}
+
+fun kju() : Unit {
+    testcase();
+    testcase();
+}
+

@@ -1,0 +1,28 @@
+fun read(): Int import
+fun write(a: Int): Unit import
+
+fun kju() : Unit {
+    
+    var in : Int = read();
+
+    var var1 : Int = in*1;
+    var var2 : Int = in*2;
+    var var3 : Int = in*3;
+    var var4 : Int = in*4;
+
+    var sum1 : Int = (var1 + var2 + var3 + var4);
+
+    fun fun1() : Int {
+        in = 10;
+        var var1 : Int = in*1;
+        var var2 : Int = in*2;
+        var var3 : Int = in*3;
+        var var4 : Int = in*4;
+        return (var1 + var2 + var3 + var4);
+    };
+
+    var rest : Int = fun1();
+    var sum2 : Int = (var1 + var2 + var3 + var4);
+    write(sum1 + rest + sum2);
+}
+
