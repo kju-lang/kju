@@ -4,6 +4,7 @@ namespace KJU.Core.Intermediate.NameMangler
     using System.Linq;
     using AST;
     using AST.BuiltinTypes;
+    using AST.Types;
 
     public class NameMangler : INameMangler
     {
@@ -43,6 +44,8 @@ namespace KJU.Core.Intermediate.NameMangler
                     return "x";
                 case UnitType _:
                     return "v";
+                case ArrayType arrayType:
+                    return $"P{MangleTypeName(arrayType.ElementType)}";
                 default:
                     throw new ArgumentException($"Unknown type: {type}");
             }

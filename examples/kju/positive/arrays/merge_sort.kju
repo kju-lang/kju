@@ -5,7 +5,7 @@ fun memcopy(fx: [Int], tx: [Int], start: Int, size: Int): Unit
 	var i:Int =0;
 	while(i!=size)
 	{
-		tx[start+i]=fx[start+i];
+		fx[start+i]=tx[start+i];
 		i+=1;
 	};
 }
@@ -33,11 +33,13 @@ fun merg(fx: [Int], tx: [Int], begin: Int, size: Int): Unit
 	{
 			tx[begin+out]=fx[begin+i];
 			i+=1;
+			out+=1;
 	};
 	while(j!=size)
 	{
 			tx[begin+out]=fx[begin+j];
 			j+=1;
+			out+=1;
 
 	};
 }
@@ -49,10 +51,10 @@ fun sortimpl(ax: [Int], tempx: [Int], begin: Int, size: Int): Unit
 	}else{};
 	if size == 2 then
 	{
-		if ay[begin] > ay[begin+1] then{
-			var tmp:Int=ay[begin];
-			ay[begin]=ay[begin+1];
-			ay[begin+1]=tmp;
+		if ax[begin] > ax[begin+1] then{
+			var tmp:Int=ax[begin];
+			ax[begin]=ax[begin+1];
+			ax[begin+1]=tmp;
 		}else{};
 		return;
 	}else{};
@@ -60,12 +62,12 @@ fun sortimpl(ax: [Int], tempx: [Int], begin: Int, size: Int): Unit
 	sortimpl(ax,tempx,begin,halfsz);
 	sortimpl(ax,tempx,begin+halfsz,size-halfsz);
 	merg(ax,tempx,begin,size);
-	memcopy(tempx,ax,begin,size);
+	memcopy(ax,tempx,begin,size);
 }
 
 fun sort(ax: [Int], tempx: [Int], size: Int): Unit
 {
-	sortimpl(ax,bx,0,size);
+	sortimpl(ax,tempx,0,size);
 }
 fun kju(): Unit
 {
@@ -78,6 +80,7 @@ fun kju(): Unit
 		ay[i]=read();
 		i+=1;
 	};
+	sort(ay,temp,size);
 	i=0;
 	while(i!=size)
 	{

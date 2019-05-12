@@ -11,7 +11,7 @@ fun kju(): Unit
 	foo[2]=1337;
 	foo[3]=476;
 	foo[4]=997;
-	ay(foo)
+	ay(foo);
 	var i:Int;
 	i=0;
 	while(i!=5)

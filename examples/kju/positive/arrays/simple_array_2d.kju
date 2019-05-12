@@ -23,6 +23,7 @@ fun kju(): Unit
 		while(j!=5)
 		{
 			write(ay[i][j]);
+			j=j+1;
 		};
 		i=i+1;
 	};
