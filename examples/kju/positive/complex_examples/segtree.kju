@@ -1,0 +1,77 @@
+fun read() : Int import
+fun write(a : Int) : Unit import
+
+fun min(a : Int, b : Int) : Int
+{
+  if a < b then
+  {
+    return a;
+  }
+  else
+  {
+    return b;
+  };
+}
+
+fun kju() : Unit
+{
+  var n : Int = read();
+  var tree : [Int] = new (Int, 2 * n);
+  var i : Int = 0;
+  while i < n 
+  {
+    tree[i + n] = read();
+    i += 1;
+  };
+
+  while i > 0
+  {
+    i -= 1;
+    tree[i] = min(tree[2 * i], tree[2 * i + 1]);
+  };
+
+  fun update(pos : Int, val : Int) : Unit
+  {
+    tree[pos += n] = val;
+    pos /= 2;
+    while pos > 0
+    {
+      tree[pos] = min(tree[2 * pos], tree[2 * pos + 1]);
+      pos /= 2;
+    };
+  };
+
+  fun minRange(l : Int, r : Int) : Int
+  {
+    l += n;
+    r += n;
+    var result : Int = 1000 * 1000 * 1000 * 1000;
+    while l <= r
+    {
+      if l % 2 == 1 then 
+      {
+        result = min(result, tree[l]);
+      } else {};
+
+      if r % 2 == 0 then
+      {
+        result = min(result, tree[r]);
+      } else {};
+
+      l = (l + 1) / 2;
+      r = (r - 1) / 2;
+    };
+
+    return result;
+  };
+
+  var q : Int = read();
+  i = 0;
+  while i < q
+  {
+    var l : Int = read();
+    var r : Int = read();
+    write(minRange(l, r));
+    i += 1;
+  };
+}
