@@ -1,4 +1,6 @@
 <Spec>
-	<IsPositive>false</IsPositive>
-	<IsDisabled>true</IsDisabled>
+    <IsPositive>false</IsPositive>
+    <ExpectedMagicStrings>
+        <MagicString>TypeChecker.IncorrectAssigmentType</MagicString>
+    </ExpectedMagicStrings>
 </Spec>
