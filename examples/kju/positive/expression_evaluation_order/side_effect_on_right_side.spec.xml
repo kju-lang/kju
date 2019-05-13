@@ -1,6 +1,5 @@
 <Spec>
     <Execution>
-        <Executable>false</Executable>
         <ExpectedOutput>
             0
         </ExpectedOutput>

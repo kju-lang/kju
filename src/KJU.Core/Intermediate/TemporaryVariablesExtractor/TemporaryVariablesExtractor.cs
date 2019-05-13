@@ -92,12 +92,19 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
 
         private List<Expression> ExtractFromOperationNode(BinaryOperation operationNode)
         {
+            // In (A op B)
+            // We'd like to compute A before B if both A and B use variable x and at least one of them modifies it
+
             operationNode.LeftValue = this.ReplaceWithBlock(operationNode.LeftValue);
 
-            var modifiedVariables = this.variableAccess.Modifies[operationNode.LeftValue];
-            var usedVariables = this.variableAccess.Accesses[operationNode.RightValue];
+            var modifiedVariablesLeft = this.variableAccess.Modifies[operationNode.LeftValue];
+            var modifiedVariablesRight = this.variableAccess.Modifies[operationNode.RightValue];
+            var usedVariablesLeft = this.variableAccess.Accesses[operationNode.LeftValue];
+            var usedVariablesRight = this.variableAccess.Accesses[operationNode.RightValue];
+
             var result = new List<Expression>();
-            if (modifiedVariables.Any(x => usedVariables.Contains(x)))
+            if (modifiedVariablesLeft.Any(x => usedVariablesRight.Contains(x))
+                || modifiedVariablesRight.Any(x => usedVariablesLeft.Contains(x)))
             {
                 var tmpDecl = new VariableDeclaration(
                     operationNode.LeftValue.Type, "tmp", operationNode.LeftValue)
