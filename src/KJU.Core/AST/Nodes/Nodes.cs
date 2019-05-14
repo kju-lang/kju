@@ -7,11 +7,14 @@ namespace KJU.Core.AST
     using System.Linq;
     using Intermediate;
     using Intermediate.Function;
+    using KJU.Core.AST.Types;
     using Nodes;
 
     public class Expression : Node
     {
         public DataType Type { get; set; }
+
+        public string TypeName { get; set; }
     }
 
     public class Program : Node
@@ -326,6 +329,18 @@ namespace KJU.Core.AST
         }
     }
 
+    public class NullLiteral : Expression
+    {
+        public NullLiteral()
+        {
+        }
+
+        public override string ToString()
+        {
+            return $"Null";
+        }
+    }
+
     public class Assignment : Expression
     {
         public Assignment(Variable lhs, Expression value)
@@ -404,6 +419,64 @@ namespace KJU.Core.AST
         public override string ToString()
         {
             return $"ArrayAssignment";
+        }
+    }
+
+    public class StructAssignment : Expression
+    {
+        public StructAssignment(Expression lhs, string field, Expression value)
+        {
+            this.Lhs = lhs;
+            this.Field = field;
+            this.Value = value;
+        }
+
+        public Expression Lhs { get; set; }
+
+        public string Field { get; set; }
+
+        public Expression Value { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            var result = new List<Node> { this.Lhs };
+            if (this.Value != null)
+                result.Add(this.Value);
+            return result;
+        }
+
+        public override string ToString()
+        {
+            return $"StructAssignment";
+        }
+    }
+
+    public class StructCompoundAssignment : Expression
+    {
+        public StructCompoundAssignment(Expression lhs, string field, Expression value)
+        {
+            this.Lhs = lhs;
+            this.Field = field;
+            this.Value = value;
+        }
+
+        public Expression Lhs { get; set; }
+
+        public string Field { get; set; }
+
+        public Expression Value { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            var result = new List<Node> { this.Lhs };
+            if (this.Value != null)
+                result.Add(this.Value);
+            return result;
+        }
+
+        public override string ToString()
+        {
+            return $"StructAssignment";
         }
     }
 
@@ -571,6 +644,74 @@ namespace KJU.Core.AST
         public override string ToString()
         {
             return $"ArrayAlloc {this.ElementType} {this.Size}";
+        }
+    }
+
+    public class StructAccess : Expression
+    {
+        public StructAccess(Expression lhs, string field)
+        {
+            this.Lhs = lhs;
+            this.Field = field;
+        }
+
+        public Expression Lhs { get; set; }
+
+        public string Field { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node> { this.Lhs };
+        }
+
+        public override string ToString()
+        {
+            return $"StructAccess {this.Field}";
+        }
+    }
+
+    public class StructDeclaration : Expression
+    {
+        public StructDeclaration(string name, IReadOnlyList<Tuple<string, DataType>> fields, StructType type)
+        {
+            this.Name = name;
+            this.Fields = fields;
+            this.StructureType = type;
+        }
+
+        public string Name { get; }
+
+        public IReadOnlyList<Tuple<string, DataType>> Fields { get; }
+
+        public StructType StructureType { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>();
+        }
+
+        public override string ToString()
+        {
+            return $"StructDeclaration {this.Name}";
+        }
+    }
+
+    public class StructAlloc : Expression
+    {
+        public StructAlloc()
+        {
+        }
+
+        public StructDeclaration Declaration { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>();
+        }
+
+        public override string ToString()
+        {
+            return $"StructAlloc {this.Declaration}";
         }
     }
 }
