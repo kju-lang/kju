@@ -8,6 +8,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     using InstructionSelector;
     using Intermediate;
     using Intermediate.Function;
+    using Intermediate.FunctionGeneration.ReadWrite;
     using LivenessAnalysis;
     using RegisterAllocation;
     using Templates;
@@ -20,23 +21,28 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         private readonly IRegisterAllocator registerAllocator;
         private readonly IInstructionSelector instructionSelector;
         private readonly ICfgLinearizer cfgLinearizer;
-        private readonly ILabelFactory labelFactory = new LabelFactory(new LabelIdGuidGenerator());
+        private readonly ILabelFactory labelFactory;
+        private readonly ReadWriteGenerator readWriteGenerator;
 
         public FunctionToAsmGenerator(
             ILivenessAnalyzer livenessAnalyzer,
             IRegisterAllocator registerAllocator,
             IInstructionSelector instructionSelector,
-            ICfgLinearizer cfgLinearizer)
+            ICfgLinearizer cfgLinearizer,
+            ILabelFactory labelFactory,
+            ReadWriteGenerator readWriteGenerator)
         {
             this.livenessAnalyzer = livenessAnalyzer;
             this.registerAllocator = registerAllocator;
             this.instructionSelector = instructionSelector;
             this.cfgLinearizer = cfgLinearizer;
+            this.labelFactory = labelFactory;
+            this.readWriteGenerator = readWriteGenerator;
         }
 
         public IEnumerable<string> ToAsm(Function function, ILabel cfg)
         {
-            var (allocation, instructionSequence) = this.Allocate(function, this.InstructionSequence(cfg));
+            var (allocation, instructionSequence) = this.Allocate(this.InstructionSequence(cfg), function);
             return ConstructResult(instructionSequence, allocation, function);
         }
 
@@ -60,7 +66,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
         }
 
         private static IEnumerable<string> ConstructResult(
-            IEnumerable<CodeBlock> instructionSequence,
+            IReadOnlyList<CodeBlock> instructionSequence,
             RegisterAllocationResult allocation,
             Function function)
         {
@@ -68,17 +74,13 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             return instructionSequence.SelectMany(codeBlock =>
             {
                 var ret = codeBlock.Instructions.SelectMany(instruction => instruction.ToASM(allocation.Allocation));
-                if (!usefulLabels.Contains(codeBlock.Label.Id))
-                {
-                    return ret;
-                }
-
-                return ret.Prepend($"{codeBlock.Label.Id}:");
+                return !usefulLabels.Contains(codeBlock.Label.Id) ? ret : ret.Prepend($"{codeBlock.Label.Id}:");
             }).Prepend($"{function.MangledName}:");
         }
 
         private (RegisterAllocationResult, IReadOnlyList<CodeBlock>) Allocate(
-            Function function, IReadOnlyList<CodeBlock> instructionSequence)
+            IReadOnlyList<CodeBlock> instructionSequence,
+            Function function)
         {
             for (var iteration = 0; iteration < AllocationTriesBound; ++iteration)
             {
@@ -107,9 +109,8 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             IEnumerable<CodeBlock> instructionSequence,
             Function function)
         {
-            var spilledRegisterToIndexMapping = spilled
-                .Select((register, index) => new { Register = register, Index = index })
-                .ToDictionary(x => x.Register, x => x.Index);
+            var spilledRegisterMemory = spilled
+                .ToDictionary(x => x, x => function.ReserveStackFrameLocation());
 
             var result = instructionSequence.Select(codeBlock =>
             {
@@ -117,32 +118,28 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                     this.GetModifiedInstruction(
                         instruction,
                         spilled,
-                        spilledRegisterToIndexMapping,
+                        spilledRegisterMemory,
                         function)).ToList();
 
                 return new CodeBlock(codeBlock.Label, modifiedInstructions);
             }).ToList();
 
-            function.StackBytes += 8 * spilled.Count;
             return result;
         }
 
         private IEnumerable<Instruction> GetModifiedInstruction(
             Instruction instruction,
             ICollection<VirtualRegister> spilled,
-            IReadOnlyDictionary<VirtualRegister, int> spilledRegisterToIndexMapping,
+            IReadOnlyDictionary<VirtualRegister, MemoryLocation> spilledRegisterMemory,
             Function function)
         {
             var auxiliaryWrites = instruction.Defines
                 .Where(spilled.Contains)
                 .SelectMany(register =>
                 {
-                    var id = spilledRegisterToIndexMapping[register] + 1;
-                    var registerVariable = new Variable(function, register);
-                    var memoryLocation = new MemoryLocation(function, -(function.StackBytes + (8 * id)));
-                    var memoryVariable = new Variable(function, memoryLocation);
-                    var readOperation = function.GenerateRead(registerVariable);
-                    var writeOperation = function.GenerateWrite(memoryVariable, readOperation);
+                    var memoryLocation = spilledRegisterMemory[register];
+                    var readOperation = this.readWriteGenerator.GenerateRead(function, register);
+                    var writeOperation = this.readWriteGenerator.GenerateWrite(function, memoryLocation, readOperation);
                     var tree = new Tree(writeOperation, new UnconditionalJump(null));
                     return this.instructionSelector.GetInstructions(tree);
                 });
@@ -151,12 +148,9 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
                 .Where(spilled.Contains)
                 .SelectMany(register =>
                 {
-                    var id = spilledRegisterToIndexMapping[register] + 1;
-                    var registerVariable = new Variable(function, register);
-                    var memoryLocation = new MemoryLocation(function, -(function.StackBytes + (8 * id)));
-                    var memoryVariable = new Variable(function, memoryLocation);
-                    var readOperation = function.GenerateRead(memoryVariable);
-                    var writeOperation = function.GenerateWrite(registerVariable, readOperation);
+                    var memoryLocation = spilledRegisterMemory[register];
+                    var readOperation = this.readWriteGenerator.GenerateRead(function, memoryLocation);
+                    var writeOperation = this.readWriteGenerator.GenerateWrite(function, register, readOperation);
                     var tree = new Tree(writeOperation, new UnconditionalJump(null));
                     return this.instructionSelector.GetInstructions(tree);
                 });

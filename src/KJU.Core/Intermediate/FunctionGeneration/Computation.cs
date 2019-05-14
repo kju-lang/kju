@@ -1,4 +1,4 @@
-namespace KJU.Core.Intermediate
+namespace KJU.Core.Intermediate.FunctionGeneration
 {
     public class Computation
     {

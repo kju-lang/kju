@@ -5,8 +5,9 @@ namespace KJU.Core.AST
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using AST.Nodes;
-    using KJU.Core.Intermediate.Function;
+    using Intermediate;
+    using Intermediate.Function;
+    using Nodes;
 
     public class Expression : Node
     {
@@ -59,7 +60,9 @@ namespace KJU.Core.AST
 
         public bool IsForeign { get; }
 
-        public Function IntermediateFunction { get; set; }
+        public Function Function { get; set; }
+
+        public bool IsEntryPoint => this.Identifier == "kju" && this.Parameters.Count == 0;
 
         public static bool ParametersTypesEquals(FunctionDeclaration left, FunctionDeclaration right)
         {
@@ -71,11 +74,6 @@ namespace KJU.Core.AST
         public static bool ParametersTypesEquals(List<DataType> left, List<DataType> right)
         {
             return left.SequenceEqual(right);
-        }
-
-        public bool IsEntryPoint()
-        {
-            return this.Identifier == "kju" && this.Parameters.Count == 0;
         }
 
         public override IEnumerable<Node> Children()
@@ -112,7 +110,7 @@ namespace KJU.Core.AST
 
     public class VariableDeclaration : Expression
     {
-        private Intermediate.Variable intermediateVariable;
+        private ILocation intermediateVariable;
 
         public VariableDeclaration(DataType variableType, string identifier, Expression value)
         {
@@ -127,7 +125,7 @@ namespace KJU.Core.AST
 
         public Expression Value { get; }
 
-        public Intermediate.Variable IntermediateVariable
+        public ILocation IntermediateVariable
         {
             get => this.intermediateVariable;
             set => this.intermediateVariable = value ?? throw new Exception("Intermediate variable is null.");

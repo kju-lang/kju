@@ -90,7 +90,8 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
                 {
                     if (call.TargetAfter != null)
                         throw new NotImplementedException("non-trivial calls not supported yet");
-                    return instructions.Append(new CallInstruction(call.Func));
+                    var functionInfo = call.Function;
+                    return instructions.Append(new CallInstruction(functionInfo));
                 }
 
                 case UnconditionalJump jmp:

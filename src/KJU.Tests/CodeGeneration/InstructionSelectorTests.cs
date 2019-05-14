@@ -1,10 +1,11 @@
-#pragma warning disable SA1008 // Opening parenthesis must not be followed by a space.
+﻿#pragma warning disable SA1008 // Opening parenthesis must not be followed by a space.
 namespace KJU.Tests.CodeGeneration
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using KJU.Core.AST;
+    using KJU.Core.AST.VariableAccessGraph;
     using KJU.Core.CodeGeneration;
     using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using KJU.Core.CodeGeneration.InstructionSelector;
@@ -12,6 +13,7 @@ namespace KJU.Tests.CodeGeneration
     using KJU.Core.CodeGeneration.Templates.Stack;
     using KJU.Core.Intermediate;
     using KJU.Core.Intermediate.Function;
+    using KJU.Core.Intermediate.TemporaryVariablesExtractor;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -36,12 +38,15 @@ namespace KJU.Tests.CodeGeneration
         {
             var template = new ReserveStackMemoryTemplate();
             var templates = new List<InstructionTemplate> { template };
-            var root = new ReserveStackMemory(new Function(null, "abc", new List<VariableDeclaration>(), false) { StackBytes = 16 });
+            var functionInfo = new Function(null, "abc", new List<VariableDeclaration>(), false, false);
+            functionInfo.ReserveStackFrameLocation();
+            functionInfo.ReserveStackFrameLocation();
+            var root = new ReserveStackMemory(functionInfo);
             var tree = new Tree(root, new Ret());
             var selector = new InstructionSelector(templates);
             var ins = selector.GetInstructions(tree);
             Assert.AreEqual(2, ins.Count());
-            Assert.AreEqual("sub RSP, 16", ins.First().ToASM(null).First());
+            Assert.AreEqual("sub RSP, 32", ins.First().ToASM(null).First()); // 32 because of link + 2 local variables
         }
 
         [TestMethod]

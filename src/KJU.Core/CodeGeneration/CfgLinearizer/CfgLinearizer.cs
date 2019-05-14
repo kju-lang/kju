@@ -97,7 +97,7 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
                         break;
                     case FunctionCall functionCall: // erase TargetAfter???
                         controlFlow = order[functionCall.TargetAfter] == index + 1
-                            ? new FunctionCall(functionCall.Func, null)
+                            ? new FunctionCall(functionCall.Function, null)
                             : tree.ControlFlow;
 
                         break;

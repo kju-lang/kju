@@ -1,7 +1,6 @@
 namespace KJU.Core.Compiler
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using AST;
     using AST.ReturnChecker;
@@ -10,12 +9,12 @@ namespace KJU.Core.Compiler
     using CodeGeneration.FunctionToAsmGeneration;
     using Diagnostics;
     using Input;
-    using Intermediate.FunctionBodyGenerator;
+    using Intermediate.Function;
+    using Intermediate.FunctionGeneration.BodyGenerator;
+    using Intermediate.FunctionGeneration.FunctionGenerator.Factory;
     using Intermediate.IntermediateRepresentationGenerator;
     using Intermediate.NameMangler;
     using Intermediate.VariableAndFunctionBuilder;
-    using KJU.Core.Intermediate;
-    using KJU.Core.Intermediate.Function;
     using Lexer;
     using Parser;
 
@@ -35,10 +34,10 @@ namespace KJU.Core.Compiler
         private readonly IPhase returnChecker = new ReturnChecker();
 
         private readonly IVariableAndFunctionBuilder variableAndFunctionBuilder =
-            new VariableAndFunctionBuilder(new NameMangler());
+            new VariableAndFunctionBuilder(new FunctionBuilder(new NameMangler()));
 
         private readonly IIntermediateRepresentationGenerator intermediateGenerator =
-            new IntermediateRepresentationGenerator();
+            new IntermediateRepresentationGenerator(new FunctionGeneratorFactory().ConstructGenerator());
 
         private readonly IFunctionToAsmGenerator
             functionToAsmGenerator = new FunctionToAsmGeneratorFactory().Generate();

@@ -4,11 +4,13 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using KJU.Core.AST.VariableAccessGraph;
     using KJU.Core.CodeGeneration;
     using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
     using KJU.Core.CodeGeneration.LivenessAnalysis;
     using KJU.Core.Intermediate;
     using KJU.Core.Intermediate.Function;
+    using KJU.Core.Intermediate.TemporaryVariablesExtractor;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Util;
 
@@ -365,7 +367,10 @@ namespace KJU.Tests.CodeGeneration.LivenessAnalysis
         private ILabel AddFunctionCallBlock(
             List<CodeBlock> instructions, List<Instruction> block, ILabel target)
         {
-            var label = this.GetLabel(new FunctionCall(new Function(null, "abc", new List<KJU.Core.AST.VariableDeclaration>(), false), target));
+            var functionInfo = new Function(null, "abc", new List<Core.AST.VariableDeclaration>(), false, false);
+            functionInfo.ReserveStackFrameLocation();
+            functionInfo.ReserveStackFrameLocation();
+            var label = this.GetLabel(new FunctionCall(functionInfo, target));
             instructions.Add(new CodeBlock(label, block));
             return label;
         }

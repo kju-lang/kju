@@ -1,8 +1,10 @@
-namespace KJU.Tests.Intermediate
+namespace KJU.Tests.Intermediate.Function
 {
     using System.Collections.Generic;
+    using KJU.Core.AST;
     using KJU.Core.Intermediate;
     using KJU.Core.Intermediate.Function;
+    using KJU.Core.Intermediate.FunctionGeneration.ReadWrite;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -30,40 +32,43 @@ namespace KJU.Tests.Intermediate
              * }
              *
              */
+            var functionInfoA = new Function(null, "a", new List<VariableDeclaration>(), false, false);
+            functionInfoA.ReserveStackFrameLocation();
+            functionInfoA.ReserveStackFrameLocation();
+            functionInfoA.ReserveStackFrameLocation();
+            functionInfoA.ReserveStackFrameLocation();
+            var functionInfoB = new Function(functionInfoA, "b", new List<VariableDeclaration>(), false, false);
+            functionInfoB.ReserveStackFrameLocation();
+            functionInfoB.ReserveStackFrameLocation();
+            functionInfoB.ReserveStackFrameLocation();
+            var functionInfoC = new Function(functionInfoB, "c", new List<VariableDeclaration>(), false, false);
+            functionInfoC.ReserveStackFrameLocation();
+            functionInfoC.ReserveStackFrameLocation();
 
-            var functionA = new Function(null, "a", new List<KJU.Core.AST.VariableDeclaration>(), false);
+            var variableALocation = functionInfoA.ReserveStackFrameLocation();
+            var variableA = variableALocation;
 
-            functionA.ReserveStackFrameLocation();
-            functionA.ReserveStackFrameLocation();
-
-            var functionB = new Function(functionA, "b", new List<KJU.Core.AST.VariableDeclaration>(), false);
-
-            functionB.ReserveStackFrameLocation();
-
-            var functionC = new Function(functionB, "c", new List<KJU.Core.AST.VariableDeclaration>(), false);
-
-            var variableALocation = functionA.ReserveStackFrameLocation();
-            var variableA = new Variable(functionA, variableALocation);
-
-            var variableBLocation = functionB.ReserveStackFrameLocation();
-            var variableB = new Variable(functionB, variableBLocation);
+            var variableBLocation = functionInfoB.ReserveStackFrameLocation();
+            var variableB = variableBLocation;
 
             var variableCLocation = new VirtualRegister();
-            var variableC = new Variable(functionC, variableCLocation);
+            var variableC = variableCLocation;
 
             var uniqueNode = new RegisterRead(new VirtualRegister());
 
-            var cReadOperation = (RegisterRead)functionC.GenerateRead(variableC);
+            var readWriteGenerator = new ReadWriteGenerator();
+
+            var cReadOperation = (RegisterRead)readWriteGenerator.GenerateRead(functionInfoC, variableC);
             var cReadOperationActualRegister = cReadOperation.Register;
             Assert.AreEqual(variableCLocation, cReadOperationActualRegister);
 
-            var cWriteOperation = (RegisterWrite)functionC.GenerateWrite(variableC, uniqueNode);
+            var cWriteOperation = (RegisterWrite)readWriteGenerator.GenerateWrite(functionInfoC, variableC, uniqueNode);
             var writeCOperationActualRegister = cWriteOperation.Register;
             var writeCActualValue = cWriteOperation.Value;
             Assert.AreEqual(variableCLocation, writeCOperationActualRegister);
             Assert.AreEqual(uniqueNode, writeCActualValue);
 
-            var bRead = (MemoryRead)functionC.GenerateRead(variableB);
+            var bRead = (MemoryRead)readWriteGenerator.GenerateRead(functionInfoC, variableB);
             var computeBRead = (ArithmeticBinaryOperation)bRead.Addr;
 /*
             var bReadLeft = (RegisterRead)computeBRead.Lhs;
@@ -74,7 +79,7 @@ namespace KJU.Tests.Intermediate
 */
             Assert.AreEqual(variableBLocation.Offset, bReadRight.Value);
 
-            var actualARead = (MemoryRead)functionC.GenerateRead(variableA);
+            var actualARead = (MemoryRead)readWriteGenerator.GenerateRead(functionInfoC, variableA);
             var actualAAddress = (ArithmeticBinaryOperation)actualARead.Addr;
 /*
             var actualAAddressLeft = (MemoryRead)actualAAddress.Lhs;

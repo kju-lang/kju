@@ -41,7 +41,7 @@ namespace KJU.Core.CodeGeneration.Templates
             return (string)fill[position];
         }
 
-        public static Function GetFunction(
+        public static Function GetFunctionInfo(
             this IReadOnlyList<object> fill,
             int position)
         {

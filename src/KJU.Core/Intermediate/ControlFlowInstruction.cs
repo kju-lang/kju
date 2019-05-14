@@ -40,19 +40,19 @@ namespace KJU.Core.Intermediate
 
     public class FunctionCall : ControlFlowInstruction
     {
-        public FunctionCall(Function.Function func, ILabel targetAfter)
+        public FunctionCall(Function.Function function, ILabel targetAfter)
         {
-            this.Func = func;
+            this.Function = function;
             this.TargetAfter = targetAfter;
         }
 
-        public Function.Function Func { get; }
+        public Function.Function Function { get; }
 
         public ILabel TargetAfter { get; }
 
         public override string ToString()
         {
-            return $"FunctionCall{{Function: {this.Func}, TargetAfter: {this.TargetAfter}}}";
+            return $"FunctionCall{{Function: {this.Function}, TargetAfter: {this.TargetAfter}}}";
         }
     }
 

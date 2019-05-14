@@ -3,7 +3,6 @@
 
 namespace KJU.Core.Intermediate
 {
-    using System;
     using System.Collections.Generic;
     using AST;
 
@@ -452,18 +451,18 @@ namespace KJU.Core.Intermediate
 
     public class ReserveStackMemory : Node
     {
-        public ReserveStackMemory(Function.Function func)
+        public ReserveStackMemory(Function.Function function)
         {
-            this.KjuFunction = func;
+            this.Function = function;
         }
 
-        private Function.Function KjuFunction { get; }
+        private Function.Function Function { get; }
 
         public override List<object> Match(Node template)
         {
             if (template is ReserveStackMemory)
             {
-                return new List<object> { this.KjuFunction };
+                return new List<object> { this.Function };
             }
 
             return null;

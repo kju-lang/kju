@@ -13,28 +13,32 @@
 
         public override Instruction Emit(VirtualRegister result, IReadOnlyList<object> fill, string label)
         {
-            return new ReserveStackMemoryInstruction(fill.GetFunction(0));
+            var functionInfo = fill.GetFunctionInfo(0);
+            return new ReserveStackMemoryInstruction(functionInfo);
         }
 
         private class ReserveStackMemoryInstruction : Instruction
         {
-            public ReserveStackMemoryInstruction(Function fun)
-                : base(
-                new List<VirtualRegister> { HardwareRegister.RSP },
-                new List<VirtualRegister> { HardwareRegister.RSP })
-            {
-                this.KjuFunction = fun;
-            }
+            private readonly Function function;
 
-            private Function KjuFunction { get; }
+            public ReserveStackMemoryInstruction(Function function)
+                : base(
+                    new List<VirtualRegister> { HardwareRegister.RSP },
+                    new List<VirtualRegister> { HardwareRegister.RSP })
+            {
+                this.function = function;
+            }
 
             public override IEnumerable<string> ToASM(
                 IReadOnlyDictionary<VirtualRegister, HardwareRegister> registerAssignment)
             {
-                int stackBytes = this.KjuFunction.StackBytes;
+                int stackBytes = this.function.StackBytes;
 
                 // always pad stack to 16 bytes
-                if (stackBytes % 16 == 8) stackBytes += 8;
+                if (stackBytes % 16 == 8)
+                {
+                    stackBytes += 8;
+                }
 
                 yield return $"sub {HardwareRegister.RSP}, {stackBytes}";
             }

@@ -1,4 +1,4 @@
-namespace KJU.Core.Intermediate.FunctionBodyGenerator
+namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 {
     using System;
 
