@@ -166,14 +166,14 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
             private Computation ConvertNode(AST.VariableDeclaration node, ILabel after)
             {
-                if (node.Value == null)
-                {
-                    return new Computation(after);
-                }
-
                 var result = this.labelFactory.WithLabel(writeLabel =>
                 {
-                    Computation value = this.GenerateExpression(node.Value, writeLabel);
+                    Computation value;
+                    if (node.Value == null)
+                        value = this.GenerateExpression(new AST.IntegerLiteral(0), writeLabel); // this works irrespective of the type of declaration
+                    else
+                        value = this.GenerateExpression(node.Value, writeLabel);
+
                     Node write = this.readWriteGenerator.GenerateWrite(
                         this.function,
                         node.IntermediateVariable,

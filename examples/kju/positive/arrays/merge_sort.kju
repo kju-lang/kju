@@ -2,7 +2,7 @@ fun read(): Int import
 fun write(a: Int): Unit import
 fun memcopy(fx: [Int], tx: [Int], start: Int, size: Int): Unit
 {
-	var i:Int =0;
+	var i: Int;
 	while(i!=size)
 	{
 		fx[start+i]=tx[start+i];
@@ -13,9 +13,9 @@ fun memcopy(fx: [Int], tx: [Int], start: Int, size: Int): Unit
 fun merg(fx: [Int], tx: [Int], begin: Int, size: Int): Unit
 {
 	var halfsz: Int = size/2;
-	var i: Int=0;
+	var i: Int;
 	var j: Int =halfsz;
-	var out:Int = 0;
+	var out:Int;
 	while(i!=halfsz && j!=size)
 	{
 		if fx[begin+i]<=fx[begin+j] then{
@@ -74,7 +74,7 @@ fun kju(): Unit
 	var size:Int = read();
 	var ay:[Int] = new(Int,size);
 	var temp:[Int] = new(Int,size);
-	var i:Int=0;
+	var i:Int;
 	while(i!=size)
 	{
 		ay[i]=read();
