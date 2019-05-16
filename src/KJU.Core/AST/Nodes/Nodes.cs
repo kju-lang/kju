@@ -584,7 +584,7 @@ namespace KJU.Core.AST
         }
     }
 
-    public class ArrayAccess : Expression
+    public class ArrayAccess : Expression, IContainerAccess
     {
         public ArrayAccess(Range inputRange, Expression lhs, Expression index)
             : base(inputRange)
@@ -596,6 +596,8 @@ namespace KJU.Core.AST
         public Expression Lhs { get; set; }
 
         public Expression Index { get; set; }
+
+        public Expression Offset { get => this.Index; }
 
         public override IEnumerable<Node> Children()
         {
@@ -632,7 +634,7 @@ namespace KJU.Core.AST
         }
     }
 
-    public class FieldAccess : Expression
+    public class FieldAccess : Expression, IContainerAccess
     {
         public FieldAccess(Range inputRange, Expression lhs, string field)
             : base(inputRange)
@@ -644,6 +646,23 @@ namespace KJU.Core.AST
         public Expression Lhs { get; }
 
         public string Field { get; }
+
+        public Expression Offset
+        {
+            get
+            {
+                switch (this.Lhs.Type)
+                {
+                    case AST.Types.StructType type:
+                        var offset = type.Declaration.Fields
+                            .TakeWhile(x => x.Name != this.Field)
+                            .Count();
+                        return new AST.IntegerLiteral(this.InputRange, offset);
+                    default:
+                        throw new Exception($"Incorrect type of FieldAccess node: {this.Lhs.Type.ToString()}");
+                }
+            }
+        }
 
         public override IEnumerable<Node> Children()
         {

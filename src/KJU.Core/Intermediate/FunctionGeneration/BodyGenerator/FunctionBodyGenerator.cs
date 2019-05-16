@@ -130,13 +130,17 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                         return this.ConvertNode(expr, after);
                     case AST.UnaryOperation expr:
                         return this.ConvertNode(expr, after);
-                    case AST.ArrayAccess expr:
+                    case AST.Nodes.IContainerAccess expr:
                         return this.ConvertNode(expr, after);
                     case AST.ComplexAssignment expr:
                         return this.ConvertNode(expr, after);
                     case AST.ComplexCompoundAssignment expr:
                         return this.ConvertNode(expr, after);
                     case AST.ArrayAlloc expr:
+                        return this.ConvertNode(expr, after);
+                    case AST.StructDeclaration expr:
+                        return new Computation(after);
+                    case AST.StructAlloc expr:
                         return this.ConvertNode(expr, after);
                     default:
                         throw new FunctionBodyGeneratorException($"Unknown node type: {node.Type}");
@@ -396,7 +400,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 return new Computation(operand.Start, result);
             }
 
-            private Computation ArrayAccessMemoryLocation(AST.ArrayAccess node, ILabel after)
+            private Computation ContainerAccessMemoryLocation(AST.Nodes.IContainerAccess node, ILabel after)
             {
                 var addrRegister = new VirtualRegister();
                 var arrayAddressRegister = new VirtualRegister();
@@ -412,7 +416,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
                 var rightLabel = this.labelFactory.WithLabel(label =>
                 {
-                    var rightComp = this.GenerateExpression(node.Index, label);
+                    var rightComp = this.GenerateExpression(node.Offset, label);
                     var rightRoot = new RegisterWrite(right, rightComp.Result);
                     return (
                         new Tree(rightRoot, new UnconditionalJump(finalLabel)),
@@ -431,22 +435,22 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 return new Computation(leftLabel, root);
             }
 
-            private Computation ArrayAccessMemoryLocation(AST.Expression expr, ILabel after)
+            private Computation ContainerAccessMemoryLocation(AST.Expression expr, ILabel after)
             {
-                const string errorMessage = "Incorrect access in ArrayAccessMemoryLocation";
+                const string errorMessage = "Incorrect access in ContainerAccessMemoryLocation";
                 switch (expr)
                 {
-                    case AST.ArrayAccess access:
-                        return this.ArrayAccessMemoryLocation(access, after);
+                    case AST.Nodes.IContainerAccess access:
+                        return this.ContainerAccessMemoryLocation(access, after);
 
                     case BlockWithResult block:
-                        var blockAccess = block.Result as AST.ArrayAccess;
+                        var blockAccess = block.Result as AST.Nodes.IContainerAccess;
                         if (blockAccess == null)
                         {
                             throw new FunctionBodyGeneratorException(errorMessage);
                         }
 
-                        var resultComputation = this.ArrayAccessMemoryLocation(blockAccess, after);
+                        var resultComputation = this.ContainerAccessMemoryLocation(blockAccess, after);
                         var bodyComputation = this.GenerateExpression(block.Body, resultComputation.Start);
                         return bodyComputation;
 
@@ -456,7 +460,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 }
             }
 
-            private Computation ConvertNode(AST.ArrayAccess node, ILabel after)
+            private Computation ConvertNode(AST.Nodes.IContainerAccess node, ILabel after)
             {
                 var addrRegister = new VirtualRegister();
                 var addrRegisterValue = new RegisterRead(addrRegister);
@@ -466,7 +470,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
                 var getAddrLabel = this.labelFactory.WithLabel(label =>
                 {
-                    var addrComputation = this.ArrayAccessMemoryLocation(node, label);
+                    var addrComputation = this.ContainerAccessMemoryLocation(node, label);
                     var addrRegisterWriteNode = new RegisterWrite(addrRegister, addrComputation.Result);
                     return (
                         new Tree(addrRegisterWriteNode, new UnconditionalJump(finalLabel)),
@@ -489,7 +493,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
                 var getAddrLabel = this.labelFactory.WithLabel(label =>
                 {
-                    var addrComputation = this.ArrayAccessMemoryLocation(node.Lhs, label);
+                    var addrComputation = this.ContainerAccessMemoryLocation(node.Lhs, label);
                     var addrRegisterWriteNode = new RegisterWrite(addrRegister, addrComputation.Result);
                     return (
                         new Tree(addrRegisterWriteNode, new UnconditionalJump(finalLabel)),
@@ -531,6 +535,42 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                     node.InputRange,
                     "allocate",
                     AST.Types.ArrayType.GetInstance(node.ElementType),
+                    new List<AST.VariableDeclaration> { parameter },
+                    null,
+                    true);
+
+                var nameMangler = new NameMangler.NameMangler();
+                var mangledName = nameMangler.GetMangledName(decl, null);
+
+                var func = new Function.Function(
+                    null,
+                    mangledName,
+                    decl.Parameters,
+                    decl.IsEntryPoint,
+                    decl.IsForeign);
+
+                decl.Function = func;
+
+                call.Declaration = decl;
+                return this.ConvertNode(call, after);
+            }
+
+            private Computation ConvertNode(AST.StructAlloc node, ILabel after)
+            {
+                var size = node.Declaration.Fields
+                    .Select(c => 8)
+                    .Sum();
+
+                var sizeLiteral = new AST.IntegerLiteral(node.InputRange, size);
+
+                var call = new AST.FunctionCall(node.InputRange, "allocate", new List<AST.Expression> { sizeLiteral });
+
+                var parameter = new AST.VariableDeclaration(node.InputRange, new AST.BuiltinTypes.IntType(), "size", null);
+
+                var decl = new AST.FunctionDeclaration(
+                    node.InputRange,
+                    "allocate",
+                    node.Type,
                     new List<AST.VariableDeclaration> { parameter },
                     null,
                     true);
