@@ -20,6 +20,10 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation
         {
             var allowedRegistersCount = allowedHardwareRegisters.Count;
 
+            query = new InterferenceCopyGraphPair(
+                query.InterferenceGraph,
+                RemoveUnavailableHWRegisters(query.CopyGraph, allowedHardwareRegisters));
+
             var allRegisters = query.GetAllRegisters();
             var superVertices = allRegisters
                 .ToDictionary(
@@ -78,6 +82,21 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation
             }
 
             return finalGraph;
+        }
+
+        private static IReadOnlyDictionary<VirtualRegister, IReadOnlyCollection<VirtualRegister>> RemoveUnavailableHWRegisters(
+                IReadOnlyDictionary<VirtualRegister, IReadOnlyCollection<VirtualRegister>> graph,
+                IReadOnlyCollection<HardwareRegister> allowedHardwareRegisters)
+        {
+            Func<VirtualRegister, bool> filter =
+                register => !(register is HardwareRegister) || allowedHardwareRegisters.Contains(register);
+
+            return graph
+                .Where(vertex => filter(vertex.Key))
+                .ToDictionary(
+                    vertex => vertex.Key,
+                    vertex => new HashSet<VirtualRegister>(
+                        vertex.Value.Where(filter)) as IReadOnlyCollection<VirtualRegister>);
         }
     }
 }

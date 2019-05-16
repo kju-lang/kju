@@ -193,6 +193,24 @@ namespace KJU.Tests.CodeGeneration.RegisterAllocation
                 $"Test size: {vertexCount}. Best case spill: max 2. Actual spill {result.Spilled.Count}");
         }
 
+        [TestMethod]
+        public void CopyEdgeToUnavailableRegister()
+        {
+            var v1 = new NamedVirtualRegister("V1");
+            var interference = new Dictionary<VirtualRegister, IReadOnlyCollection<VirtualRegister>>();
+            var copies = new Dictionary<VirtualRegister, IReadOnlyCollection<VirtualRegister>>
+            {
+                [v1] = new List<VirtualRegister> { HardwareRegister.RAX },
+                [HardwareRegister.RAX] = new List<VirtualRegister> { v1 },
+            };
+            var registers = new List<HardwareRegister>
+            {
+                HardwareRegister.RBX
+            };
+            var result = this.SimpleTest(interference, copies, registers);
+            Assert.AreEqual(0, result.Spilled.Count);
+        }
+
         private static List<string> CheckResult(
             InterferenceCopyGraphPair query,
             IEnumerable<HardwareRegister> allowedHardwareRegisters,
