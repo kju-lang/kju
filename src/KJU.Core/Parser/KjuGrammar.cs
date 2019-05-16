@@ -93,8 +93,9 @@ namespace KJU.Core.Parser
                 KjuAlphabet.Expression.ToRegex(),
                 KjuAlphabet.Then.ToRegex(),
                 KjuAlphabet.Block.ToRegex(),
-                KjuAlphabet.Else.ToRegex(),
-                KjuAlphabet.Block.ToRegex())
+                Concat(
+                    KjuAlphabet.Else.ToRegex(),
+                    KjuAlphabet.Block.ToRegex()).Optional())
         };
 
         public static readonly Rule<KjuAlphabet> WhileStatement = new Rule<KjuAlphabet>

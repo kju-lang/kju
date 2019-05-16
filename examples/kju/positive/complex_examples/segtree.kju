@@ -51,12 +51,12 @@ fun kju() : Unit
       if l % 2 == 1 then 
       {
         result = min(result, tree[l]);
-      } else {};
+      };
 
       if r % 2 == 0 then
       {
         result = min(result, tree[r]);
-      } else {};
+      };
 
       l = (l + 1) / 2;
       r = (r - 1) / 2;

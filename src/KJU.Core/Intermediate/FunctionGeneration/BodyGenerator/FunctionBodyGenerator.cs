@@ -170,7 +170,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 {
                     Computation value;
                     if (node.Value == null)
-                        value = this.GenerateExpression(new AST.IntegerLiteral(0), writeLabel); // this works irrespective of the type of declaration
+                        value = this.GenerateExpression(new AST.IntegerLiteral(node.InputRange, 0), writeLabel); // this works irrespective of the type of declaration
                     else
                         value = this.GenerateExpression(node.Value, writeLabel);
 

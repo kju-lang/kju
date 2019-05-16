@@ -304,7 +304,12 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                     }
                 }
 
-                return new IfStatement(branch.InputRange, condition, blockList[0], blockList[1]);
+                var ret = new IfStatement(
+                    branch.InputRange,
+                    condition,
+                    blockList[0],
+                    blockList.Count == 1 ? new InstructionBlock(branch.InputRange, new List<Expression>()) : blockList[1]);
+                return ret;
             }
 
             private WhileStatement WhileStatementToAst(Brunch<KjuAlphabet> branch)

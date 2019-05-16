@@ -48,16 +48,16 @@ fun sortimpl(ax: [Int], tempx: [Int], begin: Int, size: Int): Unit
 	if size<=1 then
 	{
 		return;
-	}else{};
+	};
 	if size == 2 then
 	{
 		if ax[begin] > ax[begin+1] then{
 			var tmp:Int=ax[begin];
 			ax[begin]=ax[begin+1];
 			ax[begin+1]=tmp;
-		}else{};
+		};
 		return;
-	}else{};
+	};
 	var halfsz:Int = size/2;
 	sortimpl(ax,tempx,begin,halfsz);
 	sortimpl(ax,tempx,begin+halfsz,size-halfsz);
