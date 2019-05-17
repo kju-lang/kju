@@ -1,0 +1,15 @@
+fun write(a: Int): Unit import
+
+fun f(a:A):Unit{
+	write(a.x);
+}
+
+fun kju():Unit{
+	var a:A=new(A);
+	a.x=5;
+	f(a);
+}
+
+struct A{
+	x: Int;
+}

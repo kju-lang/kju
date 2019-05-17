@@ -24,6 +24,7 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.Comma, "," },
                 { KjuAlphabet.Colon, ":" },
                 { KjuAlphabet.Semicolon, ";" },
+                { KjuAlphabet.Dot, "." },
                 { KjuAlphabet.If, "if" },
                 { KjuAlphabet.Import, "import" },
                 { KjuAlphabet.Then, "then" },
@@ -33,6 +34,7 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.Continue, "continue" },
                 { KjuAlphabet.Var, "var" },
                 { KjuAlphabet.Fun, "fun" },
+                { KjuAlphabet.Struct, "struct" },
                 { KjuAlphabet.Return, "return" },
                 { KjuAlphabet.DecimalLiteral, "0|[1-9][0-9]*" },
                 { KjuAlphabet.BooleanLiteral, "true|false" },
@@ -61,7 +63,11 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.New, "new" }
             };
 
-            return new Lexer<KjuAlphabet>(tokenCategories, KjuAlphabet.Eof, KjuAlphabet.None, resolver.ResolveWithMinValue);
+            return new Lexer<KjuAlphabet>(
+                tokenCategories,
+                KjuAlphabet.Eof,
+                KjuAlphabet.None,
+                resolver.ResolveWithMinValue);
         }
     }
 }

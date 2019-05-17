@@ -86,7 +86,7 @@ namespace KJU.Core.Parser
                                 UnexpectedSymbolDiagnosticType,
                                 $"Unexpected symbol: {Diagnostic.EscapeForMessage(currentToken.ToString())} at {{0}}",
                                 new List<Range> { currentToken.InputRange }));
-                            throw new ParseException($"Unexpected symbol: {currentToken}");
+                            throw new ParseException($"Unexpected symbol: {currentToken} at {currentToken.InputRange}");
                         }
 
                         var action = this.table[key];

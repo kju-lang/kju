@@ -15,6 +15,7 @@ namespace KJU.Core.Compiler
     using Intermediate.IntermediateRepresentationGenerator;
     using Intermediate.NameMangler;
     using Intermediate.VariableAndFunctionBuilder;
+    using KJU.Core.AST.ParseTreeToAstConverter;
     using Lexer;
     using Parser;
 

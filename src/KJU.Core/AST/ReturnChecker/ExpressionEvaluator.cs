@@ -17,7 +17,7 @@ namespace KJU.Core.AST.ReturnChecker
                                 return op;
                             }
 
-                            return new IntegerLiteral(-val.Value);
+                            return new IntegerLiteral(node.InputRange, -val.Value);
                         }
 
                         case UnaryOperationType.Plus:
@@ -28,7 +28,7 @@ namespace KJU.Core.AST.ReturnChecker
                                 return op;
                             }
 
-                            return new IntegerLiteral(val.Value);
+                            return new IntegerLiteral(node.InputRange, val.Value);
                         }
 
                         case UnaryOperationType.Not:
@@ -39,7 +39,7 @@ namespace KJU.Core.AST.ReturnChecker
                                 return op;
                             }
 
-                            return new BoolLiteral(!val.Value);
+                            return new BoolLiteral(node.InputRange, !val.Value);
                         }
 
                         default:
@@ -60,25 +60,25 @@ namespace KJU.Core.AST.ReturnChecker
                     switch (op.OperationType)
                     {
                         case ArithmeticOperationType.Addition:
-                            return new IntegerLiteral(left.Value + right.Value);
+                            return new IntegerLiteral(node.InputRange, left.Value + right.Value);
                         case ArithmeticOperationType.Subtraction:
-                            return new IntegerLiteral(left.Value - right.Value);
+                            return new IntegerLiteral(node.InputRange, left.Value - right.Value);
                         case ArithmeticOperationType.Multiplication:
-                            return new IntegerLiteral(left.Value * right.Value);
+                            return new IntegerLiteral(node.InputRange, left.Value * right.Value);
                         case ArithmeticOperationType.Division:
                             if (right.Value == 0)
                             {
                                 return null;
                             }
 
-                            return new IntegerLiteral(left.Value / right.Value);
+                            return new IntegerLiteral(node.InputRange, left.Value / right.Value);
                         case ArithmeticOperationType.Remainder:
                             if (right.Value == 0)
                             {
                                 return null;
                             }
 
-                            return new IntegerLiteral(left.Value % right.Value);
+                            return new IntegerLiteral(node.InputRange, left.Value % right.Value);
                         default:
                             throw new ExpressionEvaluatorException(
                                 $"Unknown arithmetic operation of type: {op.OperationType}. This should never happen.");
@@ -98,17 +98,17 @@ namespace KJU.Core.AST.ReturnChecker
                     switch (op.OperationType)
                     {
                         case ComparisonType.Equal:
-                            return new BoolLiteral(left.Value == right.Value);
+                            return new BoolLiteral(node.InputRange, left.Value == right.Value);
                         case ComparisonType.NotEqual:
-                            return new BoolLiteral(left.Value != right.Value);
+                            return new BoolLiteral(node.InputRange, left.Value != right.Value);
                         case ComparisonType.Less:
-                            return new BoolLiteral(left.Value < right.Value);
+                            return new BoolLiteral(node.InputRange, left.Value < right.Value);
                         case ComparisonType.LessOrEqual:
-                            return new BoolLiteral(left.Value <= right.Value);
+                            return new BoolLiteral(node.InputRange, left.Value <= right.Value);
                         case ComparisonType.Greater:
-                            return new BoolLiteral(left.Value > right.Value);
+                            return new BoolLiteral(node.InputRange, left.Value > right.Value);
                         case ComparisonType.GreaterOrEqual:
-                            return new BoolLiteral(left.Value >= right.Value);
+                            return new BoolLiteral(node.InputRange, left.Value >= right.Value);
                         default:
                             throw new ExpressionEvaluatorException(
                                 $"Unknown comparision operation of type: {op.OperationType}. This should never happen.");
@@ -126,9 +126,13 @@ namespace KJU.Core.AST.ReturnChecker
                     switch (op.BinaryOperationType)
                     {
                         case LogicalBinaryOperationType.And:
-                            return left.Value ? op.RightValue.PartiallyEvaluate() : new BoolLiteral(false);
+                            return left.Value
+                                ? op.RightValue.PartiallyEvaluate()
+                                : new BoolLiteral(node.InputRange, false);
                         case LogicalBinaryOperationType.Or:
-                            return left.Value ? new BoolLiteral(true) : op.RightValue.PartiallyEvaluate();
+                            return left.Value
+                                ? new BoolLiteral(node.InputRange, true)
+                                : op.RightValue.PartiallyEvaluate();
                         default:
                             throw new ExpressionEvaluatorException(
                                 $"Unknown logical binary operation of type: {op.BinaryOperationType}. This should never happen.");

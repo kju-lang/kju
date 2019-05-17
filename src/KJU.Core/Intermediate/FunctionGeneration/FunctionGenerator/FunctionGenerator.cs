@@ -32,7 +32,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.FunctionGenerator
             var variableAccess = this.variableAccessGraphGenerator.GetVariableInfoPerAstNode(root);
             var result = this.temporaryVariablesExtractor.ExtractTemporaryVariables(variableAccess, root.Body);
             var instructions = result.Concat(root.Body.Instructions).ToList();
-            root.Body = new AST.InstructionBlock(instructions);
+            root.Body = new AST.InstructionBlock(root.Body.InputRange, instructions);
         }
     }
 }

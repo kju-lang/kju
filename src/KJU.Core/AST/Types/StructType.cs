@@ -1,4 +1,4 @@
-﻿namespace KJU.Core.AST.Types
+namespace KJU.Core.AST.Types
 {
     using System;
     using System.Collections.Generic;
@@ -17,13 +17,13 @@
             this.Declaration = declaration;
         }
 
-        public string Name { get; set; }
+        public string Name { get; }
 
-        public StructDeclaration Declaration { get; set; }
+        public StructDeclaration Declaration { get; }
 
         public override string ToString()
         {
-            return $"Struct {this.Declaration.ToString()}";
+            return $"Struct {this.Declaration}";
         }
     }
 }

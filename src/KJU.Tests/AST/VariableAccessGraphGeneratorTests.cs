@@ -6,6 +6,8 @@ namespace KJU.Tests.AST
     using KJU.Core.AST;
     using KJU.Core.AST.CallGraph;
     using KJU.Core.AST.VariableAccessGraph;
+    using KJU.Core.Input;
+    using KJU.Core.Lexer;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using Util;
@@ -16,7 +18,10 @@ namespace KJU.Tests.AST
         [TestMethod]
         public void TestEmpty()
         {
-            var root = new Program(new List<FunctionDeclaration>());
+            var root = new Program(
+                new Core.Lexer.Range(new StringLocation(0), new StringLocation(1)),
+                new List<StructDeclaration>(),
+                new List<FunctionDeclaration>());
             var graph = new Dictionary<FunctionDeclaration, IReadOnlyCollection<VariableDeclaration>>();
 
             var resultExpected = new Dictionary<Node, IReadOnlyCollection<VariableDeclaration>>()
@@ -42,23 +47,27 @@ namespace KJU.Tests.AST
         {
             /* Build AST */
 
-            var declarationX = SimpleAstConstruction.CreateVariableDeclaration("x");
-            var declarationY = SimpleAstConstruction.CreateVariableDeclaration("y");
+            var declarationX = AstConstructionUtils.CreateVariableDeclaration("x");
+            var declarationY = AstConstructionUtils.CreateVariableDeclaration("y");
 
-            var assignmentX = SimpleAstConstruction.CreateAssignment(
-                declarationX, SimpleAstConstruction.CreateVariable(declarationY));
-            var incrementY = SimpleAstConstruction.CreateIncrement(declarationY);
+            var assignmentX = AstConstructionUtils.CreateAssignment(
+                declarationX,
+                AstConstructionUtils.CreateVariable(declarationY));
+            var incrementY = AstConstructionUtils.CreateIncrement(declarationY);
 
-            var funInner = SimpleAstConstruction.CreateFunction(
+            var funInner = AstConstructionUtils.CreateFunction(
                 "funInner",
                 new List<Expression> { assignmentX });
 
-            var funOuter = SimpleAstConstruction.CreateFunction(
+            var funOuter = AstConstructionUtils.CreateFunction(
                 "funOuter",
                 new List<Expression> { declarationX, declarationY, incrementY, funInner });
 
             var functions = new List<FunctionDeclaration> { funOuter };
-            var root = new Program(functions);
+            var root = new Program(
+                new Core.Lexer.Range(new StringLocation(0), new StringLocation(1)),
+                new List<StructDeclaration>(),
+                functions);
 
             /* Prepare graphs */
 

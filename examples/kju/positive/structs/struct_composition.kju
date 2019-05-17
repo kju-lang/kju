@@ -1,0 +1,17 @@
+fun write(a: Int): Unit import
+
+struct A {
+	b : B;
+}
+
+fun kju():Unit{
+	var a : A = new(A);
+	var b : B = new(B);
+	a.b = b;
+	b.x = 3;
+	write(a.b.x);
+}
+
+struct B {
+	x : Int;
+}

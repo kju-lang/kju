@@ -46,7 +46,7 @@ namespace KJU.Core.Regex
             return Sum(new EpsilonRegex<T>(), child);
         }
 
-        public static Regex<T> CreateListRegex<T>(Regex<T> element, Regex<T> separator)
+        public static Regex<T> ListRegex<T>(Regex<T> element, Regex<T> separator)
         {
             return Concat(
                 element,

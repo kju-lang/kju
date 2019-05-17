@@ -16,6 +16,10 @@
   "Node": {
     "$id": "5",
     "$type": "KJU.Core.AST.Program, KJU.Core",
+    "Structs": {
+      "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.StructDeclaration, KJU.Core]], System.Private.CoreLib",
+      "$values": []
+    },
     "Functions": {
       "$type": "System.Collections.Generic.List`1[[KJU.Core.AST.FunctionDeclaration, KJU.Core]], System.Private.CoreLib",
       "$values": [

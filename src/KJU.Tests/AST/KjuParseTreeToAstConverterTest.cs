@@ -6,6 +6,7 @@ namespace KJU.Tests.AST
     using System.Text;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
+    using KJU.Core.AST.ParseTreeToAstConverter;
     using KJU.Core.AST.Types;
     using KJU.Core.Diagnostics;
     using KJU.Core.Lexer;
@@ -581,10 +582,10 @@ namespace KJU.Tests.AST
                     var op = this.arithmeticOperationTypeToString[compoundAssignment.Operation];
                     builder.Append($"assign {op}");
                     break;
-                case ArrayAssignment _:
+                case ComplexAssignment _:
                     builder.Append($"array_assign");
                     break;
-                case ArrayCompoundAssignment compoundAssignment:
+                case ComplexCompoundAssignment compoundAssignment:
                     var arrayOp = this.arithmeticOperationTypeToString[compoundAssignment.Operation];
                     builder.Append($"array_assign {arrayOp}");
                     break;

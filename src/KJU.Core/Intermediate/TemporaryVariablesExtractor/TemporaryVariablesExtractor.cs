@@ -41,7 +41,7 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     case ArrayAccess arrayAccess:
                         return this.ExtractFromArrayAccess(arrayAccess);
 
-                    case IArrayAssignment arrayAssignment:
+                    case IComplexAssignment arrayAssignment:
                         return this.ExtractFromArrayAssignment(arrayAssignment);
 
                     case WhileStatement whileNode:
@@ -107,11 +107,14 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     || modifiedVariablesRight.Any(x => usedVariablesLeft.Contains(x)))
                 {
                     var tmpDecl = new VariableDeclaration(
-                        operationNode.LeftValue.Type, "tmp", operationNode.LeftValue)
+                        operationNode.LeftValue.InputRange,
+                        operationNode.LeftValue.Type,
+                        "tmp",
+                        operationNode.LeftValue)
                     {
                         IntermediateVariable = new VirtualRegister()
                     };
-                    var tmpVar = new AST.Variable("tmp") { Declaration = tmpDecl };
+                    var tmpVar = new AST.Variable(tmpDecl.InputRange, "tmp") { Declaration = tmpDecl };
 
                     result.Add(tmpDecl);
                     operationNode.LeftValue = tmpVar;
@@ -141,14 +144,19 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                                 .Contains(variableArgument.Declaration));
                         if (isModifiedByAnotherArgument)
                         {
-                            var tmpDeclaration = new VariableDeclaration(argument.Type, "tmp", argument)
-                            {
-                                IntermediateVariable = new VirtualRegister()
-                            };
-                            var tmpVariable = new AST.Variable("tmp")
+                            var tmpDeclaration =
+                                new VariableDeclaration(argument.InputRange, argument.Type, "tmp", argument)
+                                {
+                                    IntermediateVariable = new VirtualRegister()
+                                };
+                            var tmpVariable = new AST.Variable(tmpDeclaration.InputRange, "tmp")
                                 { Declaration = tmpDeclaration, Type = argument.Type };
+                            var instructionBlock = new InstructionBlock(
+                                tmpDeclaration.InputRange,
+                                new List<Expression> { tmpDeclaration });
                             return (Expression)new BlockWithResult(
-                                new InstructionBlock(new List<Expression> { tmpDeclaration }),
+                                tmpDeclaration.InputRange,
+                                instructionBlock,
                                 tmpVariable)
                             {
                                 Type = tmpVariable.Type
@@ -157,7 +165,10 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     }
 
                     var instructions = this.ExtractTemporaryVariables(argument);
-                    return new BlockWithResult(new InstructionBlock(instructions), argument)
+                    return new BlockWithResult(
+                        funCall.InputRange,
+                        new InstructionBlock(funCall.InputRange, instructions),
+                        argument)
                     {
                         Type = argument.Type
                     };
@@ -167,17 +178,20 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
 
             private List<Expression> ExtractFromArrayAccess(ArrayAccess access)
             {
-                var binaryOperation = new BinaryOperation(access.Lhs, access.Index);
+                var binaryOperation = new BinaryOperation(access.InputRange, access.Lhs, access.Index);
                 var result = this.ExtractFromOperationNode(binaryOperation);
                 (access.Lhs, access.Index) = (binaryOperation.LeftValue, binaryOperation.RightValue);
                 return result;
             }
 
-            private List<Expression> ExtractFromArrayAssignment(IArrayAssignment arrayAssignment)
+            private List<Expression> ExtractFromArrayAssignment(IComplexAssignment complexAssignment)
             {
-                var binaryOperation = new BinaryOperation(arrayAssignment.Lhs, arrayAssignment.Value);
+                var binaryOperation = new BinaryOperation(
+                    complexAssignment.InputRange,
+                    complexAssignment.Lhs,
+                    complexAssignment.Value);
                 var result = this.ExtractFromOperationNode(binaryOperation);
-                (arrayAssignment.Lhs, arrayAssignment.Value) = (binaryOperation.LeftValue, binaryOperation.RightValue);
+                (complexAssignment.Lhs, complexAssignment.Value) = (binaryOperation.LeftValue, binaryOperation.RightValue);
                 return result;
             }
 
@@ -217,7 +231,10 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     return expression;
                 }
 
-                return new BlockWithResult(new InstructionBlock(tmpResult), expression)
+                return new BlockWithResult(
+                    expression.InputRange,
+                    new InstructionBlock(expression.InputRange, tmpResult),
+                    expression)
                 {
                     Type = expression.Type
                 };

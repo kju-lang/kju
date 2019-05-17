@@ -453,7 +453,7 @@ namespace KJU.Core.AST.TypeChecker
 
                         arrayAccess.Type = (array.Type as ArrayType)?.ElementType;
                         break;
-                    case ArrayAssignment arrayAssignment:
+                    case ComplexAssignment arrayAssignment:
                         var elType = arrayAssignment.Lhs.Type;
                         var valueType = arrayAssignment.Value.Type;
 
@@ -480,7 +480,7 @@ namespace KJU.Core.AST.TypeChecker
 
                         arrayAssignment.Type = elType;
                         break;
-                    case ArrayCompoundAssignment arrayCompoundAssignment:
+                    case ComplexCompoundAssignment arrayCompoundAssignment:
                         var elType2 = arrayCompoundAssignment.Lhs.Type;
                         var valueType2 = arrayCompoundAssignment.Value.Type;
 

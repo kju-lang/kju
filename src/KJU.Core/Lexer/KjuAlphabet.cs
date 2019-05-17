@@ -60,6 +60,11 @@ namespace KJU.Core.Lexer
         Semicolon,
 
         /// <summary>
+        /// .
+        /// </summary>
+        Dot,
+
+        /// <summary>
         /// if
         /// </summary>
         If,
@@ -108,6 +113,11 @@ namespace KJU.Core.Lexer
         /// fun
         /// </summary>
         Fun,
+
+        /// <summary>
+        /// struct
+        /// </summary>
+        Struct,
 
         /// <summary>
         /// return
@@ -244,7 +254,12 @@ namespace KJU.Core.Lexer
         /// <summary>
         /// Whole function
         /// </summary>
-        FunctionDeclaration,
+        FunctionDefinition,
+
+        /// <summary>
+        /// Whole struct
+        /// </summary>
+        StructDefinition,
 
         /// <summary>
         /// Block of code delimetered by {}
@@ -311,14 +326,40 @@ namespace KJU.Core.Lexer
 
         /// <summary>
         /// For array allocation
-        /// new ([Int], 5)
+        /// new(Int, 5)
+        /// For struct allocation
+        /// new(A)
         /// </summary>
-        ArrayAlloc,
+        Alloc,
 
         /// <summary>
-        /// a[5]. Only once!
+        /// [5]
+        /// or
+        /// .abc
+        /// </summary>
+        Access,
+
+        /// <summary>
+        /// [5]
         /// </summary>
         ArrayAccess,
+
+        /// <summary>
+        /// .abc
+        /// </summary>
+        FieldAccess,
+
+        /// <summary>
+        /// abc : Int;
+        /// def : Unit;
+        /// ghj : Bool;
+        /// </summary>
+        StructFields,
+
+        /// <summary>
+        /// abc : Int;
+        /// </summary>
+        StructField,
 
         Expression,
         ExpressionAssignment,
@@ -329,6 +370,7 @@ namespace KJU.Core.Lexer
         ExpressionPlusMinus,
         ExpressionTimesDivideModulo,
         ExpressionUnaryOperator,
+        ExpressionAccess,
         ExpressionAtom,
 
         /// <summary>
@@ -336,7 +378,8 @@ namespace KJU.Core.Lexer
         /// </summary>
         Literal,
         Statement,
+        ParenEnclosedStatement,
 
-        Eof
+        Eof,
     }
 }

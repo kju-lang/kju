@@ -8,10 +8,16 @@ namespace KJU.Core.AST
     using Intermediate;
     using Intermediate.Function;
     using KJU.Core.AST.Types;
+    using KJU.Core.Lexer;
     using Nodes;
 
     public class Expression : Node
     {
+        public Expression(Range inputRange)
+            : base(inputRange)
+        {
+        }
+
         public DataType Type { get; set; }
 
         public string TypeName { get; set; }
@@ -19,16 +25,21 @@ namespace KJU.Core.AST
 
     public class Program : Node
     {
-        public Program(IReadOnlyList<FunctionDeclaration> functions)
+        public Program(
+            Range inputRange, IReadOnlyList<StructDeclaration> structs, IReadOnlyList<FunctionDeclaration> functions)
+            : base(inputRange)
         {
+            this.Structs = structs;
             this.Functions = functions;
         }
+
+        public IReadOnlyList<StructDeclaration> Structs { get; }
 
         public IReadOnlyList<FunctionDeclaration> Functions { get; }
 
         public override IEnumerable<Node> Children()
         {
-            return new List<Node>(this.Functions);
+            return new List<Node>(this.Structs.Concat<Node>(this.Functions));
         }
 
         public override string ToString()
@@ -40,11 +51,13 @@ namespace KJU.Core.AST
     public class FunctionDeclaration : Expression
     {
         public FunctionDeclaration(
+            Range inputRange,
             string identifier,
             DataType returnType,
             IReadOnlyList<VariableDeclaration> parameters,
             InstructionBlock body,
             bool isForeign)
+            : base(inputRange)
         {
             this.Identifier = identifier;
             this.ReturnType = returnType;
@@ -93,7 +106,8 @@ namespace KJU.Core.AST
 
     public class InstructionBlock : Expression
     {
-        public InstructionBlock(IReadOnlyList<Expression> instructions)
+        public InstructionBlock(Range inputRange, IReadOnlyList<Expression> instructions)
+            : base(inputRange)
         {
             this.Instructions = instructions;
         }
@@ -113,9 +127,8 @@ namespace KJU.Core.AST
 
     public class VariableDeclaration : Expression
     {
-        private ILocation intermediateVariable;
-
-        public VariableDeclaration(DataType variableType, string identifier, Expression value)
+        public VariableDeclaration(Range inputRange, DataType variableType, string identifier, Expression value)
+            : base(inputRange)
         {
             this.VariableType = variableType;
             this.Identifier = identifier;
@@ -128,16 +141,12 @@ namespace KJU.Core.AST
 
         public Expression Value { get; }
 
-        public ILocation IntermediateVariable
-        {
-            get => this.intermediateVariable;
-            set => this.intermediateVariable = value ?? throw new Exception("Intermediate variable is null.");
-        }
+        public ILocation IntermediateVariable { get; set; }
 
-        public override string Representation()
+        public virtual string Representation()
         {
             return
-                $"VariableDeclaration{{VariableType: {this.VariableType}, Identifier: {this.Identifier}, Value: {this.Value}, IntermediateVariable: {this.intermediateVariable?.ToString() ?? "null!!!!"}}}";
+                $"VariableDeclaration{{VariableType: {this.VariableType}, Identifier: {this.Identifier}, Value: {this.Value}, IntermediateVariable: {this.IntermediateVariable?.ToString() ?? "null!!!!"}}}";
         }
 
         public override IEnumerable<Node> Children()
@@ -153,7 +162,8 @@ namespace KJU.Core.AST
 
     public class WhileStatement : Expression
     {
-        public WhileStatement(Expression condition, InstructionBlock body)
+        public WhileStatement(Range inputRange, Expression condition, InstructionBlock body)
+            : base(inputRange)
         {
             this.Condition = condition;
             this.Body = body;
@@ -176,7 +186,8 @@ namespace KJU.Core.AST
 
     public class IfStatement : Expression
     {
-        public IfStatement(Expression condition, InstructionBlock thenBody, InstructionBlock elseBody)
+        public IfStatement(Range inputRange, Expression condition, InstructionBlock thenBody, InstructionBlock elseBody)
+            : base(inputRange)
         {
             this.Condition = condition;
             this.ThenBody = thenBody;
@@ -202,7 +213,8 @@ namespace KJU.Core.AST
 
     public class FunctionCall : Expression
     {
-        public FunctionCall(string identifier, IList<Expression> arguments)
+        public FunctionCall(Range inputRange, string identifier, IList<Expression> arguments)
+            : base(inputRange)
         {
             this.Identifier = identifier;
             this.Arguments = arguments;
@@ -229,7 +241,8 @@ namespace KJU.Core.AST
 
     public class ReturnStatement : Expression
     {
-        public ReturnStatement(Expression value)
+        public ReturnStatement(Range inputRange, Expression value)
+            : base(inputRange)
         {
             this.Value = value;
         }
@@ -238,10 +251,7 @@ namespace KJU.Core.AST
 
         public override IEnumerable<Node> Children()
         {
-            if (this.Value == null)
-                return new List<Node>();
-            else
-                return new List<Node>() { this.Value };
+            return this.Value == null ? new List<Node>() : new List<Node>() { this.Value };
         }
 
         public override string ToString()
@@ -252,6 +262,11 @@ namespace KJU.Core.AST
 
     public class BreakStatement : Expression
     {
+        public BreakStatement(Range inputRange)
+            : base(inputRange)
+        {
+        }
+
         public WhileStatement EnclosingLoop { get; set; }
 
         public override string ToString()
@@ -262,6 +277,11 @@ namespace KJU.Core.AST
 
     public class ContinueStatement : Expression
     {
+        public ContinueStatement(Range inputRange)
+            : base(inputRange)
+        {
+        }
+
         public WhileStatement EnclosingLoop { get; set; }
 
         public override string ToString()
@@ -272,7 +292,8 @@ namespace KJU.Core.AST
 
     public class Variable : Expression
     {
-        public Variable(string identifier)
+        public Variable(Range inputRange, string identifier)
+            : base(inputRange)
         {
             this.Identifier = identifier;
         }
@@ -289,7 +310,8 @@ namespace KJU.Core.AST
 
     public class BoolLiteral : Expression
     {
-        public BoolLiteral(bool value)
+        public BoolLiteral(Range inputRange, bool value)
+            : base(inputRange)
         {
             this.Value = value;
         }
@@ -304,7 +326,8 @@ namespace KJU.Core.AST
 
     public class IntegerLiteral : Expression
     {
-        public IntegerLiteral(long value)
+        public IntegerLiteral(Range inputRange, long value)
+            : base(inputRange)
         {
             this.Value = value;
         }
@@ -319,7 +342,8 @@ namespace KJU.Core.AST
 
     public class UnitLiteral : Expression
     {
-        public UnitLiteral()
+        public UnitLiteral(Range inputRange)
+            : base(inputRange)
         {
         }
 
@@ -331,7 +355,8 @@ namespace KJU.Core.AST
 
     public class NullLiteral : Expression
     {
-        public NullLiteral()
+        public NullLiteral(Range inputRange)
+            : base(inputRange)
         {
         }
 
@@ -343,7 +368,8 @@ namespace KJU.Core.AST
 
     public class Assignment : Expression
     {
-        public Assignment(Variable lhs, Expression value)
+        public Assignment(Range inputRange, Variable lhs, Expression value)
+            : base(inputRange)
         {
             this.Lhs = lhs;
             this.Value = value;
@@ -357,7 +383,10 @@ namespace KJU.Core.AST
         {
             var result = new List<Node> { this.Lhs };
             if (this.Value != null)
+            {
                 result.Add(this.Value);
+            }
+
             return result;
         }
 
@@ -369,7 +398,8 @@ namespace KJU.Core.AST
 
     public class CompoundAssignment : Expression
     {
-        public CompoundAssignment(Variable lhs, ArithmeticOperationType operation, Expression value)
+        public CompoundAssignment(Range inputRange, Variable lhs, ArithmeticOperationType operation, Expression value)
+            : base(inputRange)
         {
             this.Lhs = lhs;
             this.Operation = operation;
@@ -386,7 +416,10 @@ namespace KJU.Core.AST
         {
             List<Node> result = new List<Node>() { this.Lhs };
             if (this.Value != null)
+            {
                 result.Add(this.Value);
+            }
+
             return result;
         }
 
@@ -396,9 +429,10 @@ namespace KJU.Core.AST
         }
     }
 
-    public class ArrayAssignment : Expression, IArrayAssignment
+    public class ComplexAssignment : Expression, IComplexAssignment
     {
-        public ArrayAssignment(Expression lhs, Expression value)
+        public ComplexAssignment(Range inputRange, Expression lhs, Expression value)
+            : base(inputRange)
         {
             this.Lhs = lhs;
             this.Value = value;
@@ -412,77 +446,24 @@ namespace KJU.Core.AST
         {
             var result = new List<Node> { this.Lhs };
             if (this.Value != null)
+            {
                 result.Add(this.Value);
+            }
+
             return result;
         }
 
         public override string ToString()
         {
-            return $"ArrayAssignment";
+            return $"ComplexAssignment";
         }
     }
 
-    public class StructAssignment : Expression
+    public class ComplexCompoundAssignment : Expression, IComplexAssignment
     {
-        public StructAssignment(Expression lhs, string field, Expression value)
-        {
-            this.Lhs = lhs;
-            this.Field = field;
-            this.Value = value;
-        }
-
-        public Expression Lhs { get; set; }
-
-        public string Field { get; set; }
-
-        public Expression Value { get; set; }
-
-        public override IEnumerable<Node> Children()
-        {
-            var result = new List<Node> { this.Lhs };
-            if (this.Value != null)
-                result.Add(this.Value);
-            return result;
-        }
-
-        public override string ToString()
-        {
-            return $"StructAssignment";
-        }
-    }
-
-    public class StructCompoundAssignment : Expression
-    {
-        public StructCompoundAssignment(Expression lhs, string field, Expression value)
-        {
-            this.Lhs = lhs;
-            this.Field = field;
-            this.Value = value;
-        }
-
-        public Expression Lhs { get; set; }
-
-        public string Field { get; set; }
-
-        public Expression Value { get; set; }
-
-        public override IEnumerable<Node> Children()
-        {
-            var result = new List<Node> { this.Lhs };
-            if (this.Value != null)
-                result.Add(this.Value);
-            return result;
-        }
-
-        public override string ToString()
-        {
-            return $"StructAssignment";
-        }
-    }
-
-    public class ArrayCompoundAssignment : Expression, IArrayAssignment
-    {
-        public ArrayCompoundAssignment(Expression lhs, ArithmeticOperationType operation, Expression value)
+        public ComplexCompoundAssignment(
+            Range inputRange, Expression lhs, ArithmeticOperationType operation, Expression value)
+            : base(inputRange)
         {
             this.Lhs = lhs;
             this.Operation = operation;
@@ -505,16 +486,17 @@ namespace KJU.Core.AST
 
         public override string ToString()
         {
-            return $"{this.Operation} ArrayAssignment";
+            return $"{this.Operation} ComplexAssignment";
         }
     }
 
     public class BinaryOperation : Expression
     {
-        public BinaryOperation(Expression lhs, Expression rhs)
+        public BinaryOperation(Range inputRange, Expression leftValue, Expression rightValue)
+            : base(inputRange)
         {
-            this.LeftValue = lhs;
-            this.RightValue = rhs;
+            this.LeftValue = leftValue;
+            this.RightValue = rightValue;
         }
 
         public Expression LeftValue { get; set; }
@@ -529,8 +511,9 @@ namespace KJU.Core.AST
 
     public class ArithmeticOperation : BinaryOperation
     {
-        public ArithmeticOperation(ArithmeticOperationType operationType, Expression leftValue, Expression rightValue)
-            : base(leftValue, rightValue)
+        public ArithmeticOperation(
+            Range inputRange, Expression leftValue, Expression rightValue, ArithmeticOperationType operationType)
+            : base(inputRange, leftValue, rightValue)
         {
             this.OperationType = operationType;
         }
@@ -545,8 +528,8 @@ namespace KJU.Core.AST
 
     public class Comparison : BinaryOperation
     {
-        public Comparison(ComparisonType operationType, Expression leftValue, Expression rightValue)
-            : base(leftValue, rightValue)
+        public Comparison(Range inputRange, Expression leftValue, Expression rightValue, ComparisonType operationType)
+            : base(inputRange, leftValue, rightValue)
         {
             this.OperationType = operationType;
         }
@@ -562,10 +545,11 @@ namespace KJU.Core.AST
     public class LogicalBinaryOperation : BinaryOperation
     {
         public LogicalBinaryOperation(
-            LogicalBinaryOperationType binaryOperationType,
+            Range inputRange,
             Expression leftValue,
-            Expression rightValue)
-            : base(leftValue, rightValue)
+            Expression rightValue,
+            LogicalBinaryOperationType binaryOperationType)
+            : base(inputRange, leftValue, rightValue)
         {
             this.BinaryOperationType = binaryOperationType;
         }
@@ -580,7 +564,8 @@ namespace KJU.Core.AST
 
     public class UnaryOperation : Expression
     {
-        public UnaryOperation(UnaryOperationType unaryOperationType, Expression value)
+        public UnaryOperation(Range inputRange, UnaryOperationType unaryOperationType, Expression value)
+            : base(inputRange)
         {
             this.UnaryOperationType = unaryOperationType;
             this.Value = value;
@@ -603,7 +588,8 @@ namespace KJU.Core.AST
 
     public class ArrayAccess : Expression
     {
-        public ArrayAccess(Expression lhs, Expression index)
+        public ArrayAccess(Range inputRange, Expression lhs, Expression index)
+            : base(inputRange)
         {
             this.Lhs = lhs;
             this.Index = index;
@@ -626,15 +612,16 @@ namespace KJU.Core.AST
 
     public class ArrayAlloc : Expression
     {
-        public ArrayAlloc(DataType elementType, Expression size)
+        public ArrayAlloc(Range inputRange, DataType elementType, Expression size)
+            : base(inputRange)
         {
             this.ElementType = elementType;
             this.Size = size;
         }
 
-        public DataType ElementType { get; set; }
+        public DataType ElementType { get; }
 
-        public Expression Size { get; set; }
+        public Expression Size { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -647,17 +634,18 @@ namespace KJU.Core.AST
         }
     }
 
-    public class StructAccess : Expression
+    public class FieldAccess : Expression
     {
-        public StructAccess(Expression lhs, string field)
+        public FieldAccess(Range inputRange, Expression lhs, string field)
+            : base(inputRange)
         {
             this.Lhs = lhs;
             this.Field = field;
         }
 
-        public Expression Lhs { get; set; }
+        public Expression Lhs { get; }
 
-        public string Field { get; set; }
+        public string Field { get; }
 
         public override IEnumerable<Node> Children()
         {
@@ -666,28 +654,26 @@ namespace KJU.Core.AST
 
         public override string ToString()
         {
-            return $"StructAccess {this.Field}";
+            return $"FieldAccess {this.Field}";
         }
     }
 
     public class StructDeclaration : Expression
     {
-        public StructDeclaration(string name, IReadOnlyList<Tuple<string, DataType>> fields, StructType type)
+        public StructDeclaration(Range inputRange, string name, IReadOnlyList<StructField> fields)
+            : base(inputRange)
         {
             this.Name = name;
             this.Fields = fields;
-            this.StructureType = type;
         }
 
         public string Name { get; }
 
-        public IReadOnlyList<Tuple<string, DataType>> Fields { get; }
-
-        public StructType StructureType { get; set; }
+        public IReadOnlyList<StructField> Fields { get; }
 
         public override IEnumerable<Node> Children()
         {
-            return new List<Node>();
+            return this.Fields;
         }
 
         public override string ToString()
@@ -696,11 +682,29 @@ namespace KJU.Core.AST
         }
     }
 
+    public class StructField : Node
+    {
+        public StructField(Range inputRange, string name, DataType type)
+            : base(inputRange)
+        {
+            this.Name = name;
+            this.Type = type;
+        }
+
+        public string Name { get; }
+
+        public DataType Type { get; }
+    }
+
     public class StructAlloc : Expression
     {
-        public StructAlloc()
+        public StructAlloc(Range inputRange, DataType allocType)
+            : base(inputRange)
         {
+            this.AllocType = allocType;
         }
+
+        public DataType AllocType { get; }
 
         public StructDeclaration Declaration { get; set; }
 
@@ -711,7 +715,7 @@ namespace KJU.Core.AST
 
         public override string ToString()
         {
-            return $"StructAlloc {this.Declaration}";
+            return $"StructAlloc {this.AllocType}";
         }
     }
 }

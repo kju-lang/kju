@@ -4,6 +4,7 @@ namespace KJU.Tests.Util
     using System.Linq;
     using Core.Diagnostics;
     using KJU.Core.AST;
+    using KJU.Core.AST.ParseTreeToAstConverter;
     using KJU.Core.AST.ReturnChecker;
     using KJU.Core.AST.TypeChecker;
     using KJU.Core.Input;

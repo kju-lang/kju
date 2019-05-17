@@ -132,9 +132,9 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                         return this.ConvertNode(expr, after);
                     case AST.ArrayAccess expr:
                         return this.ConvertNode(expr, after);
-                    case AST.ArrayAssignment expr:
+                    case AST.ComplexAssignment expr:
                         return this.ConvertNode(expr, after);
-                    case AST.ArrayCompoundAssignment expr:
+                    case AST.ComplexCompoundAssignment expr:
                         return this.ConvertNode(expr, after);
                     case AST.ArrayAlloc expr:
                         return this.ConvertNode(expr, after);
@@ -320,21 +320,21 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 return this.ConvertNode(this.SplitCompoundAssignment(node), after);
             }
 
-            private Computation ConvertNode(AST.ArrayCompoundAssignment node, ILabel after)
+            private Computation ConvertNode(AST.ComplexCompoundAssignment node, ILabel after)
             {
                 return this.ConvertNode(this.SplitArrayCompoundAssignment(node), after);
             }
 
             private AST.Assignment SplitCompoundAssignment(AST.CompoundAssignment node)
             {
-                var operation = new AST.ArithmeticOperation(node.Operation, node.Lhs, node.Value);
-                return new AST.Assignment(node.Lhs, operation);
+                var operation = new AST.ArithmeticOperation(node.InputRange, node.Lhs, node.Value, node.Operation);
+                return new AST.Assignment(node.InputRange, node.Lhs, operation);
             }
 
-            private AST.ArrayAssignment SplitArrayCompoundAssignment(AST.ArrayCompoundAssignment node)
+            private AST.ComplexAssignment SplitArrayCompoundAssignment(AST.ComplexCompoundAssignment node)
             {
-                var operation = new AST.ArithmeticOperation(node.Operation, node.Lhs, node.Value);
-                return new AST.ArrayAssignment(node.Lhs, operation);
+                var operation = new AST.ArithmeticOperation(node.InputRange, node.Lhs, node.Value, node.Operation);
+                return new AST.ComplexAssignment(node.InputRange, node.Lhs, operation);
             }
 
             private Computation ConvertNode(AST.ArithmeticOperation node, ILabel after)
@@ -476,7 +476,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 return new Computation(getAddrLabel, root);
             }
 
-            private Computation ConvertNode(AST.ArrayAssignment node, ILabel after)
+            private Computation ConvertNode(AST.ComplexAssignment node, ILabel after)
             {
                 var addrRegister = new VirtualRegister();
                 var addrRegisterValue = new RegisterRead(addrRegister);
@@ -511,15 +511,24 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
             private Computation ConvertNode(AST.ArrayAlloc node, ILabel after)
             {
                 var size = new AST.ArithmeticOperation(
-                    AST.ArithmeticOperationType.Multiplication,
-                    new AST.IntegerLiteral(8),
-                    node.Size);
+                    node.InputRange,
+                    new AST.IntegerLiteral(node.InputRange, 8),
+                    node.Size,
+                    AST.ArithmeticOperationType.Multiplication);
 
-                var call = new AST.FunctionCall("allocate", new List<AST.Expression> { size });
+                var call = new AST.FunctionCall(
+                    node.InputRange,
+                    "allocate",
+                    new List<AST.Expression> { size });
 
-                var parameter = new AST.VariableDeclaration(new AST.BuiltinTypes.IntType(), "size", null);
+                var parameter = new AST.VariableDeclaration(
+                    node.InputRange,
+                    new AST.BuiltinTypes.IntType(),
+                    "size",
+                    null);
 
                 var decl = new AST.FunctionDeclaration(
+                    node.InputRange,
                     "allocate",
                     AST.Types.ArrayType.GetInstance(node.ElementType),
                     new List<AST.VariableDeclaration> { parameter },

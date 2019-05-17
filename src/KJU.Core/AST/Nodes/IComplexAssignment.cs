@@ -1,6 +1,6 @@
 namespace KJU.Core.AST.Nodes
 {
-    public interface IArrayAssignment
+    public interface IComplexAssignment : INode
     {
         Expression Lhs { get; set; }
 

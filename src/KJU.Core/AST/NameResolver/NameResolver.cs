@@ -221,8 +221,9 @@
                 var declarationCandidates = new List<FunctionDeclaration>();
                 foreach (var functionDeclaration in this.functions[identifier])
                 {
-                    if (!declarationCandidates.Any(addedFun =>
-                        FunctionDeclaration.ParametersTypesEquals(addedFun, functionDeclaration)))
+                    if (!declarationCandidates.Any(
+                        addedFun =>
+                            FunctionDeclaration.ParametersTypesEquals(addedFun, functionDeclaration)))
                     {
                         declarationCandidates.Add(functionDeclaration);
                     }
