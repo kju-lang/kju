@@ -4,12 +4,14 @@
     using System.Collections.Generic;
     using System.Linq;
     using Diagnostics;
+    using KJU.Core.AST.Types;
     using Lexer;
 
     public class NameResolver : IPhase
     {
         public const string MultipleDeclarationsDiagnostic = "NameResolver.MultipleDeclarations";
         public const string IdentifierNotFoundDiagnostic = "NameResolver.IdentifierNotFound";
+        public const string TypeIdentifierErrorDiagnosticsType = "NameResolver.UnexpectedTypeIdentifier";
 
         public void Run(Node root, IDiagnostics diagnostics)
         {
@@ -31,6 +33,16 @@
 
             private readonly List<Exception> exceptions = new List<Exception>();
 
+            private readonly Dictionary<string, DataType> dataTypes =
+                new Dictionary<string, DataType>();
+
+            public ResolveProcess()
+            {
+                this.dataTypes["Int"] = BuiltinTypes.IntType.Instance;
+                this.dataTypes["Bool"] = BuiltinTypes.BoolType.Instance;
+                this.dataTypes["Unit"] = BuiltinTypes.UnitType.Instance;
+            }
+
             public void Process(Node node, IDiagnostics diagnostics)
             {
                 this.ProcessNode(node, diagnostics);
@@ -42,6 +54,11 @@
 
             private void ProcessNode(Node node, IDiagnostics diagnostics)
             {
+                if (node is Expression expression)
+                {
+                    expression.Type = this.ResolveDataType(expression.Type, diagnostics);
+                }
+
                 switch (node)
                 {
                     case Program program:
@@ -61,6 +78,9 @@
                         break;
                     case FunctionCall fun:
                         this.ProcessFunctionCall(fun, diagnostics);
+                        break;
+                    case ArrayAlloc array:
+                        array.ElementType = this.ResolveDataType(array.ElementType, diagnostics);
                         break;
                 }
 
@@ -82,6 +102,32 @@
                         this.PopBlock();
                         break;
                 }
+            }
+
+            private DataType ResolveDataType(DataType type, IDiagnostics diagnostics)
+            {
+                switch (type)
+                {
+                    case UnresolvedType unresolvedType:
+                        if (!this.dataTypes.ContainsKey(unresolvedType.Type))
+                        {
+                            var diag = new Diagnostic(
+                                DiagnosticStatus.Error,
+                                TypeIdentifierErrorDiagnosticsType,
+                                $"{{0}} Unexpected type identifier: '{unresolvedType.Type}'",
+                                new List<Range> { unresolvedType.InputRange });
+                            diagnostics.Add(diag);
+                            throw new NameResolverException($"unexpected type identifier: {unresolvedType.Type}");
+                        }
+
+                        return this.dataTypes[unresolvedType.Type];
+
+                    case UnresolvedArrayType unresolvedArray:
+                        var childDataType = this.ResolveDataType(unresolvedArray.Child, diagnostics);
+                        return ArrayType.GetInstance(childDataType);
+                }
+
+                return type;
             }
 
             private void AddToPeek(string functionName, FunctionDeclaration declaration)
@@ -119,6 +165,14 @@
             private void ProcessFunctionDeclaration(FunctionDeclaration fun, IDiagnostics diagnostics)
             {
                 var id = fun.Identifier;
+                fun.ReturnType = this.ResolveDataType(fun.ReturnType, diagnostics);
+
+                // It is important to do it here, so FunctionDeclaration.ParametersTypesEquals below works correctly
+                for (int i = 0; i < fun.Parameters.Count; i++)
+                {
+                    fun.Parameters[i].VariableType = this.ResolveDataType(fun.Parameters[i].VariableType, diagnostics);
+                }
+
                 if (this.functionBlocks.Peek().ContainsKey(id))
                 {
                     foreach (var f in this.functionBlocks.Peek()[id])
@@ -151,6 +205,8 @@
             private void ProcessVariableDeclaration(VariableDeclaration var, IDiagnostics diagnostics)
             {
                 string id = var.Identifier;
+                var.VariableType = this.ResolveDataType(var.VariableType, diagnostics);
+
                 if (this.variableBlocks.Peek().Contains(id))
                 {
                     var diagnostic = new Diagnostic(

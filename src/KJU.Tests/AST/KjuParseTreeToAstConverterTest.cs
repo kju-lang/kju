@@ -2,15 +2,11 @@ namespace KJU.Tests.AST
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Text;
     using KJU.Core.AST;
-    using KJU.Core.AST.BuiltinTypes;
     using KJU.Core.AST.ParseTreeToAstConverter;
     using KJU.Core.AST.Types;
     using KJU.Core.Diagnostics;
-    using KJU.Core.Lexer;
-    using KJU.Core.Parser;
     using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
@@ -639,14 +635,12 @@ namespace KJU.Tests.AST
         {
             switch (type)
             {
-                case BoolType _:
-                    return "Bool";
-                case IntType _:
-                    return "Int";
-                case UnitType _:
-                    return "Unit";
                 case ArrayType arrayType:
                     return $"[{this.DataTypeToString(arrayType.ElementType)}]";
+                case UnresolvedType unresolvedType:
+                    return unresolvedType.Type;
+                case UnresolvedArrayType unresolvedArrayType:
+                    return $"[{this.DataTypeToString(unresolvedArrayType.Child)}]";
                 default:
                     throw new Exception("Incorrect DataType");
             }

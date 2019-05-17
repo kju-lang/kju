@@ -19,8 +19,6 @@ namespace KJU.Core.AST
         }
 
         public DataType Type { get; set; }
-
-        public string TypeName { get; set; }
     }
 
     public class Program : Node
@@ -619,7 +617,7 @@ namespace KJU.Core.AST
             this.Size = size;
         }
 
-        public DataType ElementType { get; }
+        public DataType ElementType { get; set; }
 
         public Expression Size { get; }
 

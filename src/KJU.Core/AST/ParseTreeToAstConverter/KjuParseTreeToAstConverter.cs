@@ -175,31 +175,16 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                 }
             }
 
-            private DataType TypeIdentifierAstToken(Token<KjuAlphabet> token)
-            {
-                switch (token.Text)
-                {
-                    case "Bool":
-                        return BuiltinTypes.BoolType.Instance;
-                    case "Int":
-                        return BuiltinTypes.IntType.Instance;
-                    case "Unit":
-                        return BuiltinTypes.UnitType.Instance;
-                    default:
-                        return new StructType(token.Text);
-                }
-            }
-
             private DataType TypeIdentifierAst(ParseTree<KjuAlphabet> tree)
             {
                 switch (tree)
                 {
                     case Token<KjuAlphabet> token:
-                        return this.TypeIdentifierAstToken(token);
+                        return new UnresolvedType(token.Text, token.InputRange);
                     case Brunch<KjuAlphabet> brunch:
                         var parseTreeChild = brunch.Children[1];
                         var childDataType = this.TypeIdentifierAst(parseTreeChild);
-                        return ArrayType.GetInstance(childDataType);
+                        return new UnresolvedArrayType(childDataType);
                     default:
                         var diag = new Diagnostic(
                             DiagnosticStatus.Error,
@@ -724,7 +709,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                 var nameToken = (Token<KjuAlphabet>)branch.Children[0];
                 var name = nameToken.Text;
                 var typeToken = (Token<KjuAlphabet>)branch.Children[2];
-                var type = this.TypeIdentifierAstToken(typeToken);
+                var type = this.TypeIdentifierAst(typeToken);
                 return new StructField(branch.InputRange, name, type);
             }
 
