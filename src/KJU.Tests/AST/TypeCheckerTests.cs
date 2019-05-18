@@ -622,8 +622,8 @@
                 diagnosticsMock,
                 TypeChecker.IncorrectArrayAccessUseDiagnostic,
                 TypeChecker.IncorrectArrayIndexTypeDiagnostic,
-                TypeChecker.IncorrectArrayTypeDiagnostic,
-                TypeChecker.IncorrectArrayTypeDiagnostic,
+                TypeChecker.IncorrectAssigmentTypeDiagnostic,
+                TypeChecker.IncorrectLeftSideTypeDiagnostic,
                 TypeChecker.IncorrectArraySizeTypeDiagnostic);
         }
 

@@ -20,7 +20,6 @@ namespace KJU.Core.AST.TypeChecker
         public const string IncorrectUnaryExpressionTypeDiagnostic = "TypeChecker.IncorrectUnaryExpressionType";
         public const string IncorrectArraySizeTypeDiagnostic = "TypeChecker.IncorrectArraySizeType";
         public const string IncorrectArrayIndexTypeDiagnostic = "TypeChecker.IncorrectArrayIndexType";
-        public const string IncorrectArrayTypeDiagnostic = "TypeChecker.IncorrectArrayType";
         public const string IncorrectArrayAccessUseDiagnostic = "TypeChecker.IncorrectArrayAccessUse";
         public const string AssignedValueHasNoTypeDiagnostic = "TypeChecker.AssignedValueHasNoType";
         public const string FunctionOverloadNotFoundDiagnostic = "TypeChecker.FunctionOverloadNotFound";
@@ -142,6 +141,7 @@ namespace KJU.Core.AST.TypeChecker
                         break;
 
                     case FunctionDeclaration fun:
+                    {
                         if (fun.ReturnType == null)
                         {
                             var identifier = fun.Identifier;
@@ -155,12 +155,16 @@ namespace KJU.Core.AST.TypeChecker
                         if (!fun.IsForeign)
                             this.CheckReturnTypesMatch(fun.Body, fun.ReturnType);
                         break;
+                    }
 
                     case InstructionBlock instruction:
+                    {
                         instruction.Type = UnitType.Instance;
                         break;
+                    }
 
                     case VariableDeclaration variable:
+                    {
                         if (variable.VariableType == null)
                         {
                             var identifier = variable.Identifier;
@@ -200,12 +204,16 @@ namespace KJU.Core.AST.TypeChecker
 
                         variable.Type = UnitType.Instance;
                         break;
+                    }
 
                     case WhileStatement whileNode:
+                    {
                         whileNode.Type = UnitType.Instance;
                         break;
+                    }
 
                     case IfStatement ifNode:
+                    {
                         var conditionType = ifNode.Condition.Type;
                         if (!BoolType.Instance.Equals(conditionType))
                         {
@@ -221,33 +229,47 @@ namespace KJU.Core.AST.TypeChecker
 
                         ifNode.Type = UnitType.Instance;
                         break;
+                    }
 
                     case FunctionCall funCall:
+                    {
                         this.DetermineFunctionOverload(funCall);
                         funCall.Type = funCall.Declaration?.ReturnType;
                         break;
+                    }
 
                     case ReturnStatement returnNode:
+                    {
                         returnNode.Type = returnNode.Value == null ? UnitType.Instance : returnNode.Value.Type;
                         break;
+                    }
 
                     case Variable variable:
+                    {
                         variable.Type = variable.Declaration.VariableType;
                         break;
+                    }
 
                     case BoolLiteral boolNode:
+                    {
                         boolNode.Type = BoolType.Instance;
                         break;
+                    }
 
                     case IntegerLiteral integerNode:
+                    {
                         integerNode.Type = IntType.Instance;
                         break;
+                    }
 
                     case UnitLiteral unitNode:
+                    {
                         unitNode.Type = UnitType.Instance;
                         break;
+                    }
 
                     case Assignment assignmentNode:
+                    {
                         if (assignmentNode.Value == null)
                         {
                             var identifier = assignmentNode.Lhs.Identifier;
@@ -271,8 +293,10 @@ namespace KJU.Core.AST.TypeChecker
 
                         assignmentNode.Type = assignmentNode.Lhs.Type;
                         break;
+                    }
 
                     case CompoundAssignment compoundNode:
+                    {
                         if (compoundNode.Value == null)
                         {
                             var identifier = compoundNode.Lhs.Identifier;
@@ -307,8 +331,10 @@ namespace KJU.Core.AST.TypeChecker
 
                         compoundNode.Type = compoundNode.Lhs.Type;
                         break;
+                    }
 
                     case ArithmeticOperation operationNode:
+                    {
                         foreach (var operand in new List<Expression>()
                             { operationNode.LeftValue, operationNode.RightValue })
                         {
@@ -330,8 +356,10 @@ namespace KJU.Core.AST.TypeChecker
 
                         operationNode.Type = IntType.Instance;
                         break;
+                    }
 
                     case Comparison comparisonNode:
+                    {
                         if (!comparisonNode.LeftValue.Type.Equals(comparisonNode.RightValue.Type))
                         {
                             var message =
@@ -347,7 +375,10 @@ namespace KJU.Core.AST.TypeChecker
 
                         comparisonNode.Type = BoolType.Instance;
                         break;
+                    }
+
                     case UnaryOperation unaryOperation:
+                    {
                         var operation = unaryOperation.UnaryOperationType;
                         var expectedType = UnaryOperationToType[operation];
                         var actualType = unaryOperation.Value.Type;
@@ -366,7 +397,10 @@ namespace KJU.Core.AST.TypeChecker
 
                         unaryOperation.Type = expectedType;
                         break;
+                    }
+
                     case LogicalBinaryOperation logicalBinaryOperation:
+                    {
                         foreach (var operand in new List<Expression>()
                             { logicalBinaryOperation.LeftValue, logicalBinaryOperation.RightValue })
                         {
@@ -390,9 +424,13 @@ namespace KJU.Core.AST.TypeChecker
 
                         logicalBinaryOperation.Type = BoolType.Instance;
                         break;
+                    }
+
                     case BreakStatement _:
                         break;
+
                     case ArrayAlloc arrayAlloc:
+                    {
                         var elementType = arrayAlloc.ElementType;
                         var sizeType = arrayAlloc.Size.Type;
                         if (elementType == null)
@@ -417,7 +455,10 @@ namespace KJU.Core.AST.TypeChecker
 
                         arrayAlloc.Type = ArrayType.GetInstance(elementType);
                         break;
+                    }
+
                     case ArrayAccess arrayAccess:
+                    {
                         var array = arrayAccess.Lhs;
                         var index = arrayAccess.Index;
 
@@ -453,13 +494,16 @@ namespace KJU.Core.AST.TypeChecker
 
                         arrayAccess.Type = (array.Type as ArrayType)?.ElementType;
                         break;
-                    case ComplexAssignment arrayAssignment:
-                        var elType = arrayAssignment.Lhs.Type;
-                        var valueType = arrayAssignment.Value.Type;
+                    }
 
-                        if (elType == null)
+                    case ComplexAssignment complexAssignment:
+                    {
+                        var lhsType = complexAssignment.Lhs.Type;
+                        var valueType = complexAssignment.Value.Type;
+
+                        if (lhsType == null)
                         {
-                            throw new TypeCheckerInternalException("Element type is null");
+                            throw new TypeCheckerInternalException("Left hand side type is null");
                         }
 
                         if (valueType == null)
@@ -467,59 +511,66 @@ namespace KJU.Core.AST.TypeChecker
                             throw new TypeCheckerInternalException("Value type is null");
                         }
 
-                        if (!elType.Equals(valueType))
+                        if (!lhsType.Equals(valueType))
                         {
-                            var message = $"Array assignment type mismatch: {elType}, value type {valueType}";
+                            var message = $"Assignment type mismatch: {lhsType}, value type {valueType}";
                             this.AddDiagnostic(
                                 DiagnosticStatus.Error,
-                                IncorrectArrayTypeDiagnostic,
+                                IncorrectAssigmentTypeDiagnostic,
                                 message,
-                                new List<Range> { arrayAssignment.InputRange });
+                                new List<Range> { complexAssignment.InputRange });
                             this.exceptions.Add(new TypeCheckerInternalException(message));
                         }
 
-                        arrayAssignment.Type = elType;
+                        complexAssignment.Type = lhsType;
                         break;
-                    case ComplexCompoundAssignment arrayCompoundAssignment:
-                        var elType2 = arrayCompoundAssignment.Lhs.Type;
-                        var valueType2 = arrayCompoundAssignment.Value.Type;
+                    }
 
-                        if (elType2 == null)
+                    case ComplexCompoundAssignment complexCompoundAssignment:
+                    {
+                        var lhsType = complexCompoundAssignment.Lhs.Type;
+                        var valueType = complexCompoundAssignment.Value.Type;
+
+                        if (lhsType == null)
                         {
-                            throw new TypeCheckerInternalException("Element type is null");
+                            throw new TypeCheckerInternalException("Left hand side type is null");
                         }
-                        else if (!elType2.Equals(IntType.Instance))
+                        else if (!lhsType.Equals(IntType.Instance))
                         {
-                            var message = $"Array compound assignment element type mismatch: got {elType2}, expected {IntType.Instance}";
+                            var message = $"Compound assignment left hand side type mismatch: got {lhsType}, expected {IntType.Instance}";
                             this.AddDiagnostic(
                                 DiagnosticStatus.Error,
-                                IncorrectArrayTypeDiagnostic,
+                                IncorrectLeftSideTypeDiagnostic,
                                 message,
-                                new List<Range> { arrayCompoundAssignment.InputRange });
+                                new List<Range> { complexCompoundAssignment.InputRange });
                             this.exceptions.Add(new TypeCheckerInternalException(message));
                         }
 
-                        if (valueType2 == null)
+                        if (valueType == null)
                         {
                             throw new TypeCheckerInternalException("Value type is null");
                         }
-                        else if (!valueType2.Equals(IntType.Instance))
+                        else if (!valueType.Equals(IntType.Instance))
                         {
-                            var message = $"Array compound assignment value type mismatch: got {valueType2}, expected {IntType.Instance}";
+                            var message = $"Compound assignment value type mismatch: got {valueType}, expected {IntType.Instance}";
                             this.AddDiagnostic(
                                 DiagnosticStatus.Error,
-                                IncorrectArrayTypeDiagnostic,
+                                IncorrectRightSideTypeDiagnostic,
                                 message,
-                                new List<Range> { arrayCompoundAssignment.InputRange });
+                                new List<Range> { complexCompoundAssignment.InputRange });
                             this.exceptions.Add(new TypeCheckerInternalException(message));
                         }
 
-                        arrayCompoundAssignment.Type = IntType.Instance;
+                        complexCompoundAssignment.Type = IntType.Instance;
                         break;
+                    }
+
                     case Expression e:
+                    {
                         this.exceptions.Add(
                             new TypeCheckerInternalException($"Unrecognized node type: {node.GetType()}"));
                         throw new TypeCheckerException("Type checking failed.", this.exceptions);
+                    }
                 }
             }
         }

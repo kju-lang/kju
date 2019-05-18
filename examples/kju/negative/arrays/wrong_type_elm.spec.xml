@@ -1,6 +1,6 @@
 <Spec>
     <IsPositive>false</IsPositive>
     <ExpectedMagicStrings>
-        <MagicString>TypeChecker.IncorrectArrayType</MagicString>
+        <MagicString>TypeChecker.IncorrectAssigmentType</MagicString>
     </ExpectedMagicStrings>
 </Spec>
