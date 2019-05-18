@@ -45,7 +45,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
                 new Comment("Copy function result to variable"),
                 result.CopyFrom(HardwareRegister.RAX),
                 new Comment("Restore RSP alignment"),
-                new AlignStackPointer(-needStackOffset),
+                new AlignStackPointer(-(needStackOffset + (8 * function.GetStackArgumentsCount()))),
                 new Comment("End of call"),
             };
 
