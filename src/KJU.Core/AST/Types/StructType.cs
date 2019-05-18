@@ -6,12 +6,9 @@ namespace KJU.Core.AST.Types
 
     public class StructType : DataType
     {
-        public StructType(string name)
-        {
-            this.Name = name;
-        }
+        private static Dictionary<StructDeclaration, StructType> instances = new Dictionary<StructDeclaration, StructType>();
 
-        public StructType(StructDeclaration declaration)
+        private StructType(StructDeclaration declaration)
         {
             this.Name = declaration.Name;
             this.Declaration = declaration;
@@ -20,6 +17,16 @@ namespace KJU.Core.AST.Types
         public string Name { get; }
 
         public StructDeclaration Declaration { get; }
+
+        public static StructType GetInstance(StructDeclaration structDeclaration)
+        {
+            if (!instances.ContainsKey(structDeclaration))
+            {
+                instances.Add(structDeclaration, new StructType(structDeclaration));
+            }
+
+            return instances[structDeclaration];
+        }
 
         public override string ToString()
         {

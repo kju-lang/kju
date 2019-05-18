@@ -31,16 +31,25 @@
             private readonly Stack<Dictionary<string, List<FunctionDeclaration>>> functionBlocks =
                 new Stack<Dictionary<string, List<FunctionDeclaration>>>();
 
+            private readonly Dictionary<string, Stack<StructDeclaration>> structs =
+                new Dictionary<string, Stack<StructDeclaration>>();
+
+            private readonly Stack<HashSet<string>> structBlocks = new Stack<HashSet<string>>();
+
             private readonly List<Exception> exceptions = new List<Exception>();
 
             private readonly Dictionary<string, DataType> dataTypes =
                 new Dictionary<string, DataType>();
+
+            private readonly HashSet<string> buildInTypes
+                = new HashSet<string>();
 
             public ResolveProcess()
             {
                 this.dataTypes["Int"] = BuiltinTypes.IntType.Instance;
                 this.dataTypes["Bool"] = BuiltinTypes.BoolType.Instance;
                 this.dataTypes["Unit"] = BuiltinTypes.UnitType.Instance;
+                this.buildInTypes.UnionWith(this.dataTypes.Keys);
             }
 
             public void Process(Node node, IDiagnostics diagnostics)
@@ -62,7 +71,7 @@
                 switch (node)
                 {
                     case Program program:
-                        this.ProcessProgram(program);
+                        this.ProcessProgram(program, diagnostics);
                         break;
                     case FunctionDeclaration fun:
                         this.ProcessFunctionDeclaration(fun, diagnostics);
@@ -81,6 +90,12 @@
                         break;
                     case ArrayAlloc array:
                         array.ElementType = this.ResolveDataType(array.ElementType, diagnostics);
+                        break;
+                    case StructDeclaration structDeclaration:
+                        this.ProcessStructDeclaration(structDeclaration, diagnostics);
+                        break;
+                    case StructAlloc structAlloc:
+                        this.ProcessStructAllocation(structAlloc, diagnostics);
                         break;
                 }
 
@@ -140,10 +155,11 @@
                 this.functionBlocks.Peek()[functionName].Add(declaration);
             }
 
-            private void ProcessProgram(Program program)
+            private void ProcessProgram(Program program, IDiagnostics diagnostics)
             {
                 this.functionBlocks.Push(new Dictionary<string, List<FunctionDeclaration>>());
                 this.variableBlocks.Push(new HashSet<string>());
+                this.structBlocks.Push(new HashSet<string>());
 
                 foreach (var fun in program.Functions)
                 {
@@ -158,8 +174,28 @@
                     this.AddToPeek(id, fun);
                 }
 
+                foreach (var structDecl in program.Structs)
+                {
+                    if (this.structs.ContainsKey(structDecl.Name))
+                    {
+                        var diagnostic = new Diagnostic(
+                            DiagnosticStatus.Error,
+                            MultipleDeclarationsDiagnostic,
+                            $"Multiple declarations of struct {structDecl.Name}",
+                            new List<Range> { structDecl.InputRange });
+                        diagnostics.Add(diagnostic);
+                        this.exceptions.Add(new NameResolverInternalException($"Multiple declarations struct {structDecl.Name}"));
+                    }
+
+                    this.dataTypes[structDecl.Name] = StructType.GetInstance(structDecl);
+                    this.structs[structDecl.Name] = new Stack<StructDeclaration>();
+                    this.structs[structDecl.Name].Push(structDecl);
+                    this.structBlocks.Peek().Add(structDecl.Name);
+                }
+
                 this.functionBlocks.Push(new Dictionary<string, List<FunctionDeclaration>>());
                 this.variableBlocks.Push(new HashSet<string>());
+                this.structBlocks.Push(new HashSet<string>());
             }
 
             private void ProcessFunctionDeclaration(FunctionDeclaration fun, IDiagnostics diagnostics)
@@ -200,6 +236,7 @@
                 this.AddToPeek(id, fun);
                 this.functionBlocks.Push(new Dictionary<string, List<FunctionDeclaration>>());
                 this.variableBlocks.Push(new HashSet<string>());
+                this.structBlocks.Push(new HashSet<string>());
             }
 
             private void ProcessVariableDeclaration(VariableDeclaration var, IDiagnostics diagnostics)
@@ -231,6 +268,7 @@
             {
                 this.functionBlocks.Push(new Dictionary<string, List<FunctionDeclaration>>());
                 this.variableBlocks.Push(new HashSet<string>());
+                this.structBlocks.Push(new HashSet<string>());
             }
 
             private void ProcessVariable(Variable var, IDiagnostics diagnostics)
@@ -272,6 +310,75 @@
                 }
             }
 
+            private void ProcessStructAllocation(StructAlloc structAlloc, IDiagnostics diagnostics)
+            {
+                if (structAlloc.AllocType is UnresolvedType unresolvedType)
+                {
+                    var name = unresolvedType.Type;
+                    structAlloc.AllocType = this.ResolveDataType(unresolvedType, diagnostics);
+                    structAlloc.Declaration = this.structs[name].Peek();
+                }
+            }
+
+            private void ProcessStructDeclaration(StructDeclaration structDeclaration, IDiagnostics diagnostics)
+            {
+                string name = structDeclaration.Name;
+
+                if (this.structBlocks.Peek().Contains(name))
+                {
+                    var diagnostic = new Diagnostic(
+                        DiagnosticStatus.Error,
+                        MultipleDeclarationsDiagnostic,
+                        $"Multiple declarations of struct {name}",
+                        new List<Range> { structDeclaration.InputRange });
+                    diagnostics.Add(diagnostic);
+                    this.exceptions.Add(new NameResolverInternalException($"Multiple declarations struct {name}"));
+                }
+
+                if (this.buildInTypes.Contains(name))
+                {
+                    var diagnostic = new Diagnostic(
+                        DiagnosticStatus.Error,
+                        TypeIdentifierErrorDiagnosticsType,
+                        $"Cannot use builtin type name {name}",
+                        new List<Range> { structDeclaration.InputRange });
+                    diagnostics.Add(diagnostic);
+                    this.exceptions.Add(new NameResolverInternalException($"Cannot use builtin type name {name}"));
+                }
+
+                if (!this.structs.ContainsKey(name))
+                {
+                    this.structs.Add(name, new Stack<StructDeclaration>());
+                }
+
+                this.structs[name].Push(structDeclaration);
+                this.structBlocks.Peek().Add(name);
+                this.dataTypes[name] = StructType.GetInstance(structDeclaration);
+
+                var fieldNames = new HashSet<string>();
+                foreach (var field in structDeclaration.Fields)
+                {
+                    var fieldName = field.Name;
+                    if (fieldNames.Contains(fieldName))
+                    {
+                        var diagnostic = new Diagnostic(
+                            DiagnosticStatus.Error,
+                            MultipleDeclarationsDiagnostic,
+                            $"Multiple declarations of field: {fieldName} in struct: {name}",
+                            new List<Range> { structDeclaration.InputRange });
+                        diagnostics.Add(diagnostic);
+                        this.exceptions.Add(new NameResolverInternalException($"Multiple field declarations struct {name}"));
+                    }
+
+                    fieldNames.Add(fieldName);
+                }
+
+                foreach (var field in structDeclaration.Fields)
+                {
+                    field.Type = this.ResolveDataType(field.Type, diagnostics);
+                }
+            }
+
             private List<FunctionDeclaration> GetDeclarationCandidates(string identifier)
             {
                 var declarationCandidates = new List<FunctionDeclaration>();
@@ -302,6 +409,21 @@
                     for (int i = 0; i < fun.Value.Count; i++)
                     {
                         this.functions[fun.Key].Pop();
+                    }
+                }
+
+                var structs = this.structBlocks.Pop();
+                foreach (var structName in structs)
+                {
+                    this.structs[structName].Pop();
+                    if (this.structs[structName].Count > 0)
+                    {
+                        var structDecl = this.structs[structName].Peek();
+                        this.dataTypes[structName] = StructType.GetInstance(structDecl);
+                    }
+                    else
+                    {
+                        this.dataTypes.Remove(structName);
                     }
                 }
             }

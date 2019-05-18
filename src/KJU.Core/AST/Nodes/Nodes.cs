@@ -691,7 +691,7 @@ namespace KJU.Core.AST
 
         public string Name { get; }
 
-        public DataType Type { get; }
+        public DataType Type { get; set; }
     }
 
     public class StructAlloc : Expression
@@ -702,7 +702,7 @@ namespace KJU.Core.AST
             this.AllocType = allocType;
         }
 
-        public DataType AllocType { get; }
+        public DataType AllocType { get; set; }
 
         public StructDeclaration Declaration { get; set; }
 

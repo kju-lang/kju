@@ -4,12 +4,14 @@
     using System.Linq;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
+    using KJU.Core.AST.Types;
     using KJU.Core.Diagnostics;
     using KJU.Core.Input;
     using KJU.Core.Lexer;
     using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+#pragma warning disable SA1118  // Parameter must not span multiple lines
     [TestClass]
     public class NameResolverTests
     {
@@ -397,6 +399,307 @@
             MockDiagnostics.Verify(
                 diagnosticsMock,
                 NameResolver.IdentifierNotFoundDiagnostic);
+        }
+
+        /*
+         * fun kju() : Unit {
+         *   var x : A;
+         * }
+         *
+         * struct A {
+         *   A a;
+         * }
+         */
+        [TestMethod]
+        public void TestStruct()
+        {
+            var x = new VariableDeclaration(
+                null,
+                new UnresolvedType("A", null),
+                "x",
+                null);
+            var kju = new FunctionDeclaration(
+                null,
+                "kju",
+                UnitType.Instance,
+                new List<VariableDeclaration>() { },
+                new InstructionBlock(
+                    null,
+                    new List<Expression>()
+                    {
+                        x,
+                    }),
+                false);
+            var globalADecl = new StructDeclaration(
+                null,
+                "A",
+                new List<StructField>()
+                {
+                    new StructField(null, "a", new UnresolvedType("A", null))
+                });
+
+            var program = new Program(
+                null,
+                new List<StructDeclaration>() { globalADecl },
+                new List<FunctionDeclaration>() { kju });
+            this.nameResolver.Run(program, null);
+
+            Assert.AreEqual(StructType.GetInstance(globalADecl), x.VariableType);
+            Assert.AreEqual(StructType.GetInstance(globalADecl), globalADecl.Fields[0].Type);
+        }
+
+        /*
+         *
+         * struct A {
+         *   int a;
+         * }
+         * fun kju() : Unit {
+         *   var x1 : A;
+         *   {
+         *     struct A {
+         *       int b;
+         *     };
+         *     var y : A;
+         *   };
+         *   var x2 : A;
+         * }
+         */
+        [TestMethod]
+        public void TestStructShadowing()
+        {
+            var innerADecl = new StructDeclaration(
+                null,
+                "A",
+                new List<StructField>() { new StructField(null, "b", IntType.Instance) });
+            var globalADecl = new StructDeclaration(
+                null,
+                "A",
+                new List<StructField>() { new StructField(null, "a", IntType.Instance) });
+
+            var x1 = new VariableDeclaration(
+                null,
+                new UnresolvedType("A", null),
+                "x1",
+                null);
+            var x2 = new VariableDeclaration(
+                null,
+                new UnresolvedType("A", null),
+                "x2",
+                null);
+            var y = new VariableDeclaration(
+                null,
+                new UnresolvedType("A", null),
+                "y",
+                null);
+
+            var kju = new FunctionDeclaration(
+                null,
+                "kju",
+                UnitType.Instance,
+                new List<VariableDeclaration>() { },
+                new InstructionBlock(
+                    null,
+                    new List<Expression>()
+                    {
+                        x1,
+                        new InstructionBlock(null, new List<Expression>()
+                        {
+                            innerADecl,
+                            y,
+                        }),
+                        x2,
+                    }),
+                false);
+
+            var program = new Program(
+                null,
+                new List<StructDeclaration>() { globalADecl },
+                new List<FunctionDeclaration>() { kju });
+            this.nameResolver.Run(program, null);
+
+            Assert.AreEqual(StructType.GetInstance(globalADecl), x1.VariableType);
+            Assert.AreEqual(StructType.GetInstance(globalADecl), x2.VariableType);
+            Assert.AreEqual(StructType.GetInstance(innerADecl), y.VariableType);
+        }
+
+        /*
+         * struct A {
+         *   int x;
+         *   bool x;
+         * }
+         */
+        [TestMethod]
+        public void TestStructSameFieldName()
+        {
+            var diagnosticsMock = new Moq.Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
+
+            var declA = new StructDeclaration(
+                null,
+                "A",
+                new List<StructField>()
+                {
+                    new StructField(null, "x", IntType.Instance),
+                    new StructField(null, "x", BoolType.Instance),
+                });
+
+            var program = new Program(
+                null,
+                new List<StructDeclaration>() { declA },
+                new List<FunctionDeclaration>() { });
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(program, diagnostics));
+
+            MockDiagnostics.Verify(
+                diagnosticsMock,
+                NameResolver.MultipleDeclarationsDiagnostic);
+        }
+
+        /*
+         * struct A {
+         * }
+         * struct A {
+         * }
+         */
+        [TestMethod]
+        public void TestStructMultipleDeclarations()
+        {
+            var diagnosticsMock = new Moq.Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
+
+            var aDecl1 = new StructDeclaration(
+                null,
+                "A",
+                new List<StructField>() { });
+            var aDecl2 = new StructDeclaration(
+                null,
+                "A",
+                new List<StructField>() { });
+
+            var program = new Program(
+                null,
+                new List<StructDeclaration>() { aDecl1, aDecl2 },
+                new List<FunctionDeclaration>() { });
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(program, diagnostics));
+
+            MockDiagnostics.Verify(
+                diagnosticsMock,
+                NameResolver.MultipleDeclarationsDiagnostic,
+                NameResolver.MultipleDeclarationsDiagnostic);
+        }
+
+        /*
+         * struct Int {
+         * }
+         */
+        [TestMethod]
+        public void TestStructWithBuilinTypeName()
+        {
+            var diagnosticsMock = new Moq.Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
+
+            var intDecl1 = new StructDeclaration(
+                null,
+                "Int",
+                new List<StructField>() { });
+            var program = new Program(
+                null,
+                new List<StructDeclaration>() { intDecl1 },
+                new List<FunctionDeclaration>() { });
+            Assert.ThrowsException<NameResolverException>(() => this.nameResolver.Run(program, diagnostics));
+
+            MockDiagnostics.Verify(
+                diagnosticsMock,
+                NameResolver.TypeIdentifierErrorDiagnosticsType);
+        }
+
+        /*
+         * struct A {}
+         *
+         * fun f(a : A) : A {
+         *   f(a);
+         *   return a;
+         * }
+         */
+        [TestMethod]
+        public void TestStructFunctionParameters()
+        {
+            var aDecl = new StructDeclaration(
+                null,
+                "A",
+                new List<StructField>());
+
+            var aParam = new VariableDeclaration(
+                null,
+                new UnresolvedType("A", null),
+                "a",
+                null);
+            var f = new FunctionDeclaration(
+                null,
+                "f",
+                new UnresolvedType("A", null),
+                new List<VariableDeclaration>() { aParam },
+                new InstructionBlock(
+                    null,
+                    new List<Expression>() {
+                        new FunctionCall(
+                            null,
+                            "f",
+                            new List<Expression>() { aParam }),
+                        new ReturnStatement(
+                            null,
+                            new Variable(
+                                null,
+                                "a")),
+                    }),
+                false);
+
+            var program = new Program(
+                null,
+                new List<StructDeclaration>() { aDecl },
+                new List<FunctionDeclaration>() { f });
+
+            this.nameResolver.Run(program, null);
+
+            Assert.AreEqual(StructType.GetInstance(aDecl), f.ReturnType);
+            Assert.AreEqual(StructType.GetInstance(aDecl), aParam.VariableType);
+        }
+
+        /*
+         * struct A {}
+         * fun kju(): Unit {
+         *   new (A);
+         * }
+         */
+        [TestMethod]
+        public void TestStructAlloc()
+        {
+            var aDecl = new StructDeclaration(
+                null,
+                "A",
+                new List<StructField>());
+            var aAlloc = new StructAlloc(
+                null,
+                new UnresolvedType("A", null));
+            var kju = new FunctionDeclaration(
+                null,
+                "kju",
+                UnitType.Instance,
+                new List<VariableDeclaration>(),
+                new InstructionBlock(
+                    null,
+                    new List<Expression>() {
+                        aAlloc
+                    }),
+                    false);
+
+            var program = new Program(
+                null,
+                new List<StructDeclaration>() { aDecl },
+                new List<FunctionDeclaration>() { kju });
+
+            this.nameResolver.Run(program, null);
+
+            Assert.AreEqual(StructType.GetInstance(aDecl), aAlloc.AllocType);
         }
     }
 }
