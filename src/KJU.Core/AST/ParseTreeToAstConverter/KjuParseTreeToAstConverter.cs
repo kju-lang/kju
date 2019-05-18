@@ -658,8 +658,6 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
 
             private Expression ExpressionAtomToAst(Brunch<KjuAlphabet> branch)
             {
-                Console.WriteLine($"Atom: {branch}");
-
                 var firstChild = branch.Children[0];
                 Expression primaryExpression;
 
