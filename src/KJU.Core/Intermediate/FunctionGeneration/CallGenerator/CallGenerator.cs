@@ -36,7 +36,9 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
                 .Concat(this.PassArguments(callerFunction, callArguments, function.Parent))
                 .Append(new ClearDF())
                 .Append(new Comment($"Call {function.MangledName}"))
-                .Append(new UsesDefinesNode(null, HardwareRegisterUtils.CallerSavedRegisters));
+                .Append(new UsesDefinesNode(
+                    HardwareRegisterUtils.ArgumentRegisters.Take(callArguments.Count() + 1).ToList(),
+                    HardwareRegisterUtils.CallerSavedRegisters));
 
             var postCall = new List<Node>
             {

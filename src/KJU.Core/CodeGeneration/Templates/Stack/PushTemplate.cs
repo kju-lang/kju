@@ -21,7 +21,9 @@ namespace KJU.Core.CodeGeneration.Templates.Stack
             private readonly VirtualRegister register;
 
             public PushInstruction(VirtualRegister register)
-                : base(new List<VirtualRegister> { register })
+                : base(
+                    new List<VirtualRegister> { HardwareRegister.RSP, register },
+                    new List<VirtualRegister> { HardwareRegister.RSP })
             {
                 this.register = register;
             }

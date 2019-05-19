@@ -25,8 +25,8 @@ namespace KJU.Core.CodeGeneration.Templates.Stack
 
             public PopInstruction(VirtualRegister register)
                 : base(
-                new List<VirtualRegister>(),
-                new List<VirtualRegister> { register })
+                new List<VirtualRegister> { HardwareRegister.RSP },
+                new List<VirtualRegister> { HardwareRegister.RSP, register })
             {
                 this.register = register;
             }
