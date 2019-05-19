@@ -1,0 +1,17 @@
+fun write(a : Int) : Unit import
+
+struct Dummy
+{
+    a : Dummy;
+    val : Int;
+}
+
+fun kju() : Unit
+{
+    var d : Dummy = new (Dummy);
+    d.a = new (Dummy);
+    d.a.a = new (Dummy);
+    d.a.a.a = new (Dummy);
+    d.a.a.a.val = 44747;
+    write(d.a.a.a.val);
+}

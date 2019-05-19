@@ -1,0 +1,12 @@
+struct A
+{
+}
+
+struct B
+{
+}
+
+fun kju() : Unit
+{
+    var x : A = new (B);
+}

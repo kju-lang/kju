@@ -1,0 +1,10 @@
+fun kju() : Unit
+{
+    struct A
+    {
+    };
+    
+    struct A
+    {
+    };
+}

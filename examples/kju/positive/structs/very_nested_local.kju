@@ -1,0 +1,44 @@
+fun write(a : Int) : Unit import
+
+fun kju() : Unit
+{
+    struct E
+    {
+        val : Int;
+    };
+    
+    struct D
+    {
+        e : E;
+    };
+        
+    struct C 
+    {
+        d : D;
+    };
+    
+    struct B
+    {
+        c : C;
+    };
+    
+    struct A
+    {
+        b : B;
+    };
+    
+    var a : A = new (A);
+    a.b = new (B);
+    a.b.c = new (C);
+    a.b.c.d = new (D);
+    a.b.c.d.e = new (E);
+    
+    fun modify(c : C) : Unit
+    {
+        c.d.e.val = 44747;
+    };
+    
+    modify(a.b.c);
+    
+    write(a.b.c.d.e.val);
+}

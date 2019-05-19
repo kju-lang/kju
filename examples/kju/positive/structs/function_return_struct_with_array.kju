@@ -1,0 +1,21 @@
+fun write(a : Int) : Unit import
+
+struct Dummy
+{
+    a : [[[Int]]];
+}
+
+fun kju() : Unit
+{   
+    fun retDummy(d1 : Int, d2 : Int, d3 : Int, value : Int) : Dummy
+    {
+        var result : Dummy = new (Dummy);
+        result.a = new ([[Int]], d1);
+        result.a[d1 - 1] = new ([Int], d2);
+        result.a[d1 - 1][d2 - 1] = new (Int, d3);
+        result.a[d1 - 1][d2 - 1][d3 - 1] = 5;
+        return result;   
+    };
+    
+    write(retDummy(5, 6, 7, 44747).a[4][5][6]);
+}

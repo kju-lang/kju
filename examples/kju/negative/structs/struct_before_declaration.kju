@@ -1,0 +1,7 @@
+fun kju() : Unit
+{
+    var x : A;
+    struct A
+    {
+    };
+}

@@ -1,0 +1,27 @@
+fun write(a : Int) : Unit import
+
+struct A
+{
+    b : B;
+    val : Int;
+}
+
+struct B
+{
+    a : A;
+    val : Int;
+}
+
+fun kju() : Unit
+{
+    var x : A = new (A);
+    var y : B = new (B);
+    
+    x.b = y;
+    y.a = x;
+    x.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.val = 44747;
+    y.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.val = 77474;
+    
+    write(x.val);
+    write(y.val);
+}

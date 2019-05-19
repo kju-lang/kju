@@ -1,0 +1,23 @@
+<Spec>
+    <IsDisabled>true</IsDisabled>
+    <Execution>
+        <Input>
+            4 5
+            5 1 3 4 5
+            1 5 8 6 8
+            2 3 4 1 8
+            5 1 -1 0 3
+            5
+            1 1 1 2 3
+            0 3 3 10
+            1 2 3 3 4
+            0 3 0 -5
+            1 2 0 3 1
+        </Input>
+        <ExpectedOutput>
+            27
+            22
+            1
+        </ExpectedOutput>
+    </Execution>
+</Spec>
