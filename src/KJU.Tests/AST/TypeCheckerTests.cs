@@ -627,6 +627,192 @@
                 TypeChecker.IncorrectArraySizeTypeDiagnostic);
         }
 
+        [TestMethod]
+        public void StructUsage()
+        {
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            diagnosticsMock.Setup(foo => foo.Add(It.IsAny<Diagnostic[]>())).Throws(new Exception("Diagnostics not empty."));
+            var diagnostics = diagnosticsMock.Object;
+
+            /*
+              def kju() : Unit {
+                struct S {
+                  x : Int;
+                  y : Int;
+                };
+
+                var s : S = new(S);
+                var res : Int = 0;
+
+                res = (s.x = 10);
+                res = (s.y = 20);
+                res = (s.x = s.y);
+                res = (s.y += 30);
+                res = (s.x += s.y);
+              }
+             */
+
+            var range = new Range(new StringLocation(-1), new StringLocation(-1));
+
+            var structFields = new List<StructField>() {
+                new StructField(range, "x", IntType.Instance),
+                new StructField(range, "y", IntType.Instance) };
+
+            var structDeclaration = new StructDeclaration(range, "S", structFields);
+            var structType = StructType.GetInstance(structDeclaration);
+
+            var structAlloc = new StructAlloc(range, structType) { Declaration = structDeclaration };
+
+            var structVarDeclaration = new VariableDeclaration(range, structType, "s", structAlloc);
+            var resVarDeclaration = new VariableDeclaration(range, IntType.Instance, "res", new IntegerLiteral(range, 0));
+
+            Func<Variable> getStructVar = () => new Variable(range, "s") { Declaration = structVarDeclaration };
+            Func<string, Expression> getFieldAccess = field => new FieldAccess(range, getStructVar(), field);
+
+            Func<Variable> getResVar = () => new Variable(range, "res") { Declaration = resVarDeclaration };
+            Func<Expression, Expression> saveResultInRes = expresssion => new Assignment(range, getResVar(), expresssion);
+
+            var kjuInstructions = new List<Expression> {
+                structDeclaration,
+                structVarDeclaration,
+                resVarDeclaration,
+                saveResultInRes(new ComplexAssignment(range, getFieldAccess("x"), new IntegerLiteral(range, 10))),
+                saveResultInRes(new ComplexAssignment(range, getFieldAccess("y"), new IntegerLiteral(range, 20))),
+                saveResultInRes(new ComplexAssignment(range, getFieldAccess("x"), getFieldAccess("y"))),
+                saveResultInRes(new ComplexCompoundAssignment(range, getFieldAccess("y"), ArithmeticOperationType.Addition, new IntegerLiteral(range, 30))),
+                saveResultInRes(new ComplexCompoundAssignment(range, getFieldAccess("x"), ArithmeticOperationType.Addition, getFieldAccess("y"))) };
+
+            var kjuDeclaration = new FunctionDeclaration(
+                range,
+                "kju",
+                ArrayType.GetInstance(UnitType.Instance),
+                new List<VariableDeclaration>(),
+                new InstructionBlock(range, kjuInstructions),
+                false);
+
+            var root = new Program(range, new List<StructDeclaration>(), new List<FunctionDeclaration> { kjuDeclaration });
+            this.typeChecker.Run(root, diagnostics);
+        }
+
+        [TestMethod]
+        public void StructFieldAssignmentErrors()
+        {
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
+
+            /*
+              def kju() : Unit {
+                struct S {
+                  x : Int;
+                  y : Bool;
+                };
+
+                var s : S = new(S);
+
+                s.x = true;
+                s.y = 1;
+                s.x = s.y;
+
+                s.x += s.y;
+                s.y += 1;
+              }
+             */
+
+            var range = new Range(new StringLocation(-1), new StringLocation(-1));
+
+            var structFields = new List<StructField>() {
+                new StructField(range, "x", IntType.Instance),
+                new StructField(range, "y", BoolType.Instance) };
+
+            var structDeclaration = new StructDeclaration(range, "S", structFields);
+            var structType = StructType.GetInstance(structDeclaration);
+
+            var structAlloc = new StructAlloc(range, structType) { Declaration = structDeclaration };
+
+            var structVarDeclaration = new VariableDeclaration(range, structType, "s", structAlloc);
+            var resVarDeclaration = new VariableDeclaration(range, IntType.Instance, "res", new IntegerLiteral(range, 0));
+
+            Func<Variable> getStructVar = () => new Variable(range, "s") { Declaration = structVarDeclaration };
+            Func<string, Expression> getFieldAccess = field => new FieldAccess(range, getStructVar(), field);
+
+            var kjuInstructions = new List<Expression> {
+                structDeclaration,
+                structVarDeclaration,
+                new ComplexAssignment(range, getFieldAccess("x"), new BoolLiteral(range, true)),
+                new ComplexAssignment(range, getFieldAccess("y"), new IntegerLiteral(range, 1)),
+                new ComplexAssignment(range, getFieldAccess("x"), getFieldAccess("y")),
+                new ComplexCompoundAssignment(range, getFieldAccess("x"), ArithmeticOperationType.Addition, getFieldAccess("y")),
+                new ComplexCompoundAssignment(range, getFieldAccess("y"), ArithmeticOperationType.Addition, new IntegerLiteral(range, 1)) };
+
+            var kjuDeclaration = new FunctionDeclaration(
+                range,
+                "kju",
+                ArrayType.GetInstance(UnitType.Instance),
+                new List<VariableDeclaration>(),
+                new InstructionBlock(range, kjuInstructions),
+                false);
+
+            var root = new Program(range, new List<StructDeclaration>(), new List<FunctionDeclaration> { kjuDeclaration });
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
+
+            MockDiagnostics.Verify(
+                diagnosticsMock,
+                TypeChecker.IncorrectAssigmentTypeDiagnostic,
+                TypeChecker.IncorrectAssigmentTypeDiagnostic,
+                TypeChecker.IncorrectAssigmentTypeDiagnostic,
+                TypeChecker.IncorrectRightSideTypeDiagnostic,
+                TypeChecker.IncorrectLeftSideTypeDiagnostic);
+        }
+
+        [TestMethod]
+        public void StructToStructAssignmentError()
+        {
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
+
+            /*
+              struct A {
+                x : Int;
+              };
+
+              struct B {
+                x : Int;
+              };
+
+              def kju() : Unit {
+                var s1 : A = new(B);
+              }
+             */
+
+            var range = new Range(new StringLocation(-1), new StringLocation(-1));
+
+            var structFields = new List<StructField>() { new StructField(range, "x", IntType.Instance) };
+            var aStructDeclaration = new StructDeclaration(range, "A", structFields);
+            var bStructDeclaration = new StructDeclaration(range, "B", structFields);
+
+            var varDeclaration = new VariableDeclaration(
+                range,
+                StructType.GetInstance(aStructDeclaration),
+                "s",
+                new StructAlloc(range, StructType.GetInstance(bStructDeclaration)) { Declaration = bStructDeclaration });
+
+            var kjuDeclaration = new FunctionDeclaration(
+                range,
+                "kju",
+                ArrayType.GetInstance(UnitType.Instance),
+                new List<VariableDeclaration>(),
+                new InstructionBlock(range, new List<Expression> { varDeclaration }),
+                false);
+
+            var root = new Program(
+                range,
+                new List<StructDeclaration>() { aStructDeclaration, bStructDeclaration },
+                new List<FunctionDeclaration> { kjuDeclaration });
+
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.IncorrectAssigmentTypeDiagnostic);
+        }
+
         private static Node GenUntypedAst()
         {
             // int Fun1(Arg1:Int):Int

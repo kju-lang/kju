@@ -23,6 +23,8 @@ namespace KJU.Core.AST.TypeChecker
         public const string IncorrectArrayAccessUseDiagnostic = "TypeChecker.IncorrectArrayAccessUse";
         public const string AssignedValueHasNoTypeDiagnostic = "TypeChecker.AssignedValueHasNoType";
         public const string FunctionOverloadNotFoundDiagnostic = "TypeChecker.FunctionOverloadNotFound";
+        public const string IncorrectStructTypeDiagnostic = "TypeChecker.IncorrectStructType";
+        public const string IncorrectFieldNameDiagnostic = "TypeChecker.IncorrectFieldName";
 
         private static readonly IDictionary<UnaryOperationType, DataType> UnaryOperationToType =
             new Dictionary<UnaryOperationType, DataType>
@@ -562,6 +564,83 @@ namespace KJU.Core.AST.TypeChecker
                         }
 
                         complexCompoundAssignment.Type = IntType.Instance;
+                        break;
+                    }
+
+                    case FieldAccess fieldAccess:
+                    {
+                        var lhsType = fieldAccess.Lhs.Type;
+
+                        if (lhsType == null)
+                        {
+                            throw new TypeCheckerInternalException("Struct type is null");
+                        }
+                        else if (!(lhsType is StructType))
+                        {
+                            var message = $"Expected struct type, got {lhsType}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectStructTypeDiagnostic,
+                                message,
+                                new List<Range> { fieldAccess.Lhs.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+                        else
+                        {
+                            var fieldName = fieldAccess.Field;
+                            var allFields = (lhsType as StructType).Declaration.Fields;
+                            var matchingFields = allFields.Where(field => field.Name.Equals(fieldName));
+
+                            var numberOfMatchingField = matchingFields.Count();
+                            if (numberOfMatchingField == 0)
+                            {
+                                var message =
+                                    $"Incorrect field name: expected one of {allFields}, got {fieldName}";
+                                this.AddDiagnostic(
+                                    DiagnosticStatus.Error,
+                                    IncorrectFieldNameDiagnostic,
+                                    message,
+                                    new List<Range> { fieldAccess.InputRange });
+                                this.exceptions.Add(new TypeCheckerInternalException(message));
+                            }
+                            else if (numberOfMatchingField > 1)
+                            {
+                                throw new TypeCheckerInternalException($"Many fields matching name {fieldName}");
+                            }
+                            else
+                            {
+                                var fieldType = matchingFields.First().Type;
+                                if (fieldType == null)
+                                {
+                                    throw new TypeCheckerInternalException("Field type is null");
+                                }
+
+                                fieldAccess.Type = fieldType;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    case StructDeclaration structDeclaration:
+                    {
+                        structDeclaration.Type = UnitType.Instance;
+                        break;
+                    }
+
+                    case StructAlloc structAlloc:
+                    {
+                        var structType = StructType.GetInstance(structAlloc.Declaration);
+
+                        if (structType == null)
+                        {
+                            throw new TypeCheckerInternalException("Structure type for struct declaration is null");
+                        }
+                        else
+                        {
+                            structAlloc.Type = structType;
+                        }
+
                         break;
                     }
 
