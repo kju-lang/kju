@@ -1,0 +1,20 @@
+
+fun write(a: Int): Unit import
+fun get_stack_top(): Int import
+
+fun testproc(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int, j: Int): Unit {
+
+}
+
+fun kju(): Int {
+    var a: Int = 5;
+    var top: Int = get_stack_top();
+    while a > 0 {
+          a -= 1;
+          testproc(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+          if get_stack_top() != top then {
+                  return 1;
+          };
+    };
+    return 0;
+}

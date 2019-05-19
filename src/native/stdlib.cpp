@@ -37,4 +37,12 @@ __attribute__((sysv_abi))
 long long allocate(long long size) {
     return ((long long) malloc(size));
 }
+
+// for debugging
+__attribute__((sysv_abi))
+long long get_stack_top() {
+    volatile int var; 
+    volatile long long ret = (long long)&var;
+    return ret;
+}
 }
