@@ -711,9 +711,9 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
             {
                 var nameToken = (Token<KjuAlphabet>)branch.Children[0];
                 var name = nameToken.Text;
-                var typeToken = (Token<KjuAlphabet>)branch.Children[2];
-                var type = this.TypeIdentifierAst(typeToken);
-                return new StructField(branch.InputRange, name, type);
+                var typeParseTree = branch.Children[2];
+                var typeIdentifier = this.TypeIdentifierAst(typeParseTree);
+                return new StructField(branch.InputRange, name, typeIdentifier);
             }
 
             private List<StructField> StructFieldsAstList(Brunch<KjuAlphabet> branch)

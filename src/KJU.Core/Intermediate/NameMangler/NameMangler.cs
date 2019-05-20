@@ -46,6 +46,8 @@ namespace KJU.Core.Intermediate.NameMangler
                     return "v";
                 case ArrayType arrayType:
                     return $"P{MangleTypeName(arrayType.ElementType)}";
+                case StructType structType:
+                    return $"Ts{structType.Name}";
                 default:
                     throw new ArgumentException($"Unknown type: {type}");
             }

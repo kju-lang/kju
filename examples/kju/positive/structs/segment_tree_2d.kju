@@ -16,7 +16,8 @@ struct SegmentTree1D
 fun update(tree : SegmentTree1D, pos : Int, value : Int) : Unit
 {
     var values : [Int] = tree.values;
-    values[pos += tree.n] = value;
+    pos += tree.n;
+    values[pos] += value;
     pos /= 2;
     
     while pos > 0
@@ -46,8 +47,8 @@ fun getSum(tree : SegmentTree1D, l : Int, r : Int) : Int
             sum += values[r];
         };
         
-        l /= 2;
-        r /= 2;
+        l = (l + 1) / 2;
+        r = (r - 1) / 2;
     };
     
     return sum;
@@ -57,10 +58,10 @@ fun update(tree : SegmentTree2D, x : Int, y : Int, value : Int) : Unit
 {
     var trees : [SegmentTree1D] = tree.values;
     
-    while pos > 0
+    while x > 0
     {
-        update(trees[pos], y, values);
-        pos /= 2;
+        update(trees[x], y, value);
+        x /= 2;
     };
 }
 
@@ -84,8 +85,8 @@ fun getSum(tree : SegmentTree2D, lx : Int, rx : Int, ly : Int, ry : Int) : Int
             sum += getSum(trees[rx], ly, ry);
         };
         
-        lx /= 2;
-        rx /= 2;
+        lx = (lx + 1) / 2;
+        rx = (rx - 1) / 2;
     };
     
     return sum;
@@ -113,11 +114,12 @@ fun init2D(n : Int, m : Int) : SegmentTree2D
     var result : SegmentTree2D = new (SegmentTree2D);
     
     result.n = n;
-    result.values = new (SegmentTree2D, 2 * n);
+    result.values = new (SegmentTree1D, 2 * n);
     
     while i < 2 * n
     {
-        result.value[i] = init1D(m);
+        result.values[i] = init1D(m);
+        i += 1;
     };
     
     return result;
@@ -131,10 +133,10 @@ fun kju() : Unit
     var tree : SegmentTree2D = init2D(n, m);
     
     var i : Int;
-    var j : Int;
 
     while i < n
     {
+        var j : Int;
         while j < m
         {
             var value : Int = read();
@@ -168,7 +170,9 @@ fun kju() : Unit
             var x : Int = read();
             var y : Int = read();
             
-            write(getSum(tree, l, r, x, y));
+            write(getSum(tree, l, x, r, y));
         };
+        
+        i += 1;
     };
 }

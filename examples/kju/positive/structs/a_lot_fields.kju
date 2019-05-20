@@ -19,8 +19,8 @@ fun kju() : Unit
     
     x.b = y;
     y.a = x;
-    x.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.val = 44747;
-    y.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.val = 77474;
+    x.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.val = 44747;
+    y.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.a.b.val = 77474;
     
     write(x.val);
     write(y.val);

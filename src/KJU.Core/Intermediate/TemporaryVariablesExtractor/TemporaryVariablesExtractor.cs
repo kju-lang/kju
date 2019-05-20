@@ -50,6 +50,13 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     case IfStatement ifNode:
                         return this.ExtractFromIf(ifNode);
 
+                    case StructDeclaration _:
+                    case StructAlloc _:
+                        return new List<Expression>();
+
+                    case FieldAccess fieldAccess:
+                        return this.ExtractFromFieldAccess(fieldAccess);
+
                     case AST.FunctionCall funCall:
                         return this.ExtractFromFunctionCall(funCall);
 
@@ -89,6 +96,12 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                         throw new TemporaryVariablesExtractorException(
                             $"Unexpected AST node type: {node.GetType()}. This should never happen.");
                 }
+            }
+
+            private List<Expression> ExtractFromFieldAccess(FieldAccess fieldAccess)
+            {
+                this.ExtractTemporaryVariables(fieldAccess.Lhs);
+                return new List<Expression>();
             }
 
             private List<Expression> ExtractFromOperationNode(BinaryOperation operationNode)

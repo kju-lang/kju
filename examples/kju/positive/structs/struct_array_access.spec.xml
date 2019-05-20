@@ -1,7 +1,8 @@
 <Spec>
+    <IsDisabled>true</IsDisabled>
     <Execution>
         <ExpectedOutput>
-            3
+            44747
         </ExpectedOutput>
     </Execution>
 </Spec>

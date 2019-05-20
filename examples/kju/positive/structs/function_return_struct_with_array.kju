@@ -13,7 +13,7 @@ fun kju() : Unit
         result.a = new ([[Int]], d1);
         result.a[d1 - 1] = new ([Int], d2);
         result.a[d1 - 1][d2 - 1] = new (Int, d3);
-        result.a[d1 - 1][d2 - 1][d3 - 1] = 5;
+        result.a[d1 - 1][d2 - 1][d3 - 1] = value;
         return result;   
     };
     
