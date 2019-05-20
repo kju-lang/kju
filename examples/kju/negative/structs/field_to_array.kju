@@ -1,0 +1,11 @@
+struct A
+{
+    val : Int;
+}
+
+fun kju() : Unit
+{
+    var a : A = new (A);
+    a.val[5][5] = 0;
+    a.val[5] = 0;
+}

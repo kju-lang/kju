@@ -1,4 +1,5 @@
 <Spec>
+    <IsDisabled>true</IsDisabled>
     <Execution>
         <Input>
             4 5

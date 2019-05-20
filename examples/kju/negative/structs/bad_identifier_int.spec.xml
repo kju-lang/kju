@@ -1,6 +1,5 @@
 <Spec>
     <IsPositive>false</IsPositive>
-    <IsDisabled>true</IsDisabled>
     <ExpectedMagicStrings>
         <MagicString>NameResolver.UnexpectedTypeIdentifier</MagicString>
     </ExpectedMagicStrings>

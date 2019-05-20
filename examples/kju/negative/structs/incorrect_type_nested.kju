@@ -17,5 +17,5 @@ fun kju() : Unit
     
     x.b = y;
     y.a = x;
-    x.b.a.b.a.b.a = x;
+    x.b.a.b.a.b = x;
 }

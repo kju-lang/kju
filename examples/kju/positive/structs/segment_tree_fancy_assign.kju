@@ -16,8 +16,7 @@ struct SegmentTree1D
 fun update(tree : SegmentTree1D, pos : Int, value : Int) : Unit
 {
     var values : [Int] = tree.values;
-    pos += tree.n;
-    values[pos] += value;
+    values[pos += tree.n] += value;
     pos /= 2;
     
     while pos > 0
