@@ -130,6 +130,18 @@ namespace KJU.Core.AST.TypeChecker
                 this.exceptions.Add(new TypeCheckerInternalException(message));
             }
 
+            private bool CanBeConverted(DataType from, DataType to)
+            {
+                if (from.Equals(NullType.Instance))
+                {
+                    return (to is NullType) || (to is ArrayType) || (to is StructType);
+                }
+                else
+                {
+                    return from.Equals(to);
+                }
+            }
+
             private void Dfs(Node node)
             {
                 foreach (var child in node.Children())
@@ -190,11 +202,11 @@ namespace KJU.Core.AST.TypeChecker
                                     new List<Range> { variable.InputRange });
                                 this.exceptions.Add(new TypeCheckerInternalException(message));
                             }
-                            else if (!variable.Value.Type.Equals(variable.VariableType))
+                            else if (!this.CanBeConverted(variableValueType, variable.VariableType))
                             {
                                 var identifier = variable.Identifier;
                                 var message =
-                                    $"Incorrect assignment value type of '{identifier}'. Expected {variable.VariableType}, got {variable.Value.Type}";
+                                    $"Incorrect assignment value type of '{identifier}'. Expected {variable.VariableType}, got {variableValueType}";
                                 this.AddDiagnostic(
                                     DiagnosticStatus.Error,
                                     IncorrectAssigmentTypeDiagnostic,
@@ -267,6 +279,12 @@ namespace KJU.Core.AST.TypeChecker
                     case UnitLiteral unitNode:
                     {
                         unitNode.Type = UnitType.Instance;
+                        break;
+                    }
+
+                    case NullLiteral nullNode:
+                    {
+                        nullNode.Type = NullType.Instance;
                         break;
                     }
 
@@ -362,10 +380,24 @@ namespace KJU.Core.AST.TypeChecker
 
                     case Comparison comparisonNode:
                     {
-                        if (!comparisonNode.LeftValue.Type.Equals(comparisonNode.RightValue.Type))
+                        var lhsType = comparisonNode.LeftValue.Type;
+                        var rhsType = comparisonNode.RightValue.Type;
+                        var opType = comparisonNode.OperationType;
+
+                        bool canBeCompared;
+                        if (opType.Equals(ComparisonType.Equal) || opType.Equals(ComparisonType.NotEqual))
+                        {
+                            canBeCompared = this.CanBeConverted(lhsType, rhsType) || this.CanBeConverted(rhsType, lhsType);
+                        }
+                        else
+                        {
+                            canBeCompared = lhsType.Equals(rhsType);
+                        }
+
+                        if (!canBeCompared)
                         {
                             var message =
-                                $"Comparison type mismatch. Left hand size {comparisonNode.LeftValue.Type}, right hand side {comparisonNode.RightValue.Type}";
+                                $"Comparison type mismatch. Left hand size {lhsType}, right hand side {rhsType}";
                             var ranges = new List<Range> { comparisonNode.InputRange };
                             this.AddDiagnostic(
                                 DiagnosticStatus.Error,
@@ -513,7 +545,7 @@ namespace KJU.Core.AST.TypeChecker
                             throw new TypeCheckerInternalException("Value type is null");
                         }
 
-                        if (!lhsType.Equals(valueType))
+                        if (!this.CanBeConverted(valueType, lhsType))
                         {
                             var message = $"Assignment type mismatch: {lhsType}, value type {valueType}";
                             this.AddDiagnostic(

@@ -813,6 +813,86 @@
             MockDiagnostics.Verify(diagnosticsMock, TypeChecker.IncorrectAssigmentTypeDiagnostic);
         }
 
+        [TestMethod]
+        public void NullUsage()
+        {
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            diagnosticsMock.Setup(foo => foo.Add(It.IsAny<Diagnostic[]>())).Throws(new Exception("Diagnostics not empty."));
+            var diagnostics = diagnosticsMock.Object;
+
+            /*
+              def kju() : Unit {
+                struct S {};
+
+                var x : S = null;
+                var y : [Int] = null;
+
+                var res : Bool = false;
+
+                x = null;
+                y = null;
+
+                res = (x == null);
+                res = (null == x);
+                res = (y == null);
+                res = (null == y);
+                res = (null == null);
+
+                res = (x != null);
+                res = (null != x);
+                res = (y != null);
+                res = (null != y);
+                res = (null != null);
+              }
+             */
+
+            var range = new Range(new StringLocation(-1), new StringLocation(-1));
+            Func<Expression> getNull = () => new NullLiteral(range);
+
+            var structDeclaration = new StructDeclaration(range, "S", new List<StructField>());
+            var structType = StructType.GetInstance(structDeclaration);
+
+            var structVarDeclaration = new VariableDeclaration(range, structType, "x", getNull());
+            var arrayVarDeclaration = new VariableDeclaration(range, ArrayType.GetInstance(IntType.Instance), "y", getNull());
+
+            var resVarDeclaration = new VariableDeclaration(range, BoolType.Instance, "res", new BoolLiteral(range, false));
+
+            Func<Variable> getStructVar = () => new Variable(range, "x") { Declaration = structVarDeclaration };
+            Func<Variable> getArrayVar = () => new Variable(range, "y") { Declaration = arrayVarDeclaration };
+            Func<Variable> getResVar = () => new Variable(range, "res") { Declaration = resVarDeclaration };
+
+            Func<Expression, Expression> saveResultInRes = expresssion => new Assignment(range, getResVar(), expresssion);
+
+            var kjuInstructions = new List<Expression> {
+                structDeclaration,
+                structVarDeclaration,
+                arrayVarDeclaration,
+                resVarDeclaration,
+                new ComplexAssignment(range, getStructVar(), getNull()),
+                new ComplexAssignment(range, getArrayVar(), getNull()),
+                saveResultInRes(new Comparison(range, getStructVar(), getNull(), ComparisonType.Equal)),
+                saveResultInRes(new Comparison(range, getNull(), getStructVar(), ComparisonType.Equal)),
+                saveResultInRes(new Comparison(range, getArrayVar(), getNull(), ComparisonType.Equal)),
+                saveResultInRes(new Comparison(range, getNull(), getArrayVar(), ComparisonType.Equal)),
+                saveResultInRes(new Comparison(range, getNull(), getNull(), ComparisonType.Equal)),
+                saveResultInRes(new Comparison(range, getStructVar(), getNull(), ComparisonType.NotEqual)),
+                saveResultInRes(new Comparison(range, getNull(), getStructVar(), ComparisonType.NotEqual)),
+                saveResultInRes(new Comparison(range, getArrayVar(), getNull(), ComparisonType.NotEqual)),
+                saveResultInRes(new Comparison(range, getNull(), getArrayVar(), ComparisonType.NotEqual)),
+                saveResultInRes(new Comparison(range, getNull(), getNull(), ComparisonType.NotEqual)) };
+
+            var kjuDeclaration = new FunctionDeclaration(
+                range,
+                "kju",
+                ArrayType.GetInstance(UnitType.Instance),
+                new List<VariableDeclaration>(),
+                new InstructionBlock(range, kjuInstructions),
+                false);
+
+            var root = new Program(range, new List<StructDeclaration>(), new List<FunctionDeclaration> { kjuDeclaration });
+            this.typeChecker.Run(root, diagnostics);
+        }
+
         private static Node GenUntypedAst()
         {
             // int Fun1(Arg1:Int):Int
