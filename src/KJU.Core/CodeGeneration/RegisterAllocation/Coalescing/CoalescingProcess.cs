@@ -31,6 +31,8 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Coalescing
             this.coalescePredicates = new List<ICoalescePredicate> { briggsPredicate, georgePredicate };
         }
 
+        public HashSet<HashSet<VirtualRegister>> ContainHardware { get; set; }
+
         public bool CoalesceOne()
         {
             var pair = this.FindPair();
@@ -53,6 +55,10 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Coalescing
             }
 
             u.UnionWith(v);
+            if (this.ContainHardware.Contains(v))
+            {
+                this.ContainHardware.Add(u);
+            }
 
             foreach (var register in u)
             {

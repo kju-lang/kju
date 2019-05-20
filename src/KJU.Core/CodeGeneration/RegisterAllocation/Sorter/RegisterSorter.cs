@@ -16,7 +16,7 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Sorter
         private readonly Dictionary<VirtualRegister, HashSet<VirtualRegister>> superVertices;
         private readonly IReadOnlyCollection<VirtualRegister> allRegisters;
         private readonly HashSet<HashSet<VirtualRegister>> containHardware;
-        private readonly ICoalescingProcess coalescingProcess;
+        private readonly CoalescingProcess coalescingProcess;
         private readonly int allowedHardwareRegistersCount;
         private readonly Stack<HashSet<VirtualRegister>> resultStack;
 
@@ -25,7 +25,7 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Sorter
             Graph copy,
             Dictionary<VirtualRegister, HashSet<VirtualRegister>> superVertices,
             IReadOnlyCollection<VirtualRegister> allRegisters,
-            ICoalescingProcess coalescingProcess,
+            CoalescingProcess coalescingProcess,
             int allowedHardwareRegistersCount)
         {
             this.interference = interference;
@@ -39,6 +39,7 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Sorter
                     .OfType<HardwareRegister>()
                     .Select(x => superVertices[x]));
             this.resultStack = new Stack<HashSet<VirtualRegister>>();
+            this.coalescingProcess.ContainHardware = this.containHardware;
         }
 
         public IEnumerable<HashSet<VirtualRegister>> GetOrder()
