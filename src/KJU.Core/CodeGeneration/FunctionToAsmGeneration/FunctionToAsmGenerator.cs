@@ -46,6 +46,11 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             return ConstructResult(instructionSequence, allocation, function);
         }
 
+        public IEnumerable<string> GenerateLayout(Function function)
+        {
+            throw new NotImplementedException();
+        }
+
         private static IEnumerable<string> UsefulLabels(IEnumerable<CodeBlock> instructionSequence)
         {
             foreach (var instruction in instructionSequence.SelectMany(block => block.Instructions))

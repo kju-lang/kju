@@ -7,5 +7,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     public interface IFunctionToAsmGenerator
     {
         IEnumerable<string> ToAsm(Function function, ILabel label);
+
+        IEnumerable<string> GenerateLayout(Function function);
     }
 }
