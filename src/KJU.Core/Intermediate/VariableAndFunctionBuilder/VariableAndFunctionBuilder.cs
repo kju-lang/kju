@@ -77,7 +77,7 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
                     foreach (var argument in functionDeclaration.Parameters)
                     {
                         argument.IntermediateVariable = variableUsages[argument].Count > 1
-                            ? (ILocation)function.ReserveStackFrameLocation()
+                            ? (ILocation)function.ReserveStackFrameLocation(argument.VariableType)
                             : new VirtualRegister();
                     }
 
@@ -91,7 +91,7 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
 
                 case AST.VariableDeclaration variableDeclaration:
                 {
-                    variableDeclaration.IntermediateVariable = parentFunction.ReserveStackFrameLocation();
+                    variableDeclaration.IntermediateVariable = parentFunction.ReserveStackFrameLocation(variableDeclaration.VariableType);
                     break;
                 }
             }

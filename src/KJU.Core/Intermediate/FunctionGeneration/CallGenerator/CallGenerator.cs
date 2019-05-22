@@ -11,7 +11,10 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
         private readonly CallingSiblingFinder callingSiblingFinder;
         private readonly ReadWriteGenerator readWriteGenerator;
 
-        public CallGenerator(ILabelFactory labelFactory, CallingSiblingFinder callingSiblingFinder, ReadWriteGenerator readWriteGenerator)
+        public CallGenerator(
+            ILabelFactory labelFactory,
+            CallingSiblingFinder callingSiblingFinder,
+            ReadWriteGenerator readWriteGenerator)
         {
             this.labelFactory = labelFactory;
             this.callingSiblingFinder = callingSiblingFinder;
@@ -36,14 +39,15 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
                 .Concat(this.PassArguments(callerFunction, callArguments, function.Parent))
                 .Append(new ClearDF())
                 .Append(new Comment($"Call {function.MangledName}"))
-                .Append(new UsesDefinesNode(
-                    HardwareRegisterUtils.ArgumentRegisters.Take(callArguments.Count() + 1).ToList(),
-                    HardwareRegisterUtils.CallerSavedRegisters));
+                .Append(
+                    new UsesDefinesNode(
+                        HardwareRegisterUtils.ArgumentRegisters.Take(callArguments.Count() + 1).ToList(),
+                        HardwareRegisterUtils.CallerSavedRegisters));
 
             var postCall = new List<Node>
             {
                 new Comment("Copy function result to variable"),
-                result.CopyFrom(HardwareRegister.RAX),
+                this.readWriteGenerator.GenerateWrite(callerFunction, result, new RegisterRead(HardwareRegister.RAX)),
                 new Comment("Restore RSP alignment"),
                 new AlignStackPointer(-(needStackOffset + (8 * function.GetStackArgumentsCount()))),
                 new Comment("End of call"),
@@ -86,9 +90,10 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
                 .Append(readStaticLink).ToList();
 
             return values.Skip(HardwareRegisterUtils.ArgumentRegisters.Count).Reverse()
-                .Select(value => new Push(value)).Concat<Node>(values.Zip(
-                    HardwareRegisterUtils.ArgumentRegisters,
-                    (value, hwReg) => new RegisterWrite(hwReg, value)));
+                .Select(value => new Push(value)).Concat<Node>(
+                    values.Zip(
+                        HardwareRegisterUtils.ArgumentRegisters,
+                        (value, hwReg) => new RegisterWrite(hwReg, value)));
         }
     }
 }

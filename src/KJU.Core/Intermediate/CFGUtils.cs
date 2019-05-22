@@ -31,10 +31,5 @@ namespace KJU.Core.Intermediate
                 new RegisterRead(baseAddr),
                 new IntegerImmediateValue(offset * 8));
         }
-
-        public static Node CopyFrom(this VirtualRegister to, VirtualRegister from)
-        {
-            return new RegisterWrite(to, new RegisterRead(from));
-        }
     }
 }

@@ -3,6 +3,7 @@ namespace KJU.Core.Intermediate.Function
     using System;
     using System.Collections.Generic;
     using KJU.Core.AST;
+    using KJU.Core.AST.BuiltinTypes;
 
     public class Function
     {
@@ -19,7 +20,7 @@ namespace KJU.Core.Intermediate.Function
             this.IsEntryPoint = isEntryPoint;
             this.Parameters = parameters;
             this.StackBytes = 0;
-            this.Link = this.ReserveStackFrameLocation();
+            this.Link = this.ReserveStackFrameLocation(IntType.Instance);
         }
 
         public ILocation Link { get; }
@@ -38,7 +39,7 @@ namespace KJU.Core.Intermediate.Function
 
         public IReadOnlyList<AST.VariableDeclaration> Parameters { get; }
 
-        public MemoryLocation ReserveStackFrameLocation(DataType dataType = null)
+        public MemoryLocation ReserveStackFrameLocation(DataType dataType)
         {
             return new MemoryLocation(this, -(this.StackBytes += 8));
         }

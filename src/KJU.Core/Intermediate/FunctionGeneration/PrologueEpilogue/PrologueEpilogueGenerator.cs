@@ -24,41 +24,60 @@ namespace KJU.Core.Intermediate.FunctionGeneration.PrologueEpilogue
 
         public ILabel GeneratePrologue(Function.Function function, ILabel after)
         {
-            var operations = new List<Node>()
+            return new List<Node>
                 {
                     new UsesDefinesNode(null, HardwareRegisterUtils.CalleeSavedRegisters),
                     new Comment("Save RBP - parent base pointer"),
                     new Push(new RegisterRead(HardwareRegister.RBP)),
                     new Comment("Copy RSP to RBP - current base pointer"),
-                    HardwareRegister.RBP.CopyFrom(HardwareRegister.RSP),
+                    this.readWriteGenerator.GenerateWrite(
+                        function,
+                        HardwareRegister.RBP,
+                        new RegisterRead(HardwareRegister.RSP)),
                     new Comment("Reserve memory for local variables"),
                     new ReserveStackMemory(function),
                 }.Append(new Comment("Save callee saved registers."))
-                .Concat(this.calleeSavedMapping.Select(kvp => kvp.Value.CopyFrom(kvp.Key)))
+                .Concat(
+                    this.calleeSavedMapping.Select(
+                        kvp =>
+                            this.readWriteGenerator.GenerateWrite(
+                                function,
+                                kvp.Value,
+                                new RegisterRead(kvp.Key))))
                 .Append(new Comment("Retrieve arguments."))
                 .Concat(this.RetrieveArguments(function))
-                .Append(new Comment("Function body."));
-
-            return operations.MakeTreeChain(this.labelFactory, after);
+                .Append(new Comment("Function body."))
+                .MakeTreeChain(this.labelFactory, after);
         }
 
-        public ILabel GenerateEpilogue(Node retVal)
+        public ILabel GenerateEpilogue(Function.Function function, Node retVal)
         {
             var operations =
                 new List<Node> { new Comment("Restore callee saved registers.") }
-                    .Concat(this.calleeSavedMapping
-                        .Select(kvp => kvp.Key.CopyFrom(kvp.Value)))
+                    .Concat(
+                        this.calleeSavedMapping
+                            .Select(
+                                kvp =>
+                                    this.readWriteGenerator.GenerateWrite(
+                                        function,
+                                        kvp.Key,
+                                        new RegisterRead(kvp.Value))))
                     .Append(new Comment("Save result to RAX"))
                     .Append(new RegisterWrite(HardwareRegister.RAX, retVal))
                     .Append(new Comment("Restore RSP from RBP"))
-                    .Append(HardwareRegister.RSP.CopyFrom(HardwareRegister.RBP))
+                    .Append(
+                        this.readWriteGenerator.GenerateWrite(
+                            function,
+                            HardwareRegister.RSP,
+                            new RegisterRead(HardwareRegister.RBP)))
                     .Append(new Comment("Restore RBP from stack"))
                     .Append(new Pop(HardwareRegister.RBP))
                     .Append(new Comment("Clear direction flag."))
                     .Append(new ClearDF())
-                    .Append(new UsesDefinesNode(
-                        HardwareRegisterUtils.CalleeSavedRegisters,
-                        new List<VirtualRegister> { HardwareRegister.RSP }));
+                    .Append(
+                        new UsesDefinesNode(
+                            HardwareRegisterUtils.CalleeSavedRegisters,
+                            new List<VirtualRegister> { HardwareRegister.RSP }));
 
             return operations.MakeTreeChain(this.labelFactory, new Ret());
         }

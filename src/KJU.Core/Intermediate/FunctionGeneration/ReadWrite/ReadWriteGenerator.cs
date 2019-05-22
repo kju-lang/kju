@@ -14,7 +14,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.ReadWrite
             return this.GenerateWrite(function, variable, value, new RegisterRead(HardwareRegister.RBP));
         }
 
-        public Node GenerateRead(Function.Function function, ILocation variable, Node framePointer)
+        private Node GenerateRead(Function.Function function, ILocation variable, Node framePointer)
         {
             switch (variable)
             {
@@ -28,7 +28,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.ReadWrite
             }
         }
 
-        public Node GenerateWrite(Function.Function function, ILocation variable, Node value, Node framePointer)
+        private Node GenerateWrite(Function.Function function, ILocation variable, Node value, Node framePointer)
         {
             switch (variable)
             {

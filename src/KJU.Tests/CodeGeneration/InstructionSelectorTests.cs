@@ -5,6 +5,7 @@ namespace KJU.Tests.CodeGeneration
     using System.Collections.Generic;
     using System.Linq;
     using KJU.Core.AST;
+    using KJU.Core.AST.BuiltinTypes;
     using KJU.Core.AST.VariableAccessGraph;
     using KJU.Core.CodeGeneration;
     using KJU.Core.CodeGeneration.FunctionToAsmGeneration;
@@ -39,8 +40,8 @@ namespace KJU.Tests.CodeGeneration
             var template = new ReserveStackMemoryTemplate();
             var templates = new List<InstructionTemplate> { template };
             var functionInfo = new Function(null, "abc", new List<VariableDeclaration>(), false, false);
-            functionInfo.ReserveStackFrameLocation();
-            functionInfo.ReserveStackFrameLocation();
+            functionInfo.ReserveStackFrameLocation(IntType.Instance);
+            functionInfo.ReserveStackFrameLocation(IntType.Instance);
             var root = new ReserveStackMemory(functionInfo);
             var tree = new Tree(root, new Ret());
             var selector = new InstructionSelector(templates);

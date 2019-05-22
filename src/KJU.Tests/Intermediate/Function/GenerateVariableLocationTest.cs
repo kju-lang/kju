@@ -2,6 +2,7 @@ namespace KJU.Tests.Intermediate.Function
 {
     using System.Collections.Generic;
     using KJU.Core.AST;
+    using KJU.Core.AST.BuiltinTypes;
     using KJU.Core.Intermediate;
     using KJU.Core.Intermediate.Function;
     using KJU.Core.Intermediate.FunctionGeneration.ReadWrite;
@@ -33,22 +34,22 @@ namespace KJU.Tests.Intermediate.Function
              *
              */
             var functionInfoA = new Function(null, "a", new List<VariableDeclaration>(), false, false);
-            functionInfoA.ReserveStackFrameLocation();
-            functionInfoA.ReserveStackFrameLocation();
-            functionInfoA.ReserveStackFrameLocation();
-            functionInfoA.ReserveStackFrameLocation();
+            functionInfoA.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoA.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoA.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoA.ReserveStackFrameLocation(IntType.Instance);
             var functionInfoB = new Function(functionInfoA, "b", new List<VariableDeclaration>(), false, false);
-            functionInfoB.ReserveStackFrameLocation();
-            functionInfoB.ReserveStackFrameLocation();
-            functionInfoB.ReserveStackFrameLocation();
+            functionInfoB.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoB.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoB.ReserveStackFrameLocation(IntType.Instance);
             var functionInfoC = new Function(functionInfoB, "c", new List<VariableDeclaration>(), false, false);
-            functionInfoC.ReserveStackFrameLocation();
-            functionInfoC.ReserveStackFrameLocation();
+            functionInfoC.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoC.ReserveStackFrameLocation(IntType.Instance);
 
-            var variableALocation = functionInfoA.ReserveStackFrameLocation();
+            var variableALocation = functionInfoA.ReserveStackFrameLocation(IntType.Instance);
             var variableA = variableALocation;
 
-            var variableBLocation = functionInfoB.ReserveStackFrameLocation();
+            var variableBLocation = functionInfoB.ReserveStackFrameLocation(IntType.Instance);
             var variableB = variableBLocation;
 
             var variableCLocation = new VirtualRegister();

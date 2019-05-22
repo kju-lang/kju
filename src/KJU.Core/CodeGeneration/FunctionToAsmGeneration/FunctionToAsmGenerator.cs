@@ -4,6 +4,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using AST.Types;
     using CfgLinearizer;
     using InstructionSelector;
     using Intermediate;
@@ -115,7 +116,7 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             Function function)
         {
             var spilledRegisterMemory = spilled
-                .ToDictionary(x => x, x => function.ReserveStackFrameLocation());
+                .ToDictionary(x => x, x => function.ReserveStackFrameLocation(NullType.Instance));
 
             var result = instructionSequence.Select(codeBlock =>
             {

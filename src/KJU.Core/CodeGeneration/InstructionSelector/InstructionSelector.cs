@@ -12,8 +12,9 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
 
         public InstructionSelector(IEnumerable<InstructionTemplate> templates)
         {
-            var templatesDictionary = templates.GroupBy(template =>
-                    template.IsConditionalJump ? JumpType.Conditional : JumpType.NonConditional)
+            var templatesDictionary = templates.GroupBy(
+                    template =>
+                        template.IsConditionalJump ? JumpType.Conditional : JumpType.NonConditional)
                 .ToDictionary(
                     jumpGroup => jumpGroup.Key,
                     jumpGroup => jumpGroup);
@@ -89,7 +90,10 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
                 case FunctionCall call:
                 {
                     if (call.TargetAfter != null)
+                    {
                         throw new NotImplementedException("non-trivial calls not supported yet");
+                    }
+
                     var functionInfo = call.Function;
                     return instructions.Append(new CallInstruction(functionInfo));
                 }
@@ -156,8 +160,9 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
             possibleTemplates.AddRange(nullTemplates);
 
             var bestMatch = possibleTemplates
-                .Select(currentTemplate => new
-                    { Template = currentTemplate, Fits = this.Fit(currentTemplate.Shape, node) })
+                .Select(
+                    currentTemplate => new
+                        { Template = currentTemplate, Fits = this.Fit(currentTemplate.Shape, node) })
                 .FirstOrDefault(x => x.Fits != null);
 
             if (bestMatch == null)
