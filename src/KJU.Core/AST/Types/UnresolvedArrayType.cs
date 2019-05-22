@@ -13,5 +13,10 @@ namespace KJU.Core.AST.Types
         {
             return $"UnresolvedArray [{this.Child.ToString()}]";
         }
+
+        public override bool IsHeapType()
+        {
+            return false;
+        }
     }
 }

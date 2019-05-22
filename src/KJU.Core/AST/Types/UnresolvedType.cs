@@ -18,5 +18,10 @@ namespace KJU.Core.AST.Types
         {
             return $"UnresolvedType: {this.Type} ";
         }
+
+        public override bool IsHeapType()
+        {
+            return false;
+        }
     }
 }

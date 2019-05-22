@@ -34,5 +34,10 @@ namespace KJU.Core.AST.Types
             else
                 yield return $"dq {this.ElementType.LayoutLabel}";
         }
+
+        public override bool IsHeapType()
+        {
+            return true;
+        }
     }
 }

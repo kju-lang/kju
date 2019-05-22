@@ -194,7 +194,9 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
             private Computation ConvertNode(AST.FunctionCall node, ILabel after)
             {
-                var resultRegister = new VirtualRegister();
+                var resultLocation = node.Declaration.ReturnType.IsHeapType()
+                    ? (ILocation)this.function.ReserveStackFrameLocation(node.Declaration.ReturnType)
+                    : new VirtualRegister();
                 var argumentRegisters = Enumerable
                     .Range(0, node.Arguments.Count)
                     .Select(i => new VirtualRegister())
@@ -203,7 +205,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 callArguments.Reverse();
                 var tempQualifier = node.Declaration.Function;
                 var callLabel = this.callGenerator.GenerateCall(
-                    resultRegister,
+                    resultLocation,
                     callArguments,
                     after,
                     this.function,
@@ -226,7 +228,9 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                             return result.Start;
                         });
 
-                return new Computation(argumentsLabel, new RegisterRead(resultRegister));
+                return new Computation(
+                    argumentsLabel,
+                    this.readWriteGenerator.GenerateRead(this.function, resultLocation));
             }
 
             private Computation ConvertNode(AST.ReturnStatement node, ILabel after)

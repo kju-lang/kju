@@ -8,5 +8,10 @@ namespace KJU.Core.AST.BuiltinTypes
         {
             return "Int";
         }
+
+        public override bool IsHeapType()
+        {
+            return false;
+        }
     }
 }

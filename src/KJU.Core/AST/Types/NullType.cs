@@ -12,5 +12,10 @@
         {
             return "Null";
         }
+
+        public override bool IsHeapType()
+        {
+            return false;
+        }
     }
 }

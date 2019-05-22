@@ -24,7 +24,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
         // We will use standard x86-64 conventions -> RDI, RSI, RDX, RCX, R8, R9.
         // TODO: instruction templates covering hw register modifications
         public ILabel GenerateCall(
-            VirtualRegister result,
+            ILocation result,
             IEnumerable<VirtualRegister> callArguments,
             ILabel onReturn,
             Function.Function callerFunction,

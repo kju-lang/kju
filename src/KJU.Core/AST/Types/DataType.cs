@@ -14,6 +14,8 @@ namespace KJU.Core.AST
             }
         }
 
+        public abstract bool IsHeapType();
+
         public virtual IEnumerable<string> GenerateLayout()
         {
             throw new NotImplementedException();

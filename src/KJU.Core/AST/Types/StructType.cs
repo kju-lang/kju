@@ -6,11 +6,12 @@ namespace KJU.Core.AST.Types
 
     public class StructType : DataType
     {
-        private static Dictionary<StructDeclaration, StructType> instances = new Dictionary<StructDeclaration, StructType>();
+        private static readonly Dictionary<StructDeclaration, StructType> Instances =
+            new Dictionary<StructDeclaration, StructType>();
 
         private StructType(StructDeclaration declaration)
         {
-            this.Id = instances.Count;
+            this.Id = Instances.Count;
             this.Name = declaration.Name;
             this.Declaration = declaration;
         }
@@ -23,12 +24,12 @@ namespace KJU.Core.AST.Types
 
         public static StructType GetInstance(StructDeclaration structDeclaration)
         {
-            if (!instances.ContainsKey(structDeclaration))
+            if (!Instances.ContainsKey(structDeclaration))
             {
-                instances.Add(structDeclaration, new StructType(structDeclaration));
+                Instances.Add(structDeclaration, new StructType(structDeclaration));
             }
 
-            return instances[structDeclaration];
+            return Instances[structDeclaration];
         }
 
         public override string ToString()
@@ -57,6 +58,11 @@ namespace KJU.Core.AST.Types
             yield return "dq 0";
             // Null target: end of layout.
             yield return "dq 0";
+        }
+
+        public override bool IsHeapType()
+        {
+            return true;
         }
     }
 }
