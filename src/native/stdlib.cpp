@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 namespace KJU {
 __attribute__((sysv_abi))
@@ -44,5 +45,53 @@ long long get_stack_top() {
     volatile int var; 
     volatile long long ret = (long long)&var;
     return ret;
+}
+
+/* Garbage collection functions  */
+/**
+
+size_t is 8 bytes
+
+struct function_stack_layout
+{
+    size_t offset_1;
+    data_type_layout* target_1;
+    size_t offset_2;
+    data_type_layout* target_2;
+    .
+    .
+    .
+    // ends with target_n == NULL;
+};
+
+struct data_type_layout
+{
+    data_type_layout* array_of_type; // NULL if not an array of pointers
+    size_t offset_1;
+    data_type_layout* target_1;
+    size_t offset_2;
+    data_type_layout* target_2;
+    .
+    .
+    .
+    // ends with target_n == NULL;
+};
+
+**/
+
+
+__attribute__((sysv_abi))
+long long garbage_collection() {
+    return 0;
+}
+
+__attribute__((sysv_abi))
+long long mark_and_sweep_run() {
+    return 0;
+}
+
+__attribute__((sysv_abi))
+long long enforce_gc() {
+
 }
 }

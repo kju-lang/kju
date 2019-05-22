@@ -1,6 +1,8 @@
 namespace KJU.Core.Intermediate.Function
 {
+    using System;
     using System.Collections.Generic;
+    using KJU.Core.AST;
 
     public class Function
     {
@@ -26,6 +28,8 @@ namespace KJU.Core.Intermediate.Function
 
         public string MangledName { get; }
 
+        public string LayoutLabel { get; }
+
         public int StackBytes { get; private set; }
 
         public bool IsForeign { get; }
@@ -34,9 +38,14 @@ namespace KJU.Core.Intermediate.Function
 
         public IReadOnlyList<AST.VariableDeclaration> Parameters { get; }
 
-        public MemoryLocation ReserveStackFrameLocation()
+        public MemoryLocation ReserveStackFrameLocation(DataType dataType = null)
         {
             return new MemoryLocation(this, -(this.StackBytes += 8));
+        }
+
+        public IEnumerable<string> GenerateStackLayout(Function function)
+        {
+            throw new NotImplementedException();
         }
     }
 }
