@@ -111,12 +111,13 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                 // In (A op B)
                 // We'd like to compute A before B if both A and B use variable x and at least one of them modifies it
 
-                operationNode.LeftValue = this.ReplaceWithBlock(operationNode.LeftValue);
-
                 var modifiedVariablesLeft = this.variableAccess.Modifies[operationNode.LeftValue];
                 var modifiedVariablesRight = this.variableAccess.Modifies[operationNode.RightValue];
                 var usedVariablesLeft = this.variableAccess.Accesses[operationNode.LeftValue];
                 var usedVariablesRight = this.variableAccess.Accesses[operationNode.RightValue];
+
+                operationNode.LeftValue = this.ReplaceWithBlock(operationNode.LeftValue);
+
                 var result = new List<Expression>();
                 if (modifiedVariablesLeft.Any(x => usedVariablesRight.Contains(x))
                     || modifiedVariablesRight.Any(x => usedVariablesLeft.Contains(x)))
