@@ -331,21 +331,10 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 return this.ConvertNode(this.SplitCompoundAssignment(node), after);
             }
 
-            private Computation ConvertNode(AST.ComplexCompoundAssignment node, ILabel after)
-            {
-                return this.ConvertNode(this.SplitArrayCompoundAssignment(node), after);
-            }
-
             private AST.Assignment SplitCompoundAssignment(AST.CompoundAssignment node)
             {
                 var operation = new AST.ArithmeticOperation(node.InputRange, node.Lhs, node.Value, node.Operation);
                 return new AST.Assignment(node.InputRange, node.Lhs, operation);
-            }
-
-            private AST.ComplexAssignment SplitArrayCompoundAssignment(AST.ComplexCompoundAssignment node)
-            {
-                var operation = new AST.ArithmeticOperation(node.InputRange, node.Lhs, node.Value, node.Operation);
-                return new AST.ComplexAssignment(node.InputRange, node.Lhs, operation);
             }
 
             private Computation ConvertNode(AST.ArithmeticOperation node, ILabel after)
@@ -487,8 +476,9 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 return new Computation(getAddrLabel, root);
             }
 
-            private Computation ConvertNode(AST.ComplexAssignment node, ILabel after)
+            private Computation ConvertComplexAssignment(AST.Expression lhs, Func<Node, ILabel, Computation> value, ILabel after)
             {
+                // ``value`` function should generate the value which needs to be written to Lhs. It is passed previous value of Lhs and the following label.
                 var addrRegister = new VirtualRegister();
                 var addrRegisterValue = new RegisterRead(addrRegister);
 
@@ -498,25 +488,40 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 var root = new MemoryWrite(addrRegisterValue, rhsRegisterValue);
                 var finalLabel = this.labelFactory.GetLabel(new Tree(root, new UnconditionalJump(after)));
 
-                var getAddrLabel = this.labelFactory.WithLabel(label =>
-                {
-                    var addrComputation = this.ContainerAccessMemoryLocation(node.Lhs, label);
-                    var addrRegisterWriteNode = new RegisterWrite(addrRegister, addrComputation.Result);
-                    return (
-                        new Tree(addrRegisterWriteNode, new UnconditionalJump(finalLabel)),
-                        addrComputation.Start);
-                });
-
                 var rhsValueLabel = this.labelFactory.WithLabel(label =>
                 {
-                    var rhsValueComputation = this.GenerateExpression(node.Value, label);
+                    var rhsValueComputation = value(new MemoryRead(new RegisterRead(addrRegister)), label);
                     var rhsRegisterValueWrite = new RegisterWrite(rhsRegister, rhsValueComputation.Result);
                     return (
-                        new Tree(rhsRegisterValueWrite, new UnconditionalJump(getAddrLabel)),
+                        new Tree(rhsRegisterValueWrite, new UnconditionalJump(finalLabel)),
                         rhsValueComputation.Start);
                 });
 
-                return new Computation(rhsValueLabel, root);
+                var getAddrLabel = this.labelFactory.WithLabel(label =>
+                {
+                    var addrComputation = this.ContainerAccessMemoryLocation(lhs, label);
+                    var addrRegisterWriteNode = new RegisterWrite(addrRegister, addrComputation.Result);
+                    return (
+                        new Tree(addrRegisterWriteNode, new UnconditionalJump(rhsValueLabel)),
+                        addrComputation.Start);
+                });
+
+                return new Computation(getAddrLabel, root);
+            }
+
+            private Computation ConvertNode(AST.ComplexAssignment node, ILabel after)
+            {
+                return this.ConvertComplexAssignment(node.Lhs, (prevValue, label) => this.GenerateExpression(node.Value, label), after);
+            }
+
+            private Computation ConvertNode(AST.ComplexCompoundAssignment node, ILabel after)
+            {
+                Func<Node, ILabel, Computation> value = (prevValue, label) =>
+                {
+                    Computation rhs = this.GenerateExpression(node.Value, label);
+                    return new Computation(rhs.Start, new ArithmeticBinaryOperation(node.Operation, prevValue, rhs.Result));
+                };
+                return this.ConvertComplexAssignment(node.Lhs, value, after);
             }
 
             private Computation ConvertNode(AST.ArrayAlloc node, ILabel after)
