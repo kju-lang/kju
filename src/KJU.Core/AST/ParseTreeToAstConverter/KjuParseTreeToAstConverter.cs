@@ -145,6 +145,8 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                     case KjuAlphabet.BooleanLiteral:
                         var boolValue = bool.Parse(token.Text);
                         return new BoolLiteral(token.InputRange, boolValue);
+                    case KjuAlphabet.NullLiteral:
+                        return new NullLiteral(token.InputRange);
                     default:
                         var diag = new Diagnostic(
                             DiagnosticStatus.Error,

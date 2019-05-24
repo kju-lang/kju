@@ -73,7 +73,7 @@ namespace KJU.Core.AST.TypeChecker
                 {
                     case ReturnStatement returnNode:
                         var type = returnNode.Type;
-                        if (!expectedType.Equals(type))
+                        if (!this.CanBeConverted(type, expectedType))
                         {
                             var message = $"Incorrect return type. Expected '{expectedType}', got '{type}'";
                             this.AddDiagnostic(
@@ -132,6 +132,11 @@ namespace KJU.Core.AST.TypeChecker
 
             private bool CanBeConverted(DataType from, DataType to)
             {
+                if (from == null || to == null)
+                {
+                    return false;
+                }
+
                 if (from.Equals(NullType.Instance))
                 {
                     return (to is NullType) || (to is ArrayType) || (to is StructType);
@@ -298,7 +303,7 @@ namespace KJU.Core.AST.TypeChecker
                             throw new TypeCheckerException("Type checking failed.", this.exceptions);
                         }
 
-                        if (!assignmentNode.Lhs.Type.Equals(assignmentNode.Value.Type))
+                        if (!this.CanBeConverted(assignmentNode.Value.Type, assignmentNode.Lhs.Type))
                         {
                             var identifier = assignmentNode.Lhs.Identifier;
                             var message =

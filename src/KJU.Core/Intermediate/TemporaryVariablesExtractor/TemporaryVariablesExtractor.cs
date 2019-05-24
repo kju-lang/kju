@@ -74,6 +74,8 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
 
                     case UnitLiteral _:
                         return new List<Expression>();
+                    case NullLiteral _:
+                        return new List<Expression>();
                     case BinaryOperation operationNode:
                         return this.ExtractFromOperationNode(operationNode);
 

@@ -118,6 +118,8 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                         return this.ConvertNode(expr, after);
                     case AST.UnitLiteral expr:
                         return this.ConvertNode(expr, after);
+                    case AST.NullLiteral expr:
+                        return this.ConvertNode(expr, after);
                     case AST.Assignment expr:
                         return this.ConvertNode(expr, after);
                     case AST.CompoundAssignment expr:
@@ -295,6 +297,11 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
             private Computation ConvertNode(AST.UnitLiteral node, ILabel after)
             {
                 return new Computation(after, new UnitImmediateValue());
+            }
+
+            private Computation ConvertNode(AST.NullLiteral node, ILabel after)
+            {
+                return new Computation(after, new IntegerImmediateValue(0));
             }
 
             private Computation ConvertNode(AST.Assignment node, ILabel after)

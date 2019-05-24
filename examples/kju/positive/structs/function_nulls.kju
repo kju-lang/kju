@@ -1,0 +1,19 @@
+fun write(a : Int) : Unit import
+
+struct A
+{
+    val : Int;
+}
+
+fun f(t: [Int]): A
+{
+	return null;
+}
+fun kju() : Unit
+{
+	var a : [Int] = null;
+    if f(a) == null then
+	{
+		write(1);
+	};
+}

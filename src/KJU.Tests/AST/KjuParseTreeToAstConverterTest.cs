@@ -257,6 +257,17 @@ namespace KJU.Tests.AST
         }
 
         [TestMethod]
+        public void NullComparision()
+        {
+            string code = @"
+                fun kju ( ) : Unit {
+                    x == null ;
+                }";
+            string expected = "P<fun kju Unit<block<cmp ==<var x | null>>>>";
+            this.TestTemplate(code, expected);
+        }
+
+        [TestMethod]
         public void LogicalOperation()
         {
             string code = @"
@@ -570,6 +581,9 @@ namespace KJU.Tests.AST
                     return;
                 case IntegerLiteral integerLiteral:
                     builder.Append($"int {integerLiteral.Value}");
+                    return;
+                case NullLiteral nullLiteral:
+                    builder.Append($"null");
                     return;
                 case Assignment _:
                     builder.Append($"assign");

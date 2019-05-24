@@ -231,7 +231,8 @@ namespace KJU.Core.Parser
             Lhs = KjuAlphabet.Literal,
             Rhs = Sum(
                 KjuAlphabet.DecimalLiteral.ToRegex(),
-                KjuAlphabet.BooleanLiteral.ToRegex())
+                KjuAlphabet.BooleanLiteral.ToRegex(),
+                KjuAlphabet.NullLiteral.ToRegex())
         };
 
         public static readonly Rule<KjuAlphabet> Alloc = new Rule<KjuAlphabet>

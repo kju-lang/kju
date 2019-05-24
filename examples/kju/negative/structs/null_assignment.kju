@@ -1,0 +1,10 @@
+struct A
+{
+    val : Int;
+}
+
+fun kju() : Unit
+{
+    var a : Int;
+    a = null;
+}

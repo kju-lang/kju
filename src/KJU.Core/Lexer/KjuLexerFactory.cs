@@ -38,6 +38,7 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.Return, "return" },
                 { KjuAlphabet.DecimalLiteral, "0|[1-9][0-9]*" },
                 { KjuAlphabet.BooleanLiteral, "true|false" },
+                { KjuAlphabet.NullLiteral, "null" },
                 { KjuAlphabet.TypeIdentifier, "[A-Z][a-zA-Z0-9_]*" },
                 { KjuAlphabet.VariableFunctionIdentifier, "[a-z][a-zA-Z0-9_]*" },
                 { KjuAlphabet.Equals, "==" },

@@ -135,6 +135,11 @@ namespace KJU.Core.Lexer
         BooleanLiteral,
 
         /// <summary>
+        /// null
+        /// </summary>
+        NullLiteral,
+
+        /// <summary>
         /// [A-Z][a-zA-Z0-9_]*
         /// </summary>
         TypeIdentifier,
