@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <list>
 
 namespace KJU {
+
 __attribute__((sysv_abi))
 long long read() {
     long long result;
@@ -36,7 +38,10 @@ void abort() {
 
 __attribute__((sysv_abi))
 long long allocate(long long size) {
-    return ((long long) malloc(size));
+    long long* ptr = (long long*) malloc(size + 1);
+    *ptr = size;
+    ptr++;
+    return (long long) ptr;
 }
 
 // for debugging
