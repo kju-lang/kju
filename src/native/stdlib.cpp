@@ -5,6 +5,8 @@
 
 namespace KJU {
 
+std::list<long long> references;
+
 __attribute__((sysv_abi))
 long long read() {
     long long result;
@@ -41,6 +43,7 @@ long long allocate(long long size) {
     long long* ptr = (long long*) malloc(size + 1);
     *ptr = size;
     ptr++;
+    references.push_back((long long) ptr);
     return (long long) ptr;
 }
 
