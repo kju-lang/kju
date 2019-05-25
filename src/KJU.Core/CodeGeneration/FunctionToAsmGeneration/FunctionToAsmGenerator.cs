@@ -77,11 +77,14 @@ namespace KJU.Core.CodeGeneration.FunctionToAsmGeneration
             Function function)
         {
             var usefulLabels = new HashSet<string>(UsefulLabels(instructionSequence));
-            return instructionSequence.SelectMany(codeBlock =>
+            return new[] { $"section .data", $"{function.LayoutLabel}:" }
+            .Concat(function.GenerateStackLayout())
+            .Concat(new[] { $"section .text", $"{function.MangledName}:" })
+            .Concat(instructionSequence.SelectMany(codeBlock =>
             {
                 var ret = codeBlock.Instructions.SelectMany(instruction => instruction.ToASM(allocation.Allocation));
                 return !usefulLabels.Contains(codeBlock.Label.Id) ? ret : ret.Prepend($"{codeBlock.Label.Id}:");
-            }).Prepend($"{function.MangledName}:");
+            }));
         }
 
         private (RegisterAllocationResult, IReadOnlyList<CodeBlock>) Allocate(

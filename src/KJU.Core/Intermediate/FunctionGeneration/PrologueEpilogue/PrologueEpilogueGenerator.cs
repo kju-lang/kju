@@ -34,6 +34,8 @@ namespace KJU.Core.Intermediate.FunctionGeneration.PrologueEpilogue
                         function,
                         HardwareRegister.RBP,
                         new RegisterRead(HardwareRegister.RSP)),
+                    new Comment("Place pointer to function's stack layout (list of variables which are pointers)"),
+                    new PushStackLayoutPointer(function),
                     new Comment("Reserve memory for local variables"),
                     new ReserveStackMemory(function),
                 }.Append(new Comment("Save callee saved registers."))

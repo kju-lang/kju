@@ -2,11 +2,16 @@ namespace KJU.Core.Intermediate.Function
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
+    using KJU.Core.AST.Types;
 
     public class Function
     {
+        private List<(int offset, DataType target)> stackLayoutInfo = new List<(int offset, DataType target)>();
+
         public Function(
             Function parent,
             string mangledName,
@@ -29,7 +34,7 @@ namespace KJU.Core.Intermediate.Function
 
         public string MangledName { get; }
 
-        public string LayoutLabel { get; }
+        public string LayoutLabel { get => $"{this.MangledName}_stack_layout"; }
 
         public int StackBytes { get; private set; }
 
@@ -39,14 +44,26 @@ namespace KJU.Core.Intermediate.Function
 
         public IReadOnlyList<AST.VariableDeclaration> Parameters { get; }
 
+        [SuppressMessage(
+            "StyleCop.CSharp.ReadabilityRules",
+            "SA1101:PrefixLocalCallsWithThis",
+            Justification = "Shows false warning when named tuples are used.")]
         public MemoryLocation ReserveStackFrameLocation(DataType dataType)
         {
-            return new MemoryLocation(this, -(this.StackBytes += 8));
+            this.StackBytes += 8;
+            if (dataType is ArrayType || dataType is StructType)
+            {
+                this.stackLayoutInfo.Add((offset: -this.StackBytes / 8, target: dataType));
+            }
+
+            return new MemoryLocation(this, -this.StackBytes);
         }
 
-        public IEnumerable<string> GenerateStackLayout(Function function)
+        public IEnumerable<string> GenerateStackLayout()
         {
-            throw new NotImplementedException();
+            return this.stackLayoutInfo
+                .Select(pointer => $"dq {pointer.offset}, {pointer.target.LayoutLabel}")
+                .Append("dq 0, 0");
         }
     }
 }

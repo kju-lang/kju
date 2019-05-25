@@ -484,6 +484,26 @@ namespace KJU.Core.Intermediate
         }
     }
 
+    public class PushStackLayoutPointer : Node
+    {
+        public PushStackLayoutPointer(Function.Function function)
+        {
+            this.Function = function;
+        }
+
+        private Function.Function Function { get; }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is PushStackLayoutPointer)
+            {
+                return new List<object> { this.Function };
+            }
+
+            return null;
+        }
+    }
+
     public class ClearDF : Node
     {
         public override List<object> Match(Node template)
