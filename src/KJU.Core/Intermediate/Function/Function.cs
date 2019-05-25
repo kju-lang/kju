@@ -28,6 +28,8 @@ namespace KJU.Core.Intermediate.Function
             this.Link = this.ReserveStackFrameLocation(IntType.Instance);
         }
 
+        public IReadOnlyList<VariableDeclaration> Parameters { get; }
+
         public ILocation Link { get; }
 
         public Function Parent { get; }
@@ -42,13 +44,11 @@ namespace KJU.Core.Intermediate.Function
 
         public bool IsEntryPoint { get; }
 
-        public IReadOnlyList<AST.VariableDeclaration> Parameters { get; }
-
         [SuppressMessage(
             "StyleCop.CSharp.ReadabilityRules",
             "SA1101:PrefixLocalCallsWithThis",
             Justification = "Shows false warning when named tuples are used.")]
-        public MemoryLocation ReserveStackFrameLocation(DataType dataType)
+            public MemoryLocation ReserveStackFrameLocation(DataType dataType)
         {
             this.StackBytes += 8;
             if (dataType is ArrayType || dataType is StructType)

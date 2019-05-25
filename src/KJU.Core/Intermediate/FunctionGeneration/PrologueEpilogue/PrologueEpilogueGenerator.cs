@@ -30,6 +30,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.PrologueEpilogue
                     new Comment("Save RBP - parent base pointer"),
                     new Push(new RegisterRead(HardwareRegister.RBP)),
                     new Comment("Copy RSP to RBP - current base pointer"),
+
                     this.readWriteGenerator.GenerateWrite(
                         function,
                         HardwareRegister.RBP,
