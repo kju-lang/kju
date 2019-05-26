@@ -6,6 +6,7 @@
 namespace KJU {
 
 std::list<long long> references;
+size_t lastsize = 0;
 
 __attribute__((sysv_abi))
 long long read() {
@@ -40,10 +41,18 @@ void abort() {
 
 __attribute__((sysv_abi))
 long long allocate(long long size) {
+    bool gc_ran = false;
+    if(references.size() > lastsize + 256)
+    {
+      garbage_collection();
+      gc_ran = true;
+    }
     long long* ptr = (long long*) calloc(size + 8, 1);
     *ptr = size;
     ptr++;
     references.push_back((long long) ptr);
+    if(gc_ran)
+      lastsize = references.size();
     return (long long) ptr;
 }
 
