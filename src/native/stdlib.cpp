@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <list>
-#include <iostream>
 #include <queue>
 #include <set>
+#include <map>
 
 namespace KJU {
 
-using pointer = long long*;
+using pointer = long long *;
 
-std::list<long long> references;
+std::list<pointer> references;
 size_t lastsize = 0;
 
 __attribute__((sysv_abi))
@@ -20,15 +20,71 @@ long long garbage_collection() {
 
 __attribute__((sysv_abi))
 long long mark_and_sweep_run() {
-    volatile pointer addr;
-    asm volatile ("mov %0, rbp" : "=r"(addr));
-    int cnt = 125;
-    std::cout << cnt << std::endl;
-    while (addr != nullptr) {
-        std::cout << 1 << std::endl;
-        addr = (pointer) *addr;
+    volatile pointer stack_frame_addr;
+    asm volatile ("mov %0, rbp" : "=r"(stack_frame_addr));
+    stack_frame_addr = (pointer) *stack_frame_addr;
+
+    std::queue<pointer> queue;
+    std::set<pointer> visited_addr;
+    std::map<pointer, pointer> addr_type;
+    visited_addr.insert(nullptr);
+
+    auto pushToQueue = [&](pointer addr, pointer type) {
+        if (!visited_addr.count(addr)) {
+            visited_addr.insert(addr);
+            addr_type[addr] = type;
+            queue.push(addr);
+        }
+    };
+
+    auto pushReachableAddr = [&](pointer base, pointer layout) {
+        int index = 0;
+        while (true) {
+            long long offset = (long long) *(layout + index);
+            pointer type = (pointer) *(layout + index + 1);
+
+            if (offset == 0 && type == nullptr)
+                break;
+
+            pointer addr = (pointer) *(base + offset);
+            pushToQueue(addr, type);
+            index += 2;
+        }
+    };
+
+    while (stack_frame_addr != nullptr) {
+        pointer function_layout = (pointer) *(stack_frame_addr + 1);
+        pushReachableAddr(stack_frame_addr, function_layout);
+        stack_frame_addr = (pointer) *stack_frame_addr;
     }
-    return cnt;
+
+    while (!queue.empty()) {
+        pointer variable_addr = queue.front();
+        queue.pop();
+        
+        pointer type_addr = (pointer) *addr_type[variable_addr];
+        pointer array_of_type = (pointer) *type_addr;
+
+        if (array_of_type == nullptr) {
+            pushReachableAddr((pointer) *variable_addr, type_addr + 1);            
+        } else {
+            pointer array = (pointer) *variable_addr;
+            long long size = *(array - 1);
+            for (long long i = 0; i < size; ++i) {
+                pushToQueue((pointer) *(array + i), array_of_type);
+            }
+        }
+    }
+
+    for (auto it = references.begin(); it != references.end(); ++it) {
+        pointer addr = *it;
+        if (!visited_addr.count(addr)) {
+            it = references.erase(it);
+            free(addr);
+        }
+    }
+
+    return (long long) references.size();
 }
 
 __attribute__((sysv_abi))
@@ -79,10 +135,10 @@ long long allocate(long long size) {
     *ptr = size;
     ptr++;
 
-    references.push_back((long long) ptr);
     if(gc_ran)
         lastsize = references.size();
-    
+
+    references.push_back((pointer) ptr);
     return (long long) ptr;
 }
 
