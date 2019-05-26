@@ -10,9 +10,12 @@ namespace KJU.Core.AST.Types
 
         private StructType(StructDeclaration declaration)
         {
+            this.Id = instances.Count;
             this.Name = declaration.Name;
             this.Declaration = declaration;
         }
+
+        public int Id { get; }
 
         public string Name { get; }
 
