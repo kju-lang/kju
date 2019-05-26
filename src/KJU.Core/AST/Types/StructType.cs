@@ -45,13 +45,13 @@ namespace KJU.Core.AST.Types
             {
                 if (!(field.Type is ArrayType) && !(field.Type is StructType))
                 {
-                    pos += 8;
+                    ++pos;
                     continue;
                 }
 
                 yield return $"dq {pos}";
                 yield return $"dq {field.Type.LayoutLabel}";
-                pos += 8;
+                ++pos;
             }
 
             yield return "dq 0";
