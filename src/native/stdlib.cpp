@@ -2,11 +2,39 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <list>
+#include <iostream>
+#include <queue>
+#include <set>
 
 namespace KJU {
 
+using pointer = long long*;
+
 std::list<long long> references;
 size_t lastsize = 0;
+
+__attribute__((sysv_abi))
+long long garbage_collection() {
+    return 0;
+}
+
+__attribute__((sysv_abi))
+long long mark_and_sweep_run() {
+    volatile pointer addr;
+    asm volatile ("mov %0, rbp" : "=r"(addr));
+    int cnt = 125;
+    std::cout << cnt << std::endl;
+    while (addr != nullptr) {
+        std::cout << 1 << std::endl;
+        addr = (pointer) *addr;
+    }
+    return cnt;
+}
+
+__attribute__((sysv_abi))
+long long enforce_gc() {
+
+}
 
 __attribute__((sysv_abi))
 long long read() {
@@ -42,17 +70,19 @@ void abort() {
 __attribute__((sysv_abi))
 long long allocate(long long size) {
     bool gc_ran = false;
-    if(references.size() > lastsize + 256)
-    {
-      garbage_collection();
-      gc_ran = true;
+    if(references.size() > lastsize + 256) {
+        garbage_collection();
+        gc_ran = true;
     }
+
     long long* ptr = (long long*) calloc(size + 8, 1);
     *ptr = size;
     ptr++;
+
     references.push_back((long long) ptr);
     if(gc_ran)
-      lastsize = references.size();
+        lastsize = references.size();
+    
     return (long long) ptr;
 }
 
@@ -95,20 +125,4 @@ struct data_type_layout
 };
 
 **/
-
-
-__attribute__((sysv_abi))
-long long garbage_collection() {
-    return 0;
-}
-
-__attribute__((sysv_abi))
-long long mark_and_sweep_run() {
-    return 0;
-}
-
-__attribute__((sysv_abi))
-long long enforce_gc() {
-
-}
 }

@@ -7,7 +7,12 @@ namespace KJU.Core.CodeGeneration.AsmHeaderGenerator
             return @"global main
 section .text
 main:
-jmp _ZN3KJU3kjuEv
+push rbp
+xor rbp, rbp
+cld
+call _ZN3KJU3kjuEv
+pop rbp
+ret
 ";
         }
 
