@@ -16,6 +16,7 @@ namespace KJU.Core.Compiler
     using Intermediate.NameMangler;
     using Intermediate.VariableAndFunctionBuilder;
     using KJU.Core.AST.ParseTreeToAstConverter;
+    using KJU.Core.CodeGeneration.DataLayout;
     using Lexer;
     using Parser;
 
@@ -43,6 +44,8 @@ namespace KJU.Core.Compiler
         private readonly IFunctionToAsmGenerator
             functionToAsmGenerator = new FunctionToAsmGeneratorFactory().Generate();
 
+        private readonly DataTypeLayoutGenerator dataTypeLayoutGenerator = new DataTypeLayoutGenerator();
+
         private readonly IAsmHeaderGenerator asmHeaderGenerator = new AsmHeaderGenerator();
 
         public Artifacts RunOnInputReader(IInputReader inputReader, IDiagnostics diagnostics)
@@ -60,10 +63,12 @@ namespace KJU.Core.Compiler
                 this.returnChecker.Run(ast, diagnostics);
                 this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var functionsIR = this.intermediateGenerator.CreateIR(ast);
+                var dataSectionHeader = this.asmHeaderGenerator.GenerateDataSectionHeader();
+                var dataSection = this.dataTypeLayoutGenerator.GenerateDataLayouts(ast).Prepend(dataSectionHeader);
                 var asmHeader = this.asmHeaderGenerator.GenerateHeader();
                 var functionsAsm = functionsIR.SelectMany(x => this.functionToAsmGenerator.ToAsm(x.Key, x.Value))
                     .ToList();
-                var asm = functionsAsm.Prepend(asmHeader).ToList();
+                var asm = functionsAsm.Prepend(asmHeader).Concat(dataSection).ToList();
                 return new Artifacts(ast, asm);
             }
             catch (Exception ex) when (

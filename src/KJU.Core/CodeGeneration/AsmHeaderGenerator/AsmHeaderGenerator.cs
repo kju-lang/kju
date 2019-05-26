@@ -10,5 +10,10 @@ main:
 jmp _ZN3KJU3kjuEv
 ";
         }
+
+        public string GenerateDataSectionHeader()
+        {
+            return "section .data";
+        }
     }
 }
