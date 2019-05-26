@@ -8,6 +8,25 @@ namespace KJU.Core.Intermediate.NameMangler
 
     public class NameMangler : INameMangler
     {
+        public static string MangleTypeName(DataType type)
+        {
+            switch (type)
+            {
+                case BoolType _:
+                    return "b";
+                case IntType _:
+                    return "x";
+                case UnitType _:
+                    return "v";
+                case ArrayType arrayType:
+                    return $"P{MangleTypeName(arrayType.ElementType)}";
+                case StructType structType:
+                    return $"Ts{structType.Name}_{structType.Id}_";
+                default:
+                    throw new ArgumentException($"Unknown type: {type}");
+            }
+        }
+
         public string GetMangledName(FunctionDeclaration declaration, string parentMangledName)
         {
             string name = declaration.Identifier;
@@ -32,25 +51,6 @@ namespace KJU.Core.Intermediate.NameMangler
             }
 
             return result;
-        }
-
-        private static string MangleTypeName(DataType type)
-        {
-            switch (type)
-            {
-                case BoolType _:
-                    return "b";
-                case IntType _:
-                    return "x";
-                case UnitType _:
-                    return "v";
-                case ArrayType arrayType:
-                    return $"P{MangleTypeName(arrayType.ElementType)}";
-                case StructType structType:
-                    return $"Ts{structType.Name}_{structType.Id}_";
-                default:
-                    throw new ArgumentException($"Unknown type: {type}");
-            }
         }
     }
 }

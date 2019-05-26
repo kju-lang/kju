@@ -1,6 +1,7 @@
 namespace KJU.Core.AST.Types
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     public class ArrayType : DataType
     {
@@ -23,6 +24,15 @@ namespace KJU.Core.AST.Types
         public override string ToString()
         {
             return $"[{this.ElementType.ToString()}]";
+        }
+
+        public override IEnumerable<string> GenerateLayout()
+        {
+            yield return $"{this.LayoutLabel}:";
+            if (!(this.ElementType is ArrayType) && !(this.ElementType is StructType))
+                yield return "dq 0, 0, 0"; // Act as a struct type without pointer fields.
+            else
+                yield return $"dq {this.ElementType.LayoutLabel}";
         }
     }
 }

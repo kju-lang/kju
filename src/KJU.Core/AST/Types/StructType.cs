@@ -35,5 +35,28 @@ namespace KJU.Core.AST.Types
         {
             return $"Struct {this.Declaration}";
         }
+
+        public override IEnumerable<string> GenerateLayout()
+        {
+            yield return $"{this.LayoutLabel}:";
+            yield return "dq 0"; // Not an array type.
+            int pos = 0;
+            foreach (var field in this.Declaration.Fields)
+            {
+                if (!(field.Type is ArrayType) && !(field.Type is StructType))
+                {
+                    pos += 8;
+                    continue;
+                }
+
+                yield return $"dq {pos}";
+                yield return $"dq {field.Type.LayoutLabel}";
+                pos += 8;
+            }
+
+            yield return "dq 0";
+            // Null target: end of layout.
+            yield return "dq 0";
+        }
     }
 }
