@@ -40,7 +40,7 @@ void abort() {
 
 __attribute__((sysv_abi))
 long long allocate(long long size) {
-    long long* ptr = (long long*) malloc(size + 1);
+    long long* ptr = (long long*) calloc(size + 8, 1);
     *ptr = size;
     ptr++;
     references.push_back((long long) ptr);

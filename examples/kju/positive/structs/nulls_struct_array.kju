@@ -1,0 +1,15 @@
+fun write(a : Int) : Unit import
+
+struct A
+{
+    val : Int;
+}
+
+fun kju() : Unit
+{
+    var x : [A] = new (A, 100);
+    if x[5] == null then
+    {
+        write(44747);
+    };
+}
