@@ -72,21 +72,23 @@ void mark_and_sweep_run(pointer stack_frame_addr) {
         pointer array_of_type = (pointer) *type_addr;
 
         if (array_of_type == nullptr) {
-            pushReachableAddr((pointer) *variable_addr, type_addr + 1);            
+            pushReachableAddr(variable_addr, type_addr + 1);            
         } else {
-            pointer array = (pointer) *variable_addr;
-            long long size = *(array - 1);
+            pointer array = variable_addr;
+            long long size = *(array - 1) / 8;
             for (long long i = 0; i < size; ++i) {
                 pushToQueue((pointer) *(array + i), array_of_type);
             }
         }
     }
 
-    for (auto it = references.begin(); it != references.end(); ++it) {
+    for (auto it = references.begin(); it != references.end();) {
         pointer addr = *it;
         if (!visited_addr.count(addr)) {
             it = references.erase(it);
             free(addr - 1);
+        } else {
+            ++it;
         }
     }
 }

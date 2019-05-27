@@ -13,7 +13,7 @@ fun g(a : A) : Unit
     var b : A = new (A);
     b.tab = new (A, 10);
     b.tab[5] = a;
-    /* Expected output  6*/
+    /* Expected output  7*/
     var objects: Int = enforce_gc();
 		write(objects);
 }
@@ -23,13 +23,14 @@ fun f() : Unit
 
     var a : A = new (A);
     a.tab = new (A, 100);
+    a.tab[30] = new (A);
     a.tab[30].a = new (A);
     a.tab[30].a.tab = new (A, 10);
     a.tab[30].a.tab[4] = a;
 
     g(a);
 
-    /* Expected output  4*/
+    /* Expected output  5*/
     var objects: Int = enforce_gc();
 		write(objects);
 }

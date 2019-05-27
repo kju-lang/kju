@@ -23,6 +23,7 @@ fun f() : Unit
 
     var a : A = new (A);
     a.tab = new (A, 100);
+    a.tab[30] = new (A);
     a.tab[30].a = new (A);
     a.tab[30].a.tab = new (A, 10);
     a.tab[30].a.tab[4] = a;
