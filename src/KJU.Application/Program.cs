@@ -82,7 +82,7 @@
                     }
 
                     var exePath = resultPath;
-                    var gccExitCode = RunProcess(@"gcc", $"{oPath} {stdlibPath} -o {exePath}");
+                    var gccExitCode = RunProcess(@"g++", $"-static {oPath} {stdlibPath} -o {exePath}");
                     if (gccExitCode != 0)
                     {
                         throw new ArtifactGenerationException(
