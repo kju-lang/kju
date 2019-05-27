@@ -1,0 +1,33 @@
+fun write(a : Int) : Unit import
+fun enforce_gc() : Int import
+
+struct A
+{
+    a : A;
+    tab: [A];
+    tab_int: [Int];
+    val : Int;
+}
+
+fun f() : Unit
+{
+    var a : A = new (A);
+    a.a = new (A);
+    a.tab_int = new (Int, 5);
+    a.tab = new (A, 5);
+    a.tab[3] = new (A);
+    a.tab[3].tab = new (A, 5);
+
+    /* Expected output  6*/
+    var objects: Int = enforce_gc();
+		write(objects);
+}
+
+fun kju() : Unit
+{
+    f();
+
+    /* Expected output  0*/
+    var objects: Int = enforce_gc();
+		write(objects);
+}

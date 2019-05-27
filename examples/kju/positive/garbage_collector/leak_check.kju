@@ -1,0 +1,24 @@
+fun read() : Int import
+fun write(a: Int): Unit import
+fun enforce_gc() : Int import
+
+struct A
+{
+    val : [Int];
+}
+
+fun f() : Unit
+{
+	var a : A = new (A);
+  a.val = new(Int, 1000);
+}
+
+fun kju(): Unit
+{
+  /* This test uses 1GB of memory without GC. With GC should use a lot less (< MB?) */
+  var i : Int = 0;
+  while (i <= 150000) {
+    f();
+    i=i+1;
+  };
+}

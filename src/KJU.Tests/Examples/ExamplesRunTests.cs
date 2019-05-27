@@ -41,7 +41,7 @@ namespace KJU.Tests.Examples
         }
 
         [DataTestMethod]
-        [Timeout(6000)]
+        [Timeout(12000)]
         [DynamicData(nameof(Executable))]
         public void ExecutableExamples(IKjuExample example)
         {

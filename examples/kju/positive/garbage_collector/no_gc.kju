@@ -1,0 +1,9 @@
+fun write(a: Int): Unit import
+fun enforce_gc() : Int import
+
+fun kju(): Unit
+{
+    /* Expected output: 0 */
+    var i: Int = enforce_gc();
+    write(i);
+}

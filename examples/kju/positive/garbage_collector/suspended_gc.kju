@@ -1,0 +1,50 @@
+fun write(a : Int) : Unit import
+fun enforce_gc() : Int import
+fun disable_gc() : Unit import
+
+struct A
+{
+    a : A;
+    tab: [A];
+}
+
+
+fun g(a : A) : Unit
+{
+    var b : A = new (A);
+    b.tab = new (A, 10);
+    b.tab = new (A, 7);
+    b.tab = new (A, 17);
+    b.tab[5] = a;
+}
+
+fun f() : Unit
+{
+
+    var a : A = new (A);
+    a.tab = new (A, 100);
+    a.tab[30].a = new (A);
+    a.tab[30].a.tab = new (A, 10);
+    a.tab[30].a.tab[4] = a;
+    a.tab[30].a.tab[4].a = new (A);
+    a.tab[30].a.tab[4].a = new (A);
+    a.tab[30].a.tab[4].a = new (A);
+    
+    g(a);
+}
+
+
+fun kju() : Unit
+{
+    disable_gc();
+
+    var x:Int=0;
+    while(x < 1000){
+      f();
+      x=x+1;
+    };
+
+    /* Expected output  0*/
+    var objects: Int = enforce_gc();
+		write(objects);
+}

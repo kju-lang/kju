@@ -1,0 +1,28 @@
+fun read() : Int import
+fun write(a: Int): Unit import
+fun enforce_gc() : Int import
+
+fun f() : Unit
+{
+	var ay: [[Int]] = new([Int],5);
+	var i: Int = 0;
+
+	while(i!=5)
+	{
+		var objects: Int = enforce_gc();
+		write(objects);
+		ay[i]=new(Int,5);
+		i=i+1;
+	};
+
+	var objects: Int = enforce_gc();
+	write(objects);
+}
+
+fun kju(): Unit
+{
+	f();
+
+	var objects: Int = enforce_gc();
+	write(objects);
+}
