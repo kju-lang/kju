@@ -59,16 +59,16 @@ void mark_and_sweep_run(pointer stack_frame_addr) {
     };
 
     while (stack_frame_addr != nullptr) {
-        pointer function_layout = (pointer) *(stack_frame_addr + 1);
+        pointer function_layout = (pointer) *(stack_frame_addr - 1);
         pushReachableAddr(stack_frame_addr, function_layout);
         stack_frame_addr = (pointer) *stack_frame_addr;
     }
-
+    
     while (!queue.empty()) {
         pointer variable_addr = queue.front();
         queue.pop();
         
-        pointer type_addr = (pointer) *addr_type[variable_addr];
+        pointer type_addr = (pointer) addr_type[variable_addr];
         pointer array_of_type = (pointer) *type_addr;
 
         if (array_of_type == nullptr) {
@@ -94,21 +94,17 @@ void mark_and_sweep_run(pointer stack_frame_addr) {
 // This function will enforce GC even if `gc_enabled == true`
 __attribute__((sysv_abi))
 long long enforce_gc() {
-    volatile pointer stack_frame_addr;
-    asm volatile ("mov %0, rsp" : "=r"(stack_frame_addr));
-    stack_frame_addr = (pointer) *stack_frame_addr;
+    volatile pointer rbp;
+    asm volatile ("mov %0, rbp" : "=r"(rbp));
+    rbp = (pointer) *rbp;
 
-    mark_and_sweep_run(stack_frame_addr);
+    mark_and_sweep_run(rbp);
 
     return (long long) references.size();
 }
 
 __attribute__((sysv_abi))
-void garbage_collection() {
-    volatile pointer stack_frame_addr;
-    asm volatile ("mov %0, rsp" : "=r"(stack_frame_addr));
-    stack_frame_addr = (pointer) *stack_frame_addr;
-    
+void garbage_collection(pointer stack_frame_addr) {
     if (!gc_enabled)
         return;
         
@@ -150,9 +146,13 @@ void abort() {
 
 __attribute__((sysv_abi))
 long long allocate(long long size) {
+    volatile pointer stack_frame_addr;
+    asm volatile ("mov %0, rbp" : "=r"(stack_frame_addr));
+    stack_frame_addr = (pointer) *stack_frame_addr;
+
     bool gc_ran = false;
     if(references.size() > lastsize + 256) {
-        garbage_collection();
+        garbage_collection(stack_frame_addr);
         gc_ran = true;
     }
 

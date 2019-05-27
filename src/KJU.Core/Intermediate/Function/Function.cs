@@ -24,7 +24,9 @@ namespace KJU.Core.Intermediate.Function
             this.IsForeign = isForeign;
             this.IsEntryPoint = isEntryPoint;
             this.Parameters = parameters;
-            this.StackBytes = 0;
+
+            // Only a quick fix. It's because we are pushing an stack layout label on the stack.
+            this.StackBytes = 8;
             this.Link = this.ReserveStackFrameLocation(IntType.Instance);
         }
 
