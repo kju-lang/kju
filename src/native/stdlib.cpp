@@ -5,25 +5,31 @@
 #include <queue>
 #include <set>
 #include <map>
+#include <iostream>
 
 namespace KJU {
 
+/* ****************** GC ********************** */
 using pointer = long long *;
 
 std::list<pointer> references;
 size_t lastsize = 0;
 
+bool gc_enabled = true;
+
 __attribute__((sysv_abi))
-long long garbage_collection() {
-    return 0;
+void enable_gc() {
+    gc_enabled = true;
 }
 
 __attribute__((sysv_abi))
-long long mark_and_sweep_run() {
-    volatile pointer stack_frame_addr;
-    asm volatile ("mov %0, rbp" : "=r"(stack_frame_addr));
-    stack_frame_addr = (pointer) *stack_frame_addr;
+void disable_gc() {
+    gc_enabled = false;
+}
 
+// This one is for internal use only!
+__attribute__((sysv_abi))
+void mark_and_sweep_run(pointer stack_frame_addr) {
     std::queue<pointer> queue;
     std::set<pointer> visited_addr;
     std::map<pointer, pointer> addr_type;
@@ -80,18 +86,36 @@ long long mark_and_sweep_run() {
         pointer addr = *it;
         if (!visited_addr.count(addr)) {
             it = references.erase(it);
-            free(addr);
+            free(addr - 1);
         }
     }
+}
+
+// This function will enforce GC even if `gc_enabled == true`
+__attribute__((sysv_abi))
+long long enforce_gc() {
+    volatile pointer stack_frame_addr;
+    asm volatile ("mov %0, rsp" : "=r"(stack_frame_addr));
+    stack_frame_addr = (pointer) *stack_frame_addr;
+
+    mark_and_sweep_run(stack_frame_addr);
 
     return (long long) references.size();
 }
 
 __attribute__((sysv_abi))
-long long enforce_gc() {
-
+void garbage_collection() {
+    volatile pointer stack_frame_addr;
+    asm volatile ("mov %0, rsp" : "=r"(stack_frame_addr));
+    stack_frame_addr = (pointer) *stack_frame_addr;
+    
+    if (!gc_enabled)
+        return;
+        
+    mark_and_sweep_run(stack_frame_addr);
 }
 
+/* **************************************** */
 __attribute__((sysv_abi))
 long long read() {
     long long result;
@@ -106,6 +130,7 @@ long long read() {
     }
     return result;
 }
+
 
 __attribute__((sysv_abi))
 void write(long long val) {
