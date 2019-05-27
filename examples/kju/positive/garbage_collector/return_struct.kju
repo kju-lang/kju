@@ -1,0 +1,44 @@
+fun write(a : Int) : Unit import
+fun enforce_gc() : Int import
+
+struct A
+{
+    a : A;
+    tab: [A];
+    tab_int: [Int];
+    val : Int;
+}
+
+fun f_array() : [Int]
+{
+  return new (Int, 123);
+}
+
+fun f_struct(a_tab : [Int]) : A
+{
+  var a : A = new (A);
+  a.tab = new (A, 666);
+  a.a = new (A);
+  a.a.tab_int = a_tab;
+  return a;
+}
+
+
+fun f() : Unit
+{
+    var a : [Int] = f_array();
+    var b : A = f_struct(a);
+
+    /* Expected output  4*/
+    var objects: Int = enforce_gc();
+		write(objects);
+}
+
+fun kju() : Unit
+{
+    f();
+
+    /* Expected output  0*/
+    var objects: Int = enforce_gc();
+		write(objects);
+}
