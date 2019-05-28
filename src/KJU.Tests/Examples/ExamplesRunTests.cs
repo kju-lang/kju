@@ -7,7 +7,9 @@ namespace KJU.Tests.Examples
     using Application;
     using Core.Compiler;
     using Core.Diagnostics;
+    using KJU.Tests.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Moq;
     using OutputChecker;
 
     [TestClass]
@@ -51,8 +53,8 @@ namespace KJU.Tests.Examples
             };
             var exeName = $"{TestsDirectory}/{example.SimpleName}";
             var query = new CompilationQuery(example.Program, exeName);
-            var doNothingDiagnostics = new DoNothingDiagnostics();
-            Program.GenerateArtifacts(options, Compiler, query, doNothingDiagnostics);
+            var diag = new Mock<IDiagnostics>();
+            Program.GenerateArtifacts(options, Compiler, query, diag.Object);
             var process = new System.Diagnostics.Process
             {
                 StartInfo =
@@ -102,6 +104,8 @@ namespace KJU.Tests.Examples
             {
                 Assert.Fail("Output is wrong.");
             }
+
+            MockDiagnostics.Verify(diag, example.ExpectedMagicStrings.ToArray());
         }
 
         [DataTestMethod]

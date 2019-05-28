@@ -17,6 +17,7 @@ namespace KJU.Tests.Examples
         public static IEnumerable<object[]> Positive { get; } = new KjuExamplesGetter().Examples
             .Where(example => !example.IsDisabled)
             .Where(example => example.IsPositive)
+            .Where(example => !example.Executable)
             .Select(example => new object[] { example });
 
         public static IEnumerable<object[]> PositiveDisabled { get; } = new KjuExamplesGetter().Examples
@@ -35,7 +36,7 @@ namespace KJU.Tests.Examples
             .Select(example => new object[] { example });
 
         [DataTestMethod]
-        [Timeout(12000)]
+        [Timeout(6000)]
         [DynamicData(nameof(Positive))]
         public void PositiveExamples(IKjuExample example)
         {
