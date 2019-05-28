@@ -278,6 +278,16 @@ namespace KJU.Tests.Automata
                 return false;
             }
 
+            public IState Transition(IState state, char symbol)
+            {
+                if (this.Transitions(state).TryGetValue(symbol, out var newState))
+                {
+                    return newState;
+                }
+
+                return null;
+            }
+
             private class DfaTestState : IState
             {
                 public DfaTestState(int id)

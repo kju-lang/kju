@@ -8,6 +8,8 @@
     {
         IState StartingState();
 
+        IState Transition(IState state, Symbol symbol);
+
         IReadOnlyDictionary<Symbol, IState> Transitions(IState state);
 
         TLabel Label(IState state);

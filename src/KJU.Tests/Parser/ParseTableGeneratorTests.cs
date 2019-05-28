@@ -191,6 +191,16 @@ namespace KJU.Tests.Parser
                 var i = ((ValueState<int>)state).Value;
                 return this.Edges[i].ToDictionary(kv => kv.Key, kv => new ValueState<int>(kv.Value) as IState);
             }
+
+            public IState Transition(IState state, Label symbol)
+            {
+                if (this.Transitions(state).TryGetValue(symbol, out var newState))
+                {
+                    return newState;
+                }
+
+                return null;
+            }
         }
     }
 }

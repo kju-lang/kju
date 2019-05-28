@@ -153,6 +153,16 @@
                 return new IntState(0);
             }
 
+            public IState Transition(IState state, Label symbol)
+            {
+                if (this.Transitions(state).TryGetValue(symbol, out var newState))
+                {
+                    return newState;
+                }
+
+                return null;
+            }
+
             public IReadOnlyDictionary<Label, IState> Transitions(IState state)
             {
                 var edges = new Dictionary<Label, IState>
@@ -178,6 +188,16 @@
             public IState StartingState()
             {
                 return new IntState(0);
+            }
+
+            public IState Transition(IState state, Label symbol)
+            {
+                if (this.Transitions(state).TryGetValue(symbol, out var newState))
+                {
+                    return newState;
+                }
+
+                return null;
             }
 
             public IReadOnlyDictionary<Label, IState> Transitions(IState state)

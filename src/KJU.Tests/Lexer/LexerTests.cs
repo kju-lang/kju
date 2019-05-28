@@ -33,6 +33,11 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             dfa.Setup(x => x.Transitions(this.states[0])).Returns(trans0);
             dfa.Setup(x => x.IsStable(this.states[0])).Returns(true);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
             var input = StringToLetters(string.Empty);
             var ret = lexer.Scan(input, null).ToList();
             var expected = 1;
@@ -53,6 +58,16 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[1])).Returns(trans1);
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
+
             var result = lexer.Scan(StringToLetters("a"), null).ToList();
             var inputRange = result[0].InputRange;
             var beginLocation = (Location)inputRange.Begin;
@@ -73,6 +88,11 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.StartingState()).Returns(this.states[0]);
             dfa.Setup(x => x.Transitions(this.states[0])).Returns(trans0);
             dfa.Setup(x => x.IsStable(this.states[0])).Returns(true);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
             var diag = new Mock<IDiagnostics>();
             Assert.ThrowsException<LexerException>(() => lexer.Scan(StringToLetters("a"), diag.Object).ToList());
             MockDiagnostics.Verify(diag, Lexer<DummyTokens?>.NonTokenDiagnostic);
@@ -91,6 +111,16 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[1])).Returns(trans1);
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
+
             var result = lexer.Scan(StringToLetters("aa"), null).ToList();
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
@@ -124,6 +154,16 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans1);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.B);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
+
             var result = lexer.Scan(StringToLetters("ab"), null).ToList();
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
@@ -156,6 +196,15 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[2])).Returns(trans1);
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.A);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
 
             var diag = new Mock<IDiagnostics>();
             Assert.ThrowsException<LexerException>(() => lexer.Scan(StringToLetters("ab"), diag.Object).ToList());
@@ -185,6 +234,20 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[1])).Returns(trans1);
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
+
+            foreach (char c in trans3.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[3], c)).Returns(trans3[c]);
+            }
 
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
             var result = lexer.Scan(StringToLetters("ab"), null).ToList();
@@ -218,6 +281,20 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[1])).Returns(trans1);
             dfa.Setup(x => x.IsStable(this.states[2])).Returns(true);
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
+
+            foreach (char c in trans3.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[3], c)).Returns(trans3[c]);
+            }
 
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
 
@@ -242,6 +319,21 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.B);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
+
+            foreach (char c in trans3.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[3], c)).Returns(trans3[c]);
+            }
+
             var result = lexer.Scan(StringToLetters("aa"), null).ToList();
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);
@@ -266,6 +358,20 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.B);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
+
+            foreach (char c in trans3.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[3], c)).Returns(trans3[c]);
+            }
 
             var result = lexer.Scan(StringToLetters("a"), null).ToList();
             Assert.AreEqual(2, result.Count);
@@ -292,6 +398,22 @@ namespace KJU.Tests.Lexer
             dfa.Setup(x => x.Transitions(this.states[3])).Returns(trans3);
             dfa.Setup(x => x.Label(this.states[1])).Returns(DummyTokens.B);
             dfa.Setup(x => x.Label(this.states[3])).Returns(DummyTokens.A);
+
+            foreach (char c in trans0.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[0], c)).Returns(trans0[c]);
+            }
+
+            foreach (char c in trans1.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[1], c)).Returns(trans1[c]);
+            }
+
+            foreach (char c in trans3.Keys)
+            {
+                dfa.Setup(x => x.Transition(this.states[3], c)).Returns(trans3[c]);
+            }
+
             var result = lexer.Scan(StringToLetters("aaa"), null).ToList();
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(DummyTokens.A, result[0].Category);

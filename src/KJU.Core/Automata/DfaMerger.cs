@@ -90,6 +90,31 @@
 
                 return result;
             }
+
+            public IState Transition(IState state, Symbol symbol)
+            {
+                if (!this.allEdges.Contains(symbol))
+                    return null;
+
+                var states = (state as ListState<IState>).Value;
+                var result = new ListState<IState>(states.Select(x => null as IState).ToList());
+
+                for (int i = 0; i < states.Count(); i++)
+                {
+                    if (states[i] == null)
+                    {
+                        continue;
+                    }
+
+                    var newStates = this.dfas[i].Item2.Transitions(states[i]);
+                    if (newStates.TryGetValue(symbol, out var out_state))
+                    {
+                        (result as ListState<IState>).Value[i] = out_state;
+                    }
+                }
+
+                return result;
+            }
         }
     }
 }

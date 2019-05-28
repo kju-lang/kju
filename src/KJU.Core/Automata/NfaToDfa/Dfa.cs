@@ -33,6 +33,16 @@
             return this.start;
         }
 
+        public IState Transition(IState state, Symbol symbol)
+        {
+            if (this.Transitions(state).TryGetValue(symbol, out var newState))
+            {
+                return newState;
+            }
+
+            return null;
+        }
+
         public IReadOnlyDictionary<Symbol, IState> Transitions(IState state)
         {
             if (!(state is DfaState) || !this.trans.ContainsKey((DfaState)state))

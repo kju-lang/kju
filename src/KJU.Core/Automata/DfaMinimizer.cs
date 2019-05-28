@@ -115,7 +115,7 @@
             return newPartition;
         }
 
-        private class MinimalDfa : IDfa<TLabel, Symbol>
+        public class MinimalDfa : IDfa<TLabel, Symbol>
         {
             private IDfa<TLabel, Symbol> dfa;
             private List<HashSet<IState>> statePartition;
@@ -134,6 +134,18 @@
             public IState StartingState()
             {
                 return this.stateMapping[this.dfa.StartingState()];
+            }
+
+            public IState Transition(IState state, Symbol symbol)
+            {
+                var newState = this.dfa.Transition(state, symbol);
+
+                if (newState != null)
+                {
+                    return this.stateMapping[newState];
+                }
+
+                return null;
             }
 
             public IReadOnlyDictionary<Symbol, IState> Transitions(IState state)

@@ -26,6 +26,11 @@ namespace KJU.Tests.Util
             this.Edges[source][edge] = destination;
         }
 
+        public IState Transition(IState state, Symbol symbol)
+        {
+            return null;
+        }
+
         bool IDfa<TLabel, Symbol>.IsStable(IState state)
         {
             return this.StableStates.Contains((state as ValueState<int>).Value);

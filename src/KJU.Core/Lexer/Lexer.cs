@@ -121,11 +121,9 @@
                 return null;
             }
 
-            var transitions = this.minimalizedDfa.Transitions(currState);
-            if (transitions.TryGetValue(character, out var state))
-            {
-                return state;
-            }
+            IState newState = this.minimalizedDfa.Transition(currState, character);
+            if (newState != null)
+                return newState;
 
             var message = $"Char '{character}' is not from alphabet";
             diagnostics.Add(new Diagnostic(
