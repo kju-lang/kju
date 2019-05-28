@@ -16,6 +16,7 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Coalescing
         private readonly Graph copy;
         private readonly Dictionary<VirtualRegister, HashSet<VirtualRegister>> superVertices;
         private readonly List<ICoalescePredicate> coalescePredicates;
+        private readonly int allowedRegistersCount;
 
         public CoalescingProcess(
             Graph interference,
@@ -29,6 +30,7 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Coalescing
             var briggsPredicate = new BriggsPredicate(this.interference, this.copy, allowedRegistersCount);
             var georgePredicate = new GeorgePredicate(this.interference, this.copy, allowedRegistersCount);
             this.coalescePredicates = new List<ICoalescePredicate> { briggsPredicate, georgePredicate };
+            this.allowedRegistersCount = allowedRegistersCount;
         }
 
         public HashSet<HashSet<VirtualRegister>> ContainHardware { get; set; }
@@ -89,17 +91,45 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Coalescing
 
         private Tuple<HashSet<VirtualRegister>, HashSet<VirtualRegister>> FindPair()
         {
-            return this.copy.SelectMany(copyEntry =>
+            foreach (var pair in this.copy.SelectMany(copyEntry =>
                     copyEntry.Value.Select(neighbour =>
                     {
                         var vertex = copyEntry.Key;
                         return new Tuple<HashSet<VirtualRegister>, HashSet<VirtualRegister>>(vertex, neighbour);
-                    }))
-                .FirstOrDefault(x =>
+                    })))
+            {
+                if (this.coalescePredicates[1].CanCoalesce(pair.Item1, pair.Item2))
+                    return pair;
+            }
+
+            List<Tuple<int, HashSet<VirtualRegister>>> vertices = new List<Tuple<int, HashSet<VirtualRegister>>>();
+
+            foreach (var vertex in this.copy.Keys)
+            {
+                int bigDegree = 0;
+
+                foreach (var x in this.interference[vertex])
                 {
-                    var (vertex, neighbour) = x;
-                    return this.coalescePredicates.Any(predicate => predicate.CanCoalesce(vertex, neighbour));
-                });
+                    var degree = this.interference[vertex].Count;
+                    if (degree >= this.allowedRegistersCount + 1)
+                        ++bigDegree;
+                }
+
+                vertices.Add(new Tuple<int, HashSet<VirtualRegister>>( bigDegree, vertex ));
+            }
+
+            vertices.Sort((x, y) => x.Item1.CompareTo(y.Item1) );
+
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                for (int j = 0; j < vertices.Count; j++)
+                {
+                    if (this.coalescePredicates[0].CanCoalesce(vertices[i].Item2, vertices[j].Item2))
+                        return new Tuple<HashSet<VirtualRegister>, HashSet<VirtualRegister>>(vertices[i].Item2, vertices[j].Item2);
+                }
+            }
+
+            return null;
         }
     }
 }
