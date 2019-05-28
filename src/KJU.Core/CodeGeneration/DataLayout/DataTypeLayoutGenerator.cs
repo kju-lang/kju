@@ -27,6 +27,16 @@ namespace KJU.Core.CodeGeneration.DataLayout
             foreach (var child in node.Children())
                 this.CollectTypes(child, dataTypes);
 
+            switch (node)
+            {
+                case FunctionDeclaration functionDeclaration:
+                    if (functionDeclaration.Function?.ClosureType != null) // only to make testing easier
+                        this.AddTypeWithSubtypes(functionDeclaration.Function.ClosureType, dataTypes);
+                    break;
+                default:
+                    break;
+            }
+
             if (node is Expression)
             {
                 this.AddTypeWithSubtypes(((Expression)node).Type, dataTypes);

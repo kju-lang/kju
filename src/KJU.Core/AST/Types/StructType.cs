@@ -6,10 +6,11 @@ namespace KJU.Core.AST.Types
 
     public class StructType : DataType
     {
-        private StructType(StructDeclaration declaration)
+        public StructType(string name, IReadOnlyList<StructField> fields)
         {
             this.Id = $"{Guid.NewGuid():N}";
-            this.Name = declaration.Name;
+            this.Name = name;
+            this.Fields = fields;
         }
 
         public string Id { get; }
@@ -22,8 +23,7 @@ namespace KJU.Core.AST.Types
         {
             if (structDeclaration.StructType == null)
             {
-                structDeclaration.StructType = new StructType(structDeclaration);
-                structDeclaration.StructType.Fields = structDeclaration.Fields;
+                structDeclaration.StructType = new StructType(structDeclaration.Name, structDeclaration.Fields);
             }
 
             return structDeclaration.StructType;

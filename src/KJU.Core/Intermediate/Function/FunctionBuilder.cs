@@ -1,20 +1,20 @@
 namespace KJU.Core.Intermediate.Function
 {
+    using System.Linq;
     using AST;
     using NameMangler;
+    using static AST.Nodes.NodeUtils;
 
     public class FunctionBuilder
     {
-        private readonly INameMangler nameMangler;
-
-        public FunctionBuilder(INameMangler nameMangler)
+        public static bool HasChildFunctions(FunctionDeclaration root)
         {
-            this.nameMangler = nameMangler;
+            return root.ChildrenRecursive().OfType<FunctionDeclaration>().Any();
         }
 
-        public Function CreateFunction(FunctionDeclaration functionDeclaration, Function parentFunction)
+        public static Function CreateFunction(FunctionDeclaration functionDeclaration, Function parentFunction)
         {
-            var mangledName = this.nameMangler.GetMangledName(functionDeclaration, parentFunction?.MangledName);
+            var mangledName = NameMangler.GetMangledName(functionDeclaration, parentFunction?.MangledName);
             var parameters = functionDeclaration.Parameters;
             var isEntryPoint = functionDeclaration.IsEntryPoint;
             var isForeign = functionDeclaration.IsForeign;
@@ -23,7 +23,8 @@ namespace KJU.Core.Intermediate.Function
                 mangledName,
                 parameters,
                 isEntryPoint,
-                isForeign);
+                isForeign,
+                hasChildFunctions: HasChildFunctions(functionDeclaration));
         }
     }
 }

@@ -83,7 +83,7 @@
 
                     var exePath = resultPath;
 
-                    var gccExitCode = RunProcess(@"g++", $"-std=c++14 -static {oPath} {stdlibPath} -o {exePath}");
+                    var gccExitCode = RunProcess(@"g++", $"-std=c++14 -no-pie {oPath} {stdlibPath} -o {exePath}");
 
                     if (gccExitCode != 0)
                     {

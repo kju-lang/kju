@@ -72,12 +72,12 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
             IEnumerable<VirtualRegister> argRegisters,
             Function.Function parentFunction)
         {
-            Node readStaticLink;
+            Node readStaticLink = null;
             if (callerFunction == parentFunction)
             {
-                readStaticLink = new RegisterRead(HardwareRegister.RBP);
+                readStaticLink = this.readWriteGenerator.GenerateRead(callerFunction, callerFunction.ClosurePointer);
             }
-            else
+            else if (parentFunction != null)
             {
                 var siblingLink = this.callingSiblingFinder.GetCallingSibling(callerFunction, parentFunction).Link;
                 readStaticLink = this.readWriteGenerator.GenerateRead(
@@ -86,14 +86,14 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
             }
 
             var values = argRegisters
-                .Select(argVR => new RegisterRead(argVR))
-                .Append(readStaticLink).ToList();
+                .Select(argVR => (Node)new RegisterRead(argVR)).ToList();
 
-            return values.Skip(HardwareRegisterUtils.ArgumentRegisters.Count).Reverse()
-                .Select(value => new Push(value)).Concat<Node>(
-                    values.Zip(
-                        HardwareRegisterUtils.ArgumentRegisters,
-                        (value, hwReg) => new RegisterWrite(hwReg, value)));
+            if (parentFunction != null)
+                values.Add(readStaticLink);
+
+            var result = values.Skip(HardwareRegisterUtils.ArgumentRegisters.Count).Reverse().Select(value => (Node)new Push(value)).ToList();
+            result.AddRange(values.Zip(HardwareRegisterUtils.ArgumentRegisters, (value, hwReg) => new RegisterWrite(hwReg, value)));
+            return result;
         }
     }
 }

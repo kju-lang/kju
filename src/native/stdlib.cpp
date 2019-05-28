@@ -93,7 +93,7 @@ void mark_and_sweep_run(pointer stack_frame_addr) {
     }
 }
 
-// This function will enforce GC even if `gc_enabled == true`
+// This function will enforce GC even if `gc_enabled == false`
 __attribute__((sysv_abi))
 long long enforce_gc() {
     volatile pointer rbp;

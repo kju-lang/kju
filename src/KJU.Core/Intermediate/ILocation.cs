@@ -87,4 +87,20 @@ namespace KJU.Core.Intermediate
 
         public int Offset { get; }
     }
+
+    public class HeapLocation : ILocation
+    {
+        public HeapLocation(Function.Function function, int offset, AST.DataType type)
+        {
+            this.Function = function;
+            this.Offset = offset;
+            this.Type = type;
+        }
+
+        public Function.Function Function { get; }
+
+        public int Offset { get; }
+
+        public AST.DataType Type { get; }
+    }
 }

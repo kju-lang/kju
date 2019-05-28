@@ -1,12 +1,13 @@
 namespace KJU.Core.Intermediate.NameMangler
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using AST;
     using AST.BuiltinTypes;
     using AST.Types;
 
-    public class NameMangler : INameMangler
+    public class NameMangler
     {
         public static string MangleTypeName(DataType type)
         {
@@ -27,9 +28,13 @@ namespace KJU.Core.Intermediate.NameMangler
             }
         }
 
-        public string GetMangledName(FunctionDeclaration declaration, string parentMangledName)
+        public static string GetMangledName(FunctionDeclaration declaration, string parentMangledName)
         {
-            string name = declaration.Identifier;
+            return GetMangledName(declaration.Identifier, declaration.Parameters.Select(param => param.VariableType).ToList(), parentMangledName);
+        }
+
+        public static string GetMangledName(string name, IReadOnlyList<DataType> paramTypes, string parentMangledName)
+        {
             string result = $"{name.Length}{name}";
 
             if (parentMangledName == null)
@@ -41,9 +46,9 @@ namespace KJU.Core.Intermediate.NameMangler
                 result = $"_Z{parentMangledName.Substring(1)}EN{result}E";
             }
 
-            if (declaration.Parameters.Any())
+            if (paramTypes.Count > 0)
             {
-                result = declaration.Parameters.Aggregate(result, (current, arg) => current + MangleTypeName(arg.VariableType));
+                result += string.Join(string.Empty, paramTypes.Select(type => MangleTypeName(type)));
             }
             else
             {

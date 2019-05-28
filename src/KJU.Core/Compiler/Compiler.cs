@@ -36,7 +36,7 @@ namespace KJU.Core.Compiler
         private readonly IPhase returnChecker = new ReturnChecker();
 
         private readonly IVariableAndFunctionBuilder variableAndFunctionBuilder =
-            new VariableAndFunctionBuilder(new FunctionBuilder(new NameMangler()));
+            new VariableAndFunctionBuilder();
 
         private readonly IIntermediateRepresentationGenerator intermediateGenerator =
             new IntermediateRepresentationGenerator(new FunctionGeneratorFactory().ConstructGenerator());

@@ -5,13 +5,6 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
 
     public class VariableAndFunctionBuilder : IVariableAndFunctionBuilder
     {
-        private readonly FunctionBuilder functionBuilder;
-
-        public VariableAndFunctionBuilder(FunctionBuilder functionBuilder)
-        {
-            this.functionBuilder = functionBuilder;
-        }
-
         public void BuildFunctionsAndVariables(AST.Node root)
         {
             var variableUsages = new Dictionary<AST.VariableDeclaration, HashSet<AST.FunctionDeclaration>>();
@@ -72,12 +65,12 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
             {
                 case AST.FunctionDeclaration functionDeclaration:
                 {
-                    var function = this.functionBuilder.CreateFunction(functionDeclaration, parentFunction);
+                    var function = FunctionBuilder.CreateFunction(functionDeclaration, parentFunction);
                     functionDeclaration.Function = function;
                     foreach (var argument in functionDeclaration.Parameters)
                     {
                         argument.IntermediateVariable = variableUsages[argument].Count > 1
-                            ? (ILocation)function.ReserveStackFrameLocation(argument.VariableType)
+                            ? (ILocation)function.ReserveClosureLocation(argument.Identifier, argument.VariableType)
                             : new VirtualRegister();
                     }
 
@@ -91,7 +84,9 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
 
                 case AST.VariableDeclaration variableDeclaration:
                 {
-                    variableDeclaration.IntermediateVariable = parentFunction.ReserveStackFrameLocation(variableDeclaration.VariableType);
+                    variableDeclaration.IntermediateVariable = variableUsages[variableDeclaration].Count > 1
+                            ? (ILocation)parentFunction.ReserveClosureLocation(variableDeclaration.Identifier, variableDeclaration.VariableType)
+                            : new VirtualRegister();
                     break;
                 }
             }
