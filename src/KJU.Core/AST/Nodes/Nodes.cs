@@ -654,7 +654,7 @@ namespace KJU.Core.AST
                 switch (this.Lhs.Type)
                 {
                     case AST.Types.StructType type:
-                        var offset = type.Declaration.Fields
+                        var offset = type.Fields
                             .TakeWhile(x => x.Name != this.Field)
                             .Count();
                         return new AST.IntegerLiteral(this.InputRange, offset);
@@ -685,6 +685,8 @@ namespace KJU.Core.AST
         }
 
         public string Name { get; }
+
+        public StructType StructType { get; set; }
 
         public IReadOnlyList<StructField> Fields { get; }
 

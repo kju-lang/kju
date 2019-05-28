@@ -54,7 +54,7 @@ namespace KJU.Core.CodeGeneration.DataLayout
                 case StructType structType:
                     dataTypes.Add(structType);
 
-                    foreach (var field in structType.Declaration.Fields)
+                    foreach (var field in structType.Fields)
                         this.AddTypeWithSubtypes(field.Type, dataTypes);
 
                     break;
