@@ -28,25 +28,30 @@ namespace KJU.Tests.Util
 
         public IState Transition(IState state, Symbol symbol)
         {
+            if (this.Transitions(state).TryGetValue(symbol, out var newState))
+            {
+                return newState;
+            }
+
             return null;
         }
 
-        bool IDfa<TLabel, Symbol>.IsStable(IState state)
+        public bool IsStable(IState state)
         {
             return this.StableStates.Contains((state as ValueState<int>).Value);
         }
 
-        TLabel IDfa<TLabel, Symbol>.Label(IState state)
+        public TLabel Label(IState state)
         {
             return this.Labels[((ValueState<int>)state).Value];
         }
 
-        IState IDfa<TLabel, Symbol>.StartingState()
+        public IState StartingState()
         {
             return new ValueState<int>(0);
         }
 
-        IReadOnlyDictionary<Symbol, IState> IDfa<TLabel, Symbol>.Transitions(IState state)
+        public IReadOnlyDictionary<Symbol, IState> Transitions(IState state)
         {
             var i = ((ValueState<int>)state).Value;
             if (!this.Edges.ContainsKey(i))
