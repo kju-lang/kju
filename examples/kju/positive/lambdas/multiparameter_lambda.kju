@@ -1,0 +1,17 @@
+fun write(a : Int) : Unit import
+
+struct A{
+	a :Int;
+	b :A;
+}
+
+fun f(a:Int,b:Bool,c:[[Int]],d:A):Int{
+	return 5;
+}
+
+
+fun kju():Unit{
+	var lambda : (Int,Bool,[[Int]],A) -> Int = unapply(f);
+	var result:Int = apply(lambda,1,false,new([Int],0),new(A));
+	write(result);	
+}

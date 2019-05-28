@@ -262,21 +262,8 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
 
             private VariableDeclaration FunctionParameterToAst(Brunch<KjuAlphabet> branch)
             {
-                string identifier = null;
-                DataType type = null;
-                foreach (var child in branch.Children)
-                {
-                    switch (child.Category)
-                    {
-                        case KjuAlphabet.VariableFunctionIdentifier:
-                            identifier = ((Token<KjuAlphabet>)child).Text;
-                            break;
-                        case KjuAlphabet.TypeIdentifier:
-                            type = this.TypeIdentifierAst(child);
-                            break;
-                    }
-                }
-
+                var identifier = ((Token<KjuAlphabet>)branch.Children[0]).Text;
+                var type = this.TypeIdentifierAst(branch.Children[2]);
                 return new VariableDeclaration(branch.InputRange, type, identifier, null);
             }
 
@@ -306,31 +293,22 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                     }
                 }
 
+                var elseBody = blockList.Count == 1
+                    ? new InstructionBlock(branch.InputRange, new List<Expression>())
+                    : blockList[1];
+
                 var ret = new IfStatement(
                     branch.InputRange,
                     condition,
                     blockList[0],
-                    blockList.Count == 1 ? new InstructionBlock(branch.InputRange, new List<Expression>()) : blockList[1]);
+                    elseBody);
                 return ret;
             }
 
             private WhileStatement WhileStatementToAst(Brunch<KjuAlphabet> branch)
             {
-                Expression condition = null;
-                InstructionBlock body = null;
-                foreach (var child in branch.Children)
-                {
-                    switch (child.Category)
-                    {
-                        case KjuAlphabet.Expression:
-                            condition = this.ExpressionToAst(child as Brunch<KjuAlphabet>);
-                            break;
-                        case KjuAlphabet.Block:
-                            body = this.BlockToAst(child as Brunch<KjuAlphabet>);
-                            break;
-                    }
-                }
-
+                var condition = this.ExpressionToAst((Brunch<KjuAlphabet>)branch.Children[1]);
+                var body = this.BlockToAst((Brunch<KjuAlphabet>)branch.Children[2]);
                 return new WhileStatement(branch.InputRange, condition, body);
             }
 
@@ -378,8 +356,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                     }
                 }
 
-                var ret = new ReturnStatement(branch.InputRange, value);
-                return ret;
+                return new ReturnStatement(branch.InputRange, value);
             }
 
             private VariableDeclaration VariableDeclarationToAst(Brunch<KjuAlphabet> branch)
@@ -640,15 +617,13 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                 {
                     return this.AccessToAst((Brunch<KjuAlphabet>)branch.Children[0]);
                 }
-                else
-                {
-                    var operationToken = (Token<KjuAlphabet>)branch.Children[0];
-                    var operationTokenCategory = operationToken.Category;
-                    var operationType = this.symbolToUnaryOperationType[operationTokenCategory];
-                    var expression =
-                        this.ExpressionLogicalNotToAst((Brunch<KjuAlphabet>)branch.Children[1]);
-                    return new UnaryOperation(branch.InputRange, operationType, expression);
-                }
+
+                var operationToken = (Token<KjuAlphabet>)branch.Children[0];
+                var operationTokenCategory = operationToken.Category;
+                var operationType = this.symbolToUnaryOperationType[operationTokenCategory];
+                var expression =
+                    this.ExpressionLogicalNotToAst((Brunch<KjuAlphabet>)branch.Children[1]);
+                return new UnaryOperation(branch.InputRange, operationType, expression);
             }
 
             private Expression ParenEnclosedStatementToAst(Brunch<KjuAlphabet> branch)

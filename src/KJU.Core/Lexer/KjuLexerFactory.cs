@@ -39,8 +39,12 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.DecimalLiteral, "0|[1-9][0-9]*" },
                 { KjuAlphabet.BooleanLiteral, "true|false" },
                 { KjuAlphabet.NullLiteral, "null" },
+                { KjuAlphabet.New, "new" },
+                { KjuAlphabet.Apply, "apply" },
+                { KjuAlphabet.Unapply, "unapply" },
                 { KjuAlphabet.TypeIdentifier, "[A-Z][a-zA-Z0-9_]*" },
                 { KjuAlphabet.VariableFunctionIdentifier, "[a-z][a-zA-Z0-9_]*" },
+                { KjuAlphabet.Arrow, "->" },
                 { KjuAlphabet.Equals, "==" },
                 { KjuAlphabet.LessOrEqual, "<=" },
                 { KjuAlphabet.GreaterOrEqual, ">=" },
@@ -61,7 +65,6 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.StarAssign, "\\*=" },
                 { KjuAlphabet.SlashAssign, "/=" },
                 { KjuAlphabet.PercentAssign, "%=" },
-                { KjuAlphabet.New, "new" }
             };
 
             return new Lexer<KjuAlphabet>(

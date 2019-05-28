@@ -1,0 +1,12 @@
+fun write(a : Int) : Unit import
+
+fun f():Int{
+	return 5;
+}
+
+
+fun kju():Unit{
+	var lambda : () -> Int = unapply(f);
+	var result:Int = apply(lambda);
+	write(result);	
+}

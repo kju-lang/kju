@@ -24,7 +24,7 @@ namespace KJU.Core.Parser
                 KjuAlphabet.Fun.ToRegex(),
                 KjuAlphabet.VariableFunctionIdentifier.ToRegex(),
                 KjuAlphabet.LParen.ToRegex(),
-                ListRegex(KjuAlphabet.FunctionParameter.ToRegex(), KjuAlphabet.Comma.ToRegex()),
+                KjuAlphabet.FunctionParameter.ToRegex().SeparatedBy(KjuAlphabet.Comma.ToRegex()),
                 KjuAlphabet.RParen.ToRegex(),
                 KjuAlphabet.Colon.ToRegex(),
                 KjuAlphabet.TypeIdentifier.ToRegex(),
@@ -70,19 +70,24 @@ namespace KJU.Core.Parser
             Lhs = KjuAlphabet.FunctionCall,
             Rhs = Concat(
                 KjuAlphabet.LParen.ToRegex(),
-                ListRegex(
-                    KjuAlphabet.Expression.ToRegex(),
-                    KjuAlphabet.Comma.ToRegex()),
+                KjuAlphabet.Expression.ToRegex().SeparatedBy(KjuAlphabet.Comma.ToRegex()),
                 KjuAlphabet.RParen.ToRegex())
         };
 
-        public static readonly Rule<KjuAlphabet> TypeIdentifier = new Rule<KjuAlphabet>()
+        public static readonly Rule<KjuAlphabet> TypeIdentifier = new Rule<KjuAlphabet>
         {
             Lhs = KjuAlphabet.TypeIdentifier,
-            Rhs = Concat(
-                KjuAlphabet.LBracket.ToRegex(),
-                KjuAlphabet.TypeIdentifier.ToRegex(),
-                KjuAlphabet.RBracket.ToRegex())
+            Rhs = Sum(
+                Concat(
+                    KjuAlphabet.LBracket.ToRegex(),
+                    KjuAlphabet.TypeIdentifier.ToRegex(),
+                    KjuAlphabet.RBracket.ToRegex()),
+                Concat(
+                    KjuAlphabet.LParen.ToRegex(),
+                    KjuAlphabet.TypeIdentifier.ToRegex().SeparatedBy(KjuAlphabet.Comma.ToRegex()),
+                    KjuAlphabet.RParen.ToRegex(),
+                    KjuAlphabet.Arrow.ToRegex(),
+                    KjuAlphabet.TypeIdentifier.ToRegex()))
         };
 
         public static readonly Rule<KjuAlphabet> IfStatement = new Rule<KjuAlphabet>
@@ -232,7 +237,32 @@ namespace KJU.Core.Parser
             Rhs = Sum(
                 KjuAlphabet.DecimalLiteral.ToRegex(),
                 KjuAlphabet.BooleanLiteral.ToRegex(),
-                KjuAlphabet.NullLiteral.ToRegex())
+                KjuAlphabet.NullLiteral.ToRegex(),
+                KjuAlphabet.ApplyExpression.ToRegex(),
+                KjuAlphabet.UnapplyExpression.ToRegex())
+        };
+
+        public static readonly Rule<KjuAlphabet> ApplyExpression = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.ApplyExpression,
+            Rhs = Concat(
+                KjuAlphabet.Apply.ToRegex(),
+                KjuAlphabet.LParen.ToRegex(),
+                KjuAlphabet.VariableFunctionIdentifier.ToRegex(),
+                Concat(
+                    KjuAlphabet.Comma.ToRegex(),
+                    KjuAlphabet.Expression.ToRegex()).Starred(),
+                KjuAlphabet.RParen.ToRegex())
+        };
+
+        public static readonly Rule<KjuAlphabet> UnapplyExpression = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.UnapplyExpression,
+            Rhs = Concat(
+                KjuAlphabet.Unapply.ToRegex(),
+                KjuAlphabet.LParen.ToRegex(),
+                KjuAlphabet.VariableFunctionIdentifier.ToRegex(),
+                KjuAlphabet.RParen.ToRegex())
         };
 
         public static readonly Rule<KjuAlphabet> Alloc = new Rule<KjuAlphabet>
@@ -351,6 +381,8 @@ namespace KJU.Core.Parser
                     IfStatement,
                     WhileStatement,
                     ReturnStatement,
+                    ApplyExpression,
+                    UnapplyExpression,
                     VariableDeclaration,
 
                     Access,

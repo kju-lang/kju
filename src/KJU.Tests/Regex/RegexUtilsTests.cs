@@ -68,7 +68,7 @@ namespace KJU.Tests.Regex
             var expected = new SumRegex<int>(
                 new EpsilonRegex<int>(),
                 RegexUtils.Concat(123.ToRegex(), RegexUtils.Concat(0.ToRegex(), 123.ToRegex()).Starred()));
-            var actual = RegexUtils.ListRegex(123.ToRegex(), 0.ToRegex());
+            var actual = RegexUtils.SeparatedBy(123.ToRegex(), 0.ToRegex());
             Assert.AreEqual(expected, actual);
         }
     }

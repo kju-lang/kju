@@ -115,6 +115,16 @@ namespace KJU.Core.Lexer
         Fun,
 
         /// <summary>
+        /// apply
+        /// </summary>
+        Apply,
+
+        /// <summary>
+        /// unapply
+        /// </summary>
+        Unapply,
+
+        /// <summary>
         /// struct
         /// </summary>
         Struct,
@@ -148,6 +158,11 @@ namespace KJU.Core.Lexer
         /// [a-z][a-zA-Z0-9_]*
         /// </summary>
         VariableFunctionIdentifier,
+
+        /// <summary>
+        /// ->
+        /// </summary>
+        Arrow,
 
         /// <summary>
         /// ==
@@ -260,6 +275,16 @@ namespace KJU.Core.Lexer
         /// Whole function
         /// </summary>
         FunctionDefinition,
+
+        /// <summary>
+        /// apply(f,x,y,z)
+        /// </summary>
+        ApplyExpression,
+
+        /// <summary>
+        /// unapply(f)
+        /// </summary>
+        UnapplyExpression,
 
         /// <summary>
         /// Whole struct
