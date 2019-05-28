@@ -35,19 +35,28 @@ namespace KJU.Core.CodeGeneration.RegisterAllocation.Coalescing.Predicates
                 return false;
             }
 
-            var neighbours = new HashSet<HashSet<VirtualRegister>>(this.interference[u].Concat(this.interference[v]));
+            int bigDegree = 0;
 
-            var bigDegreeCount = neighbours.Count(vertex =>
+            foreach (var vertex in this.interference[u])
             {
-                var previousDegree = this.interference[vertex].Count;
-                var resultDegree = this.interference[vertex].Contains(u) && this.interference[vertex].Contains(v)
-                    ? previousDegree - 1
-                    : previousDegree;
+                var degree = this.interference[vertex].Count;
+                if (this.interference[v].Contains(vertex))
+                    degree--;
+                if (degree >= this.allowedRegistersCount)
+                    ++bigDegree;
+            }
 
-                return resultDegree >= this.allowedRegistersCount;
-            });
+            foreach (var vertex in this.interference[v])
+            {
+                if (this.interference[u].Contains(vertex))
+                    continue;
 
-            return bigDegreeCount < this.allowedRegistersCount;
+                var degree = this.interference[vertex].Count;
+                if (degree >= this.allowedRegistersCount)
+                    ++bigDegree;
+            }
+
+            return bigDegree < this.allowedRegistersCount;
         }
     }
 }
