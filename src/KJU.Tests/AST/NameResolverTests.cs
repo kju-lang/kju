@@ -71,6 +71,49 @@
         }
 
         /*
+         * fun a()
+         * {
+         *   unapply(a);
+         * }
+         */
+        [TestMethod]
+        public void TestUnapplication()
+        {
+            var names = new List<string> { "a" };
+            var functions = new List<FunctionDeclaration>();
+            var unapplications = new List<UnApplication>();
+            foreach (var id in names)
+            {
+                var unapplication = new UnApplication(
+                    new Range(new StringLocation(0), new StringLocation(1)),
+                    "a",
+                    null);
+                var body = new InstructionBlock(
+                    new Range(new StringLocation(0), new StringLocation(1)),
+                    new List<Expression> { unapplication });
+                var fun = new FunctionDeclaration(
+                    new Range(new StringLocation(0), new StringLocation(1)),
+                    id,
+                    UnitType.Instance,
+                    new List<VariableDeclaration>(),
+                    body,
+                    false);
+                unapplications.Add(unapplication);
+                functions.Add(fun);
+            }
+
+            var root = new Program(
+                new Range(new StringLocation(0), new StringLocation(1)),
+                new List<StructDeclaration>(),
+                functions);
+            var resolver = new NameResolver();
+            resolver.Run(root, null);
+            var aDeclaration = functions[0];
+            var expected = new List<FunctionDeclaration> { aDeclaration };
+            CollectionAssert.AreEqual(expected, unapplications[0].Candidates.ToList());
+        }
+
+        /*
          * fun h()
          * {
          * }

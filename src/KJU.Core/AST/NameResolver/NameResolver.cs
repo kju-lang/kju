@@ -88,6 +88,9 @@
                     case FunctionCall fun:
                         this.ProcessFunctionCall(fun, diagnostics);
                         break;
+                    case UnApplication app:
+                        this.ProcessUnApplication(app, diagnostics);
+                        break;
                     case ArrayAlloc array:
                         array.ElementType = this.ResolveDataType(array.ElementType, diagnostics);
                         break;
@@ -307,6 +310,26 @@
                 else
                 {
                     functionCall.DeclarationCandidates = this.GetDeclarationCandidates(identifier);
+                }
+            }
+
+            private void ProcessUnApplication(UnApplication unapplication, IDiagnostics diagnostics)
+            {
+                var identifier = unapplication.Name;
+                if (!this.functions.ContainsKey(identifier) || this.functions[identifier].Count == 0)
+                {
+                    var message = $"No function of name '{identifier}'";
+                    var diagnostic = new Diagnostic(
+                        DiagnosticStatus.Error,
+                        IdentifierNotFoundDiagnostic,
+                        message,
+                        new List<Range> { unapplication.InputRange });
+                    diagnostics.Add(diagnostic);
+                    this.exceptions.Add(new NameResolverInternalException(message));
+                }
+                else
+                {
+                    unapplication.Candidates = this.GetDeclarationCandidates(identifier);
                 }
             }
 
