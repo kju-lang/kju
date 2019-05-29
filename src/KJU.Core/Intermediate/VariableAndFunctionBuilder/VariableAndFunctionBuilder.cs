@@ -56,6 +56,16 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
             }
         }
 
+        private ILocation ReserveLocation(Function function, IReadOnlyDictionary<AST.VariableDeclaration, HashSet<AST.FunctionDeclaration>> variableUsages, AST.VariableDeclaration variable)
+        {
+            if (variableUsages[variable].Count > 1)
+                return function.ReserveClosureLocation(variable.Identifier, variable.VariableType);
+            else if (variable.VariableType.IsHeapType())
+                return function.ReserveStackFrameLocation(variable.VariableType);
+            else
+                return new VirtualRegister();
+        }
+
         private void TraverseTree(
             AST.Node node,
             IReadOnlyDictionary<AST.VariableDeclaration, HashSet<AST.FunctionDeclaration>> variableUsages,
@@ -69,9 +79,7 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
                     functionDeclaration.Function = function;
                     foreach (var argument in functionDeclaration.Parameters)
                     {
-                        argument.IntermediateVariable = variableUsages[argument].Count > 1
-                            ? (ILocation)function.ReserveClosureLocation(argument.Identifier, argument.VariableType)
-                            : new VirtualRegister();
+                        argument.IntermediateVariable = this.ReserveLocation(function, variableUsages, argument);
                     }
 
                     if (functionDeclaration.Body != null)
@@ -84,9 +92,7 @@ namespace KJU.Core.Intermediate.VariableAndFunctionBuilder
 
                 case AST.VariableDeclaration variableDeclaration:
                 {
-                    variableDeclaration.IntermediateVariable = variableUsages[variableDeclaration].Count > 1
-                            ? (ILocation)parentFunction.ReserveClosureLocation(variableDeclaration.Identifier, variableDeclaration.VariableType)
-                            : new VirtualRegister();
+                    variableDeclaration.IntermediateVariable = this.ReserveLocation(parentFunction, variableUsages, variableDeclaration);
                     break;
                 }
             }
