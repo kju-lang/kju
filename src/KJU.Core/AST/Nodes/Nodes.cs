@@ -735,4 +735,52 @@ namespace KJU.Core.AST
             return $"StructAlloc {this.AllocType}";
         }
     }
+
+    public class Application : Expression
+    {
+        public Application(Range inputRange, Expression function, IReadOnlyList<Expression> arguments)
+            : base(inputRange)
+        {
+            this.Function = function;
+            this.Arguments = arguments;
+        }
+
+        public Expression Function { get; }
+
+        public IReadOnlyList<Expression> Arguments { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return new List<Node>(this.Arguments);
+        }
+
+        public override string ToString()
+        {
+            return $"apply {this.Function}";
+        }
+    }
+
+    public class UnApplication : Expression
+    {
+        public UnApplication(Range inputRange, string name, IReadOnlyCollection<FunctionDeclaration> candidates)
+            : base(inputRange)
+        {
+            this.Name = name;
+            this.Candidates = candidates;
+        }
+
+        public string Name { get; }
+
+        public IReadOnlyCollection<FunctionDeclaration> Candidates { get; set; }
+
+        public override IEnumerable<Node> Children()
+        {
+            return Enumerable.Empty<Node>();
+        }
+
+        public override string ToString()
+        {
+            return $"unapply {this.Name}";
+        }
+    }
 }
