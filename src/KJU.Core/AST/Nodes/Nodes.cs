@@ -773,6 +773,8 @@ namespace KJU.Core.AST
 
         public IReadOnlyCollection<FunctionDeclaration> Candidates { get; set; }
 
+        public FunctionDeclaration Declaration { get; set; }
+
         public override IEnumerable<Node> Children()
         {
             return Enumerable.Empty<Node>();
