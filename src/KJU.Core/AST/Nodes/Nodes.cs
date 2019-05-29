@@ -751,7 +751,7 @@ namespace KJU.Core.AST
 
         public override IEnumerable<Node> Children()
         {
-            return new List<Node>(this.Arguments);
+            return new[] { this.Function }.Concat(this.Arguments);
         }
 
         public override string ToString()
