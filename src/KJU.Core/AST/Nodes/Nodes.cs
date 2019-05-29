@@ -762,14 +762,13 @@ namespace KJU.Core.AST
 
     public class UnApplication : Expression
     {
-        public UnApplication(Range inputRange, string name, IReadOnlyCollection<FunctionDeclaration> candidates)
+        public UnApplication(Range inputRange, string functionName)
             : base(inputRange)
         {
-            this.Name = name;
-            this.Candidates = candidates;
+            this.FunctionName = functionName;
         }
 
-        public string Name { get; }
+        public string FunctionName { get; }
 
         public IReadOnlyCollection<FunctionDeclaration> Candidates { get; set; }
 
@@ -782,7 +781,7 @@ namespace KJU.Core.AST
 
         public override string ToString()
         {
-            return $"unapply {this.Name}";
+            return $"unapply {this.FunctionName}";
         }
     }
 }

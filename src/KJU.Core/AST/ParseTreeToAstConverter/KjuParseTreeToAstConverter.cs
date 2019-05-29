@@ -114,6 +114,8 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                         [KjuAlphabet.ExpressionUnaryOperator] = this.ExpressionLogicalNotToAst,
                         [KjuAlphabet.StructDefinition] = this.StructDefinitionAst,
                         [KjuAlphabet.Literal] = this.LiteralToAst,
+                        [KjuAlphabet.UnapplyExpression] = this.UnapplyExpressionAst,
+                        [KjuAlphabet.ApplyExpression] = this.ApplyExpressionAst,
                     };
             }
 
@@ -198,6 +200,25 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                 }
             }
 
+            private Expression UnapplyExpressionAst(Brunch<KjuAlphabet> brunch)
+            {
+                var nameToken = (Token<KjuAlphabet>)brunch.Children[2];
+                var nameText = nameToken.Text;
+                return new UnApplication(brunch.InputRange, nameText);
+            }
+
+            private Expression ApplyExpressionAst(Brunch<KjuAlphabet> brunch)
+            {
+                var function = this.GeneralToAst(brunch.Children[2]);
+                var arguments =
+                    brunch
+                        .Children
+                        .Skip(3)
+                        .Where(x => x.Category == KjuAlphabet.Expression)
+                        .Select(this.GeneralToAst).ToList();
+                return new Application(brunch.InputRange, function, arguments);
+            }
+
             private FunctionDeclaration FunctionDeclarationToAst(Brunch<KjuAlphabet> branch)
             {
                 var parameters = new List<VariableDeclaration>();
@@ -227,15 +248,13 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                     }
                 }
 
-                var ast = new FunctionDeclaration(
+                return new FunctionDeclaration(
                     branch.InputRange,
                     identifier,
                     type,
                     parameters,
                     body,
                     isForeign);
-
-                return ast;
             }
 
             private InstructionBlock BlockToAst(Brunch<KjuAlphabet> branch)

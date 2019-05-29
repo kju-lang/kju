@@ -248,7 +248,7 @@ namespace KJU.Core.Parser
             Rhs = Concat(
                 KjuAlphabet.Apply.ToRegex(),
                 KjuAlphabet.LParen.ToRegex(),
-                KjuAlphabet.VariableFunctionIdentifier.ToRegex(),
+                KjuAlphabet.Expression.ToRegex(),
                 Concat(
                     KjuAlphabet.Comma.ToRegex(),
                     KjuAlphabet.Expression.ToRegex()).Starred(),
