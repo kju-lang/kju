@@ -1,0 +1,8 @@
+<Spec>
+    <IsDisabled>true</IsDisabled>
+    <Execution>
+        <ExpectedOutput>
+            1
+        </ExpectedOutput>
+    </Execution>
+</Spec>

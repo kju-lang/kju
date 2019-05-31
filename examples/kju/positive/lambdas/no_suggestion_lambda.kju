@@ -1,0 +1,9 @@
+fun write(a : Int) : Unit import
+
+fun f (x : Int) : Int {
+    return x + 3;
+}
+
+fun kju() : Unit {
+    write(apply(unapply(f), 0));
+}

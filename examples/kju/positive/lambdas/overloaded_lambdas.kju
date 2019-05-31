@@ -1,0 +1,14 @@
+fun write(a : Int) : Unit import
+
+fun f(x : Int) : Int {
+    return 1;
+}
+
+fun f(b : Bool) : Int {
+    return 2;
+}
+
+fun kju() : Unit {
+    var lambda : (Bool) -> Int = unapply(f);
+    write(apply(lambda, false));
+}

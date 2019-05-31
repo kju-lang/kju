@@ -1,0 +1,18 @@
+fun write(a : Int) : Unit import
+
+fun f(a : Bool) : Int {
+    if (a) {
+        return 2;
+    } else {
+        return 5;
+    };
+}
+
+fun g() : (Bool) -> Int {
+    return unapply(f);
+}
+
+fun kju() : Unit {
+    var lambda : (Bool) -> Int = g();
+    write(lambda(false));
+}

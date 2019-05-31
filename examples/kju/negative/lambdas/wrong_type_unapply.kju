@@ -1,0 +1,7 @@
+
+fun f() : Unit {
+}
+
+fun kju() : Unit {
+    var lambda : () -> Int = unapply(f);
+}

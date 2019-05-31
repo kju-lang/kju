@@ -1,0 +1,9 @@
+fun f(x : Int) : Unit {
+}
+
+fun f(x : Bool) : Unit {
+}
+
+fun kju() : Unit {
+    unapply(f);
+}

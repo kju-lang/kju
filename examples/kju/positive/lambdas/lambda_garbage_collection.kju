@@ -1,0 +1,19 @@
+fun write(a : Int) : Unit import
+fun enforce_gc() : Int import
+
+
+fun f() : Unit {
+}
+
+fun kju() : Int {
+    var lambda : () -> Unit;
+
+    var i : Int = 100;
+    while (i > 0) {
+        lambda = unapply(f);
+        apply(lambda);
+        i -= 1;
+    };
+
+    write(enforce_gc());
+}
