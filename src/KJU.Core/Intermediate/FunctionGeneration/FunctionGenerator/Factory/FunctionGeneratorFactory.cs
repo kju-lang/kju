@@ -15,8 +15,8 @@ namespace KJU.Core.Intermediate.FunctionGeneration.FunctionGenerator.Factory
             var temporaryVariablesExtractor = new TemporaryVariablesExtractor.TemporaryVariablesExtractor();
             var readWriteGenerator = new ReadWriteGenerator();
             var callingSiblingFinder = new CallingSiblingFinder.CallingSiblingFinder();
-            var prologueEpilogueGenerator = new PrologueEpilogueGenerator(labelFactory, readWriteGenerator);
             var callGenerator = new CallGenerator.CallGenerator(labelFactory, callingSiblingFinder, readWriteGenerator);
+            var prologueEpilogueGenerator = new PrologueEpilogueGenerator(labelFactory, callGenerator, readWriteGenerator);
             var functionBodyGenerator = new BodyGenerator.FunctionBodyGenerator(
                 labelFactory,
                 readWriteGenerator,

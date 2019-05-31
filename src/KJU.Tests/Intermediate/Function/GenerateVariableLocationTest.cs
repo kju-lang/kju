@@ -34,22 +34,22 @@ namespace KJU.Tests.Intermediate.Function
              *
              */
             var functionInfoA = new Function(null, "a", new List<VariableDeclaration>(), false, false);
-            functionInfoA.ReserveStackFrameLocation(IntType.Instance);
-            functionInfoA.ReserveStackFrameLocation(IntType.Instance);
-            functionInfoA.ReserveStackFrameLocation(IntType.Instance);
-            functionInfoA.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoA.ReserveClosureLocation("dummy", IntType.Instance);
+            functionInfoA.ReserveClosureLocation("dummy", IntType.Instance);
+            functionInfoA.ReserveClosureLocation("dummy", IntType.Instance);
+            functionInfoA.ReserveClosureLocation("dummy", IntType.Instance);
             var functionInfoB = new Function(functionInfoA, "b", new List<VariableDeclaration>(), false, false);
-            functionInfoB.ReserveStackFrameLocation(IntType.Instance);
-            functionInfoB.ReserveStackFrameLocation(IntType.Instance);
-            functionInfoB.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoB.ReserveClosureLocation("dummy", IntType.Instance);
+            functionInfoB.ReserveClosureLocation("dummy", IntType.Instance);
+            functionInfoB.ReserveClosureLocation("dummy", IntType.Instance);
             var functionInfoC = new Function(functionInfoB, "c", new List<VariableDeclaration>(), false, false);
-            functionInfoC.ReserveStackFrameLocation(IntType.Instance);
-            functionInfoC.ReserveStackFrameLocation(IntType.Instance);
+            functionInfoC.ReserveClosureLocation("dummy", IntType.Instance);
+            functionInfoC.ReserveClosureLocation("dummy", IntType.Instance);
 
-            var variableALocation = functionInfoA.ReserveStackFrameLocation(IntType.Instance);
+            var variableALocation = functionInfoA.ReserveClosureLocation("a", IntType.Instance);
             var variableA = variableALocation;
 
-            var variableBLocation = functionInfoB.ReserveStackFrameLocation(IntType.Instance);
+            var variableBLocation = functionInfoB.ReserveClosureLocation("b", IntType.Instance);
             var variableB = variableBLocation;
 
             var variableCLocation = new VirtualRegister();

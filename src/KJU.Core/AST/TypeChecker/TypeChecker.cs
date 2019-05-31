@@ -625,7 +625,7 @@ namespace KJU.Core.AST.TypeChecker
                         else
                         {
                             var fieldName = fieldAccess.Field;
-                            var allFields = (lhsType as StructType).Declaration.Fields;
+                            var allFields = (lhsType as StructType).Fields;
                             var matchingFields = allFields.Where(field => field.Name.Equals(fieldName));
 
                             var numberOfMatchingField = matchingFields.Count();

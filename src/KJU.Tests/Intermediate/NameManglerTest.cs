@@ -13,8 +13,6 @@ namespace KJU.Tests.Intermediate
     [TestClass]
     public class NameManglerTest
     {
-        private readonly NameMangler nameMangler = new NameMangler();
-
         [TestMethod]
         public void Test()
         {
@@ -45,15 +43,15 @@ namespace KJU.Tests.Intermediate
                 false);
 
             Assert.AreEqual(
-                actual: this.nameMangler.GetMangledName(function1, null),
+                actual: NameMangler.GetMangledName(function1, null),
                 expected: "_ZN3KJU3fooExxb");
 
             Assert.AreEqual(
-                actual: this.nameMangler.GetMangledName(function1, "_ZN3KJU3barEv"),
+                actual: NameMangler.GetMangledName(function1, "_ZN3KJU3barEv"),
                 expected: "_ZZN3KJU3barEvEN3fooExxb");
 
             Assert.AreEqual(
-                actual: this.nameMangler.GetMangledName(function1, "_ZZN3KJU3fooEvEN3fooExxb"),
+                actual: NameMangler.GetMangledName(function1, "_ZZN3KJU3fooEvEN3fooExxb"),
                 expected: "_ZZZN3KJU3fooEvEN3fooExxbEN3fooExxb");
 
             FunctionDeclaration function2 = new FunctionDeclaration(
@@ -65,7 +63,7 @@ namespace KJU.Tests.Intermediate
                 false);
 
             Assert.AreEqual(
-                actual: this.nameMangler.GetMangledName(function2, null),
+                actual: NameMangler.GetMangledName(function2, null),
                 expected: "_ZN3KJU3barEv");
         }
     }

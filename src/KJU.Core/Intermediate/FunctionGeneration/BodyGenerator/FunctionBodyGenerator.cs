@@ -4,6 +4,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
     using System.Collections.Generic;
     using System.Linq;
     using CallGenerator;
+    using NameMangler;
     using PrologueEpilogue;
     using ReadWrite;
     using TemporaryVariablesExtractor;
@@ -565,8 +566,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                     null,
                     true);
 
-                var nameMangler = new NameMangler.NameMangler();
-                var mangledName = nameMangler.GetMangledName(decl, null);
+                var mangledName = NameMangler.GetMangledName(decl, null);
 
                 var func = new Function.Function(
                     null,
@@ -591,7 +591,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
                 var parameter = new AST.VariableDeclaration(
                     node.InputRange,
-                    new AST.BuiltinTypes.IntType(),
+                    AST.BuiltinTypes.IntType.Instance,
                     "size",
                     null);
 
@@ -603,8 +603,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                     null,
                     true);
 
-                var nameMangler = new NameMangler.NameMangler();
-                var mangledName = nameMangler.GetMangledName(decl, null);
+                var mangledName = NameMangler.GetMangledName(decl, null);
 
                 var func = new Function.Function(
                     null,

@@ -12,12 +12,15 @@ namespace KJU.Core.Intermediate.Function
     {
         private List<(int offset, DataType target)> stackLayoutInfo = new List<(int offset, DataType target)>();
 
+        private List<StructField> closureStructFields = new List<StructField>();
+
         public Function(
             Function parent,
             string mangledName,
             IReadOnlyList<AST.VariableDeclaration> parameters,
             bool isEntryPoint,
-            bool isForeign)
+            bool isForeign,
+            bool hasChildFunctions = false)
         {
             this.Parent = parent;
             this.MangledName = mangledName;
@@ -25,14 +28,21 @@ namespace KJU.Core.Intermediate.Function
             this.IsEntryPoint = isEntryPoint;
             this.Parameters = parameters;
 
-            // Only a quick fix. It's because we are pushing an stack layout label on the stack.
+            // We are pushing a stack layout label on the stack.
             this.StackBytes = 8;
-            this.Link = this.ReserveStackFrameLocation(IntType.Instance);
+            this.ClosureType = new StructType("closure", this.closureStructFields);
+            this.ClosurePointer = this.ReserveStackFrameLocation(this.ClosureType); // this needs to be on stack, so GC works
+
+            if (this.Parent != null)
+            {
+                if (hasChildFunctions)
+                    this.Link = this.ReserveClosureLocation(".parent", this.Parent.ClosureType);
+                else
+                    this.Link = this.ReserveStackFrameLocation(this.Parent.ClosureType);
+            }
         }
 
         public IReadOnlyList<VariableDeclaration> Parameters { get; }
-
-        public ILocation Link { get; }
 
         public Function Parent { get; }
 
@@ -45,6 +55,12 @@ namespace KJU.Core.Intermediate.Function
         public bool IsForeign { get; }
 
         public bool IsEntryPoint { get; }
+
+        public StructType ClosureType { get; }
+
+        public MemoryLocation ClosurePointer { get; }
+
+        public ILocation Link { get; }
 
         [SuppressMessage(
             "StyleCop.CSharp.ReadabilityRules",
@@ -59,6 +75,12 @@ namespace KJU.Core.Intermediate.Function
             }
 
             return new MemoryLocation(this, -this.StackBytes);
+        }
+
+        public HeapLocation ReserveClosureLocation(string name, DataType dataType)
+        {
+            this.closureStructFields.Add(new StructField(inputRange: null, name: name, dataType));
+            return new HeapLocation(this, (this.closureStructFields.Count - 1) * 8, dataType);
         }
 
         public IEnumerable<string> GenerateStackLayout()

@@ -6,35 +6,32 @@ namespace KJU.Core.AST.Types
 
     public class StructType : DataType
     {
-        private static readonly Dictionary<StructDeclaration, StructType> Instances =
-            new Dictionary<StructDeclaration, StructType>();
-
-        private StructType(StructDeclaration declaration)
+        public StructType(string name, IReadOnlyList<StructField> fields)
         {
-            this.Id = Instances.Count;
-            this.Name = declaration.Name;
-            this.Declaration = declaration;
+            this.Id = $"{Guid.NewGuid():N}";
+            this.Name = name;
+            this.Fields = fields;
         }
 
-        public int Id { get; }
+        public string Id { get; }
 
         public string Name { get; }
 
-        public StructDeclaration Declaration { get; }
+        public IReadOnlyList<StructField> Fields { get; set; }
 
         public static StructType GetInstance(StructDeclaration structDeclaration)
         {
-            if (!Instances.ContainsKey(structDeclaration))
+            if (structDeclaration.StructType == null)
             {
-                Instances.Add(structDeclaration, new StructType(structDeclaration));
+                structDeclaration.StructType = new StructType(structDeclaration.Name, structDeclaration.Fields);
             }
 
-            return Instances[structDeclaration];
+            return structDeclaration.StructType;
         }
 
         public override string ToString()
         {
-            return $"Struct {this.Declaration}";
+            return $"Struct {string.Join(",", this.Fields)}";
         }
 
         public override IEnumerable<string> GenerateLayout()
@@ -42,7 +39,7 @@ namespace KJU.Core.AST.Types
             yield return $"{this.LayoutLabel}:";
             yield return "dq 0"; // Not an array type.
             int pos = 0;
-            foreach (var field in this.Declaration.Fields)
+            foreach (var field in this.Fields)
             {
                 if (!(field.Type is ArrayType) && !(field.Type is StructType))
                 {
