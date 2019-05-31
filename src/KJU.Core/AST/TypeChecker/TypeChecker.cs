@@ -25,6 +25,9 @@ namespace KJU.Core.AST.TypeChecker
         public const string FunctionOverloadNotFoundDiagnostic = "TypeChecker.FunctionOverloadNotFound";
         public const string IncorrectStructTypeDiagnostic = "TypeChecker.IncorrectStructType";
         public const string IncorrectFieldNameDiagnostic = "TypeChecker.IncorrectFieldName";
+        public const string IncorrectApplicationArgsDiagnostic = "TypeChecker.IncorrectApplicationArgs";
+        public const string IncorrectApplicationFuncDiagnostic = "TypeChecker.IncorrectApplicationFunc";
+        public const string AmbiguousUnapplicationDiagnostic = "TypeChecker.AmbiguousUnapplication";
 
         private static readonly IDictionary<UnaryOperationType, DataType> UnaryOperationToType =
             new Dictionary<UnaryOperationType, DataType>
@@ -43,6 +46,7 @@ namespace KJU.Core.AST.TypeChecker
         {
             private readonly IDiagnostics diagnostics;
             private readonly List<Exception> exceptions = new List<Exception>();
+            private readonly Stack<DataType> returnType = new Stack<DataType>();
 
             public TypeCheckerProcess(IDiagnostics diagnostics)
             {
@@ -67,52 +71,28 @@ namespace KJU.Core.AST.TypeChecker
                 this.diagnostics.Add(new Diagnostic(status, type, message, ranges));
             }
 
-            private void CheckReturnTypesMatch(Node node, DataType expectedType)
+            private void ProcessArguments(IEnumerable<Expression> args, IEnumerable<DataType> types)
             {
-                switch (node)
+                var withHints = Enumerable.Zip(args, types, (arg, type) => (arg, type));
+                foreach (var (argument, type) in withHints)
                 {
-                    case ReturnStatement returnNode:
-                        var type = returnNode.Type;
-                        if (!this.CanBeConverted(type, expectedType))
-                        {
-                            var message = $"Incorrect return type. Expected '{expectedType}', got '{type}'";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectReturnTypeDiagnostic,
-                                message,
-                                new List<Range> { node.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        return;
-
-                    case FunctionDeclaration _:
-                        return;
-                }
-
-                foreach (var child in node.Children())
-                {
-                    this.CheckReturnTypesMatch(child, expectedType);
+                    this.Dfs(argument, type);
                 }
             }
 
-            private void DetermineFunctionOverload(FunctionCall funCall)
+            private FunctionDeclaration DetermineFunctionOverload(
+                IReadOnlyCollection<FunctionDeclaration> candidates,
+                IReadOnlyList<DataType> argTypes)
             {
-                var callArgumentsTypes = funCall.Arguments.Select(x => x.Type).ToList();
-                var result = funCall.DeclarationCandidates
-                    .FirstOrDefault(candidate =>
-                    {
-                        var candidateParameterTypes = candidate.Parameters.Select(x => x.VariableType).ToList();
-                        return FunctionDeclaration.ParametersTypesEquals(candidateParameterTypes, callArgumentsTypes);
-                    });
-                if (result != null)
-                {
-                    funCall.Declaration = result;
-                }
-                else
-                {
-                    this.ReportOverloadNotFound(funCall);
-                }
+                return candidates.FirstOrDefault(
+                    candidate => FunctionDeclaration.ParametersTypesEquals(candidate, argTypes));
+            }
+
+            private FunctionDeclaration DetermineFunctionOverload(FunctionCall funCall)
+            {
+                return this.DetermineFunctionOverload(
+                    funCall.DeclarationCandidates,
+                    funCall.Arguments.Select(x => x.Type).ToList());
             }
 
             private void ReportOverloadNotFound(FunctionCall funCall)
@@ -147,16 +127,20 @@ namespace KJU.Core.AST.TypeChecker
                 }
             }
 
-            private void Dfs(Node node)
+            private void ProcessChildren(Node node, DataType hint = null)
             {
                 foreach (var child in node.Children())
                 {
-                    this.Dfs(child);
+                    this.Dfs(child, hint);
                 }
+            }
 
+            private void Dfs(Node node, DataType hint = null)
+            {
                 switch (node)
                 {
                     case Program p:
+                        this.ProcessChildren(node);
                         break;
 
                     case FunctionDeclaration fun:
@@ -169,15 +153,17 @@ namespace KJU.Core.AST.TypeChecker
                             throw new TypeCheckerException("Type checking failed.", this.exceptions);
                         }
 
-                        fun.Type = UnitType.Instance;
+                        this.returnType.Push(fun.ReturnType);
+                        this.ProcessChildren(node);
+                        this.returnType.Pop();
 
-                        if (!fun.IsForeign)
-                            this.CheckReturnTypesMatch(fun.Body, fun.ReturnType);
+                        fun.Type = UnitType.Instance;
                         break;
                     }
 
                     case InstructionBlock instruction:
                     {
+                        this.ProcessChildren(node);
                         instruction.Type = UnitType.Instance;
                         break;
                     }
@@ -194,6 +180,8 @@ namespace KJU.Core.AST.TypeChecker
 
                         if (variable.Value != null)
                         {
+                            this.Dfs(variable.Value, variable.VariableType);
+
                             var variableValueType = variable.Value.Type;
                             if (variableValueType == null)
                             {
@@ -227,12 +215,14 @@ namespace KJU.Core.AST.TypeChecker
 
                     case WhileStatement whileNode:
                     {
+                        this.ProcessChildren(node);
                         whileNode.Type = UnitType.Instance;
                         break;
                     }
 
                     case IfStatement ifNode:
                     {
+                        this.ProcessChildren(node);
                         var conditionType = ifNode.Condition.Type;
                         if (!BoolType.Instance.Equals(conditionType))
                         {
@@ -252,14 +242,46 @@ namespace KJU.Core.AST.TypeChecker
 
                     case FunctionCall funCall:
                     {
-                        this.DetermineFunctionOverload(funCall);
-                        funCall.Type = funCall.Declaration?.ReturnType;
+                        var argTypeHints = funCall.DeclarationCandidates.Count == 1
+                            ? funCall.DeclarationCandidates[0].Parameters.Select(param => param.VariableType)
+                            : Enumerable.Repeat<DataType>(null, funCall.Arguments.Count);
+                        this.ProcessArguments(funCall.Arguments, argTypeHints);
+
+                        FunctionDeclaration overload = this.DetermineFunctionOverload(funCall);
+                        if (overload != null)
+                        {
+                            funCall.Declaration = overload;
+                            funCall.Type = funCall.Declaration.ReturnType;
+                        }
+                        else
+                        {
+                            this.ReportOverloadNotFound(funCall);
+                        }
+
                         break;
                     }
 
                     case ReturnStatement returnNode:
                     {
-                        returnNode.Type = returnNode.Value == null ? UnitType.Instance : returnNode.Value.Type;
+                        var expectedType = this.returnType.Peek();
+                        if (returnNode.Value != null)
+                        {
+                            this.Dfs(returnNode.Value, expectedType);
+                        }
+
+                        returnNode.Type = returnNode.Value?.Type ?? UnitType.Instance;
+
+                        if (!this.CanBeConverted(returnNode.Type, expectedType))
+                        {
+                            var message = $"Incorrect return type. Expected '{expectedType}', got '{returnNode.Type}'";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectReturnTypeDiagnostic,
+                                message,
+                                new List<Range> { node.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+
                         break;
                     }
 
@@ -295,6 +317,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case Assignment assignmentNode:
                     {
+                        this.Dfs(assignmentNode.Lhs);
                         if (assignmentNode.Value == null)
                         {
                             var identifier = assignmentNode.Lhs.Identifier;
@@ -303,6 +326,7 @@ namespace KJU.Core.AST.TypeChecker
                             throw new TypeCheckerException("Type checking failed.", this.exceptions);
                         }
 
+                        this.Dfs(assignmentNode.Value, assignmentNode.Lhs.Type);
                         if (!this.CanBeConverted(assignmentNode.Value.Type, assignmentNode.Lhs.Type))
                         {
                             var identifier = assignmentNode.Lhs.Identifier;
@@ -322,6 +346,8 @@ namespace KJU.Core.AST.TypeChecker
 
                     case CompoundAssignment compoundNode:
                     {
+                        this.ProcessChildren(node);
+
                         if (compoundNode.Value == null)
                         {
                             var identifier = compoundNode.Lhs.Identifier;
@@ -360,6 +386,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case ArithmeticOperation operationNode:
                     {
+                        this.ProcessChildren(node);
                         foreach (var operand in new List<Expression>()
                             { operationNode.LeftValue, operationNode.RightValue })
                         {
@@ -385,6 +412,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case Comparison comparisonNode:
                     {
+                        this.ProcessChildren(node);
                         var lhsType = comparisonNode.LeftValue.Type;
                         var rhsType = comparisonNode.RightValue.Type;
                         var opType = comparisonNode.OperationType;
@@ -418,6 +446,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case UnaryOperation unaryOperation:
                     {
+                        this.ProcessChildren(node);
                         var operation = unaryOperation.UnaryOperationType;
                         var expectedType = UnaryOperationToType[operation];
                         var actualType = unaryOperation.Value.Type;
@@ -440,6 +469,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case LogicalBinaryOperation logicalBinaryOperation:
                     {
+                        this.ProcessChildren(node);
                         foreach (var operand in new List<Expression>()
                             { logicalBinaryOperation.LeftValue, logicalBinaryOperation.RightValue })
                         {
@@ -470,6 +500,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case ArrayAlloc arrayAlloc:
                     {
+                        this.ProcessChildren(node);
                         var elementType = arrayAlloc.ElementType;
                         var sizeType = arrayAlloc.Size.Type;
                         if (elementType == null)
@@ -498,6 +529,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case ArrayAccess arrayAccess:
                     {
+                        this.ProcessChildren(node);
                         var array = arrayAccess.Lhs;
                         var index = arrayAccess.Index;
 
@@ -537,14 +569,15 @@ namespace KJU.Core.AST.TypeChecker
 
                     case ComplexAssignment complexAssignment:
                     {
+                        this.Dfs(complexAssignment.Lhs);
                         var lhsType = complexAssignment.Lhs.Type;
-                        var valueType = complexAssignment.Value.Type;
-
                         if (lhsType == null)
                         {
                             throw new TypeCheckerInternalException("Left hand side type is null");
                         }
 
+                        this.Dfs(complexAssignment.Value, lhsType);
+                        var valueType = complexAssignment.Value.Type;
                         if (valueType == null)
                         {
                             throw new TypeCheckerInternalException("Value type is null");
@@ -567,6 +600,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case ComplexCompoundAssignment complexCompoundAssignment:
                     {
+                        this.ProcessChildren(node);
                         var lhsType = complexCompoundAssignment.Lhs.Type;
                         var valueType = complexCompoundAssignment.Value.Type;
 
@@ -606,6 +640,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case FieldAccess fieldAccess:
                     {
+                        this.ProcessChildren(node);
                         var lhsType = fieldAccess.Lhs.Type;
 
                         if (lhsType == null)
@@ -661,6 +696,7 @@ namespace KJU.Core.AST.TypeChecker
 
                     case StructDeclaration structDeclaration:
                     {
+                        this.ProcessChildren(node);
                         structDeclaration.Type = UnitType.Instance;
                         break;
                     }
@@ -676,6 +712,68 @@ namespace KJU.Core.AST.TypeChecker
                         else
                         {
                             structAlloc.Type = structType;
+                        }
+
+                        break;
+                    }
+
+                    case Application app:
+                    {
+                        this.Dfs(app.Function);
+                        FunType funType = app.Function.Type as FunType;
+                        if (funType == null)
+                        {
+                            var message = "Attempting to apply a non-function value {0}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                IncorrectApplicationFuncDiagnostic,
+                                message,
+                                new List<Range> { app.Function.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+                        else
+                        {
+                            this.ProcessArguments(app.Arguments, funType.ArgTypes);
+                            if (!FunctionDeclaration.ParametersTypesEquals(app.Arguments, funType.ArgTypes))
+                            {
+                                var message = "Application arguments don't match function parameters {0}";
+                                this.AddDiagnostic(
+                                    DiagnosticStatus.Error,
+                                    IncorrectApplicationArgsDiagnostic,
+                                    message,
+                                    new List<Range> { app.InputRange });
+                                this.exceptions.Add(new TypeCheckerInternalException(message));
+                            }
+
+                            app.Type = funType.ResultType;
+                        }
+
+                        break;
+                    }
+
+                    case UnApplication unapp:
+                    {
+                        unapp.Declaration = unapp.Candidates.Count == 1
+                            ? unapp.Candidates.FirstOrDefault() : null;
+
+                        if (unapp.Declaration == null && hint is FunType funHint)
+                        {
+                            unapp.Declaration = this.DetermineFunctionOverload(unapp.Candidates, funHint.ArgTypes);
+                        }
+
+                        if (unapp.Declaration == null)
+                        {
+                            var message = "Ambigous choice of function at {0}";
+                            this.AddDiagnostic(
+                                DiagnosticStatus.Error,
+                                AmbiguousUnapplicationDiagnostic,
+                                message,
+                                new List<Range> { unapp.InputRange });
+                            this.exceptions.Add(new TypeCheckerInternalException(message));
+                        }
+                        else
+                        {
+                            unapp.Type = new FunType(unapp.Declaration);
                         }
 
                         break;

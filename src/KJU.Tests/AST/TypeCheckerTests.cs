@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Core.Diagnostics;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
@@ -18,6 +19,7 @@
     [TestClass]
     public class TypeCheckerTests
     {
+        private static readonly Range MockRange = new Range(new StringLocation(0), new StringLocation(1));
         private readonly TypeCheckerHelper helper = new TypeCheckerHelper();
         private readonly IPhase typeChecker = new TypeChecker();
 
@@ -715,6 +717,7 @@
 
                 s.x += s.y;
                 s.y += 1;
+                s.x.x;
               }
              */
 
@@ -742,7 +745,9 @@
                 new ComplexAssignment(range, getFieldAccess("y"), new IntegerLiteral(range, 1)),
                 new ComplexAssignment(range, getFieldAccess("x"), getFieldAccess("y")),
                 new ComplexCompoundAssignment(range, getFieldAccess("x"), ArithmeticOperationType.Addition, getFieldAccess("y")),
-                new ComplexCompoundAssignment(range, getFieldAccess("y"), ArithmeticOperationType.Addition, new IntegerLiteral(range, 1)) };
+                new ComplexCompoundAssignment(range, getFieldAccess("y"), ArithmeticOperationType.Addition, new IntegerLiteral(range, 1)),
+                new FieldAccess(range, getFieldAccess("x"), "x"),
+                getFieldAccess("z") };
 
             var kjuDeclaration = new FunctionDeclaration(
                 range,
@@ -761,7 +766,9 @@
                 TypeChecker.IncorrectAssigmentTypeDiagnostic,
                 TypeChecker.IncorrectAssigmentTypeDiagnostic,
                 TypeChecker.IncorrectRightSideTypeDiagnostic,
-                TypeChecker.IncorrectLeftSideTypeDiagnostic);
+                TypeChecker.IncorrectLeftSideTypeDiagnostic,
+                TypeChecker.IncorrectStructTypeDiagnostic,
+                TypeChecker.IncorrectFieldNameDiagnostic);
         }
 
         [TestMethod]
@@ -891,6 +898,116 @@
 
             var root = new Program(range, new List<StructDeclaration>(), new List<FunctionDeclaration> { kjuDeclaration });
             this.typeChecker.Run(root, diagnostics);
+        }
+
+        [TestMethod]
+        public void NestedFunctionCorrectType()
+        {
+            var root = NestedFunctionAst(BoolType.Instance, new BoolLiteral(MockRange, true));
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
+            this.typeChecker.Run(root, diagnostics);
+        }
+
+        [TestMethod]
+        public void NestedFunctionIncorrectType()
+        {
+            var root = NestedFunctionAst(BoolType.Instance, new IntegerLiteral(MockRange, 0));
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            var diagnostics = diagnosticsMock.Object;
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.IncorrectReturnTypeDiagnostic);
+        }
+
+        [TestMethod]
+        public void SuccessfulApplication()
+        {
+            // fun f(Bool): Int { };
+            // fun g(): Int { };
+            // fun g(Bool): Int { };
+            //
+            // var x: (Bool) -> Int = unapply(f);
+            // var x: Int = apply(x, false);
+            // x = unapply(g);
+
+            var intLiteral = new IntegerLiteral(MockRange, 0);
+            var functionF = ShortFunction("f", new[] { BoolType.Instance }, IntType.Instance, intLiteral);
+            var functionG1 = ShortFunction("g", IntType.Instance, intLiteral);
+            var functionG2 = ShortFunction("g", new[] { BoolType.Instance }, IntType.Instance, intLiteral);
+
+            Func<string, FunctionDeclaration[], UnApplication> makeUnapplication =
+                (name, candidates) => new UnApplication(MockRange, name) { Candidates = candidates.ToList() };
+
+            var declX = new VariableDeclaration(
+                MockRange,
+                new FunType(functionF),
+                "x",
+                makeUnapplication("f", new[] { functionF }));
+
+            var declY = new VariableDeclaration(
+                MockRange,
+                IntType.Instance,
+                "y",
+                new Application(
+                    MockRange,
+                    new Variable(MockRange, "x") { Declaration = declX },
+                    new List<Expression> { new BoolLiteral(MockRange, false) }));
+
+            var root = ShortProgram(
+                functionF,
+                functionG1,
+                functionG2,
+                declX,
+                declY,
+                new Assignment(
+                    MockRange,
+                    new Variable(MockRange, "x") { Declaration = declX },
+                    makeUnapplication("g", new[] { functionG1, functionG2 })));
+
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            this.typeChecker.Run(root, diagnosticsMock.Object);
+        }
+
+        [TestMethod]
+        public void UnsuccessfulApplication()
+        {
+            // fun f(Bool): Int { };
+            // fun g(): Int { };
+            // fun g(Bool): Int { };
+            //
+            // var x: (Bool) -> Int = unapply(f);
+            // apply(y);
+            // apply(x, 0);
+            // unapply(g);
+
+            var intLiteral = new IntegerLiteral(MockRange, 0);
+            var functionF = ShortFunction("f", new[] { BoolType.Instance }, IntType.Instance, intLiteral);
+            var functionG1 = ShortFunction("g", IntType.Instance, intLiteral);
+            var functionG2 = ShortFunction("g", new[] { BoolType.Instance }, IntType.Instance, intLiteral);
+
+            Func<string, FunctionDeclaration[], UnApplication> makeUnapplication =
+                (name, candidates) => new UnApplication(MockRange, name) { Candidates = candidates.ToList() };
+
+            var declX = new VariableDeclaration(MockRange, new FunType(functionF), "x", makeUnapplication("f", new[] { functionF }));
+            var declY = new VariableDeclaration(MockRange, IntType.Instance, "y", intLiteral);
+
+            var root = ShortProgram(
+                functionF,
+                functionG1,
+                functionG2,
+                declX,
+                declY,
+                new Application(MockRange, new Variable(MockRange, "y") { Declaration = declY }, new List<Expression>()),
+                new Application(MockRange, new Variable(MockRange, "x") { Declaration = declX }, new List<Expression> { intLiteral }),
+                makeUnapplication("g", new[] { functionG1, functionG2 }));
+
+            var diagnosticsMock = new Mock<IDiagnostics>();
+            Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnosticsMock.Object));
+            MockDiagnostics.Verify(
+                diagnosticsMock,
+                TypeChecker.IncorrectApplicationFuncDiagnostic,
+                TypeChecker.IncorrectApplicationArgsDiagnostic,
+                TypeChecker.AmbiguousUnapplicationDiagnostic);
         }
 
         private static Node GenUntypedAst()
@@ -1289,6 +1406,46 @@
                 new Range(new StringLocation(0), new StringLocation(1)),
                 new List<StructDeclaration>(),
                 functions);
+        }
+
+        private static Program NestedFunctionAst(DataType type, Expression value)
+        {
+            // fun kju(): Int {
+            //     fun f(): Int {
+            //          fun g(): <type> {
+            //              return <value>;
+            //          }
+            //          return 1;
+            //     }
+            //     return 0;
+            // }
+
+            return ShortProgram(
+                ShortFunction(
+                    "f",
+                    IntType.Instance,
+                    new IntegerLiteral(MockRange, 1),
+                    ShortFunction("g", type, value)));
+        }
+
+        private static Program ShortProgram(params Expression[] instructions)
+        {
+            var kju = ShortFunction("kju", IntType.Instance, new IntegerLiteral(MockRange, 0), instructions);
+            return new Program(MockRange, new List<StructDeclaration>(), new List<FunctionDeclaration> { kju });
+        }
+
+        private static FunctionDeclaration ShortFunction(string name, DataType retType, Expression retVal, params Expression[] body)
+        {
+            return ShortFunction(name, new DataType[0], retType, retVal, body);
+        }
+
+        private static FunctionDeclaration ShortFunction(string name, DataType[] paramTypes, DataType retType, Expression retVal, params Expression[] body)
+        {
+            var instructions = new List<Expression>(body);
+            instructions.Add(new ReturnStatement(MockRange, retVal));
+            var parameters = paramTypes.Select(
+                type => new VariableDeclaration(MockRange, type, "a", null)).ToList();
+            return new FunctionDeclaration(MockRange, name, retType, parameters, new InstructionBlock(MockRange, instructions), false);
         }
     }
 }

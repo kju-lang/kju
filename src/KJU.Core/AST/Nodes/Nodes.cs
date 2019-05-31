@@ -85,7 +85,17 @@ namespace KJU.Core.AST
                 right.Parameters.Select(x => x.VariableType).ToList());
         }
 
-        public static bool ParametersTypesEquals(List<DataType> left, List<DataType> right)
+        public static bool ParametersTypesEquals(IReadOnlyList<Expression> left, IReadOnlyList<DataType> right)
+        {
+            return ParametersTypesEquals(left.Select(x => x.Type).ToList(), right);
+        }
+
+        public static bool ParametersTypesEquals(FunctionDeclaration left, IReadOnlyList<DataType> right)
+        {
+            return ParametersTypesEquals(left.Parameters.Select(x => x.VariableType).ToList(), right);
+        }
+
+        public static bool ParametersTypesEquals(IReadOnlyList<DataType> left, IReadOnlyList<DataType> right)
         {
             return left.SequenceEqual(right);
         }
