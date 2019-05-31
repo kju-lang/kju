@@ -315,7 +315,7 @@
 
             private void ProcessUnApplication(UnApplication unapplication, IDiagnostics diagnostics)
             {
-                var identifier = unapplication.Name;
+                var identifier = unapplication.FunctionName;
                 if (!this.functions.ContainsKey(identifier) || this.functions[identifier].Count == 0)
                 {
                     var message = $"No function of name '{identifier}'";

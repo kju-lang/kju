@@ -86,8 +86,7 @@
             {
                 var unapplication = new UnApplication(
                     new Range(new StringLocation(0), new StringLocation(1)),
-                    "a",
-                    null);
+                    "a");
                 var body = new InstructionBlock(
                     new Range(new StringLocation(0), new StringLocation(1)),
                     new List<Expression> { unapplication });
