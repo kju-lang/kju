@@ -106,6 +106,47 @@ namespace KJU.Core.Intermediate
         }
     }
 
+    public class LabelImmediateValue : Node
+    {
+        public LabelImmediateValue()
+        {
+        }
+
+        public LabelImmediateValue(string value)
+        {
+            this.Value = value;
+        }
+
+        public string Value { get; }
+
+        public string TemplateValue { get; set; }
+
+        public override List<object> Match(Node template)
+        {
+            if (template is LabelImmediateValue i)
+            {
+                if (i.TemplateValue == null)
+                {
+                    return new List<object> { this.Value };
+                }
+
+                if (i.TemplateValue == this.Value)
+                {
+                    return new List<object>();
+                }
+
+                return null;
+            }
+
+            return null;
+        }
+
+        public override string ToString()
+        {
+            return $"IntegerImmediateValue{{Value: {this.Value}, TemplateValue: {this.TemplateValue}}}";
+        }
+    }
+
     public class Comment : Node
     {
         public Comment()

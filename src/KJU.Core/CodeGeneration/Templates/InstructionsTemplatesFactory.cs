@@ -33,6 +33,7 @@ namespace KJU.Core.CodeGeneration.Templates
 
                 new BooleanImmediateValueTemplate(),
                 new IntegerImmediateValueTemplate(),
+                new LabelImmediateValueTemplate(),
                 new UnitImmediateValueTemplate(),
                 new GeneralAddTemplate(),
                 new SubTemplate(),

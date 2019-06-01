@@ -141,6 +141,10 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                         return new Computation(after);
                     case AST.StructAlloc expr:
                         return this.ConvertNode(expr, after);
+                    case AST.Application expr:
+                        return this.ConvertNode(expr, after);
+                    case AST.UnApplication expr:
+                        return this.ConvertNode(expr, after);
                     default:
                         throw new FunctionBodyGeneratorException($"Unknown node type: {node.Type}");
                 }
@@ -616,6 +620,16 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
                 call.Declaration = decl;
                 return this.ConvertNode(call, after);
+            }
+
+            private Computation ConvertNode(AST.Application node, ILabel after)
+            {
+                throw new FunctionBodyGeneratorException($"Application node conversion not implemented");
+            }
+
+            private Computation ConvertNode(AST.UnApplication node, ILabel after)
+            {
+                return new Computation(after, new LabelImmediateValue(node.FunctionName));
             }
         }
     }
