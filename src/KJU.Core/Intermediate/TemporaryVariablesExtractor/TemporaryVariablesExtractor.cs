@@ -41,6 +41,9 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
                     case ArrayAccess arrayAccess:
                         return this.ExtractFromArrayAccess(arrayAccess);
 
+                    case UnApplication arrayAccess:
+                        return new List<Expression>();
+
                     case IComplexAssignment arrayAssignment:
                         return this.ExtractFromArrayAssignment(arrayAssignment);
 
@@ -59,6 +62,9 @@ namespace KJU.Core.Intermediate.TemporaryVariablesExtractor
 
                     case AST.FunctionCall funCall:
                         return this.ExtractFromFunctionCall(funCall);
+
+                    case AST.Application funApplication:
+                        return new List<Expression>(); // fixme
 
                     case ReturnStatement returnStatement:
                         return this.ExtractFromReturnStatement(returnStatement);

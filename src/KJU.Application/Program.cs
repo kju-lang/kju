@@ -34,9 +34,10 @@
                 {
                     GenerateArtifacts(options, compiler, query, diag);
                 }
-                catch (CompilerException)
+                catch (CompilerException ex)
                 {
                     Console.WriteLine("Compilation failed");
+                    throw ex;
                 }
                 catch (ArtifactGenerationException e)
                 {

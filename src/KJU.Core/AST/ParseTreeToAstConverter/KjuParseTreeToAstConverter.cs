@@ -187,8 +187,27 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                         return new UnresolvedType(token.Text, token.InputRange);
                     case Brunch<KjuAlphabet> brunch:
                         var parseTreeChild = brunch.Children[1];
-                        var childDataType = this.TypeIdentifierAst(parseTreeChild);
-                        return new UnresolvedArrayType(childDataType);
+
+                        if (brunch.Children[0] is Token<KjuAlphabet> parenToken && parenToken.Text == "(")
+                        {
+                            List<DataType> argTypes = new List<DataType>();
+                            int pos = 1;
+                            for (; ; pos += 2)
+                            {
+                                if (brunch.Children[pos] is Token<KjuAlphabet> arrowToken && arrowToken.Text == "->")
+                                    break;
+                                argTypes.Add(this.TypeIdentifierAst(brunch.Children[pos]));
+                            }
+
+                            DataType returnType = this.TypeIdentifierAst(brunch.Children[pos + 1]);
+                            return new UnresolvedFunType(argTypes, returnType);
+                        }
+                        else
+                        {
+                            var childDataType = this.TypeIdentifierAst(parseTreeChild);
+                            return new UnresolvedArrayType(childDataType);
+                        }
+
                     default:
                         var diag = new Diagnostic(
                             DiagnosticStatus.Error,
