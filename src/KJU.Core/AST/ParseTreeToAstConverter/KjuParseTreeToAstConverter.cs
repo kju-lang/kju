@@ -192,11 +192,20 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                         {
                             List<DataType> argTypes = new List<DataType>();
                             int pos = 1;
-                            for (; ; pos += 2)
+                            if (brunch.Children[pos] is Token<KjuAlphabet> rbrace && rbrace.Text == ")")
                             {
-                                if (brunch.Children[pos] is Token<KjuAlphabet> arrowToken && arrowToken.Text == "->")
-                                    break;
-                                argTypes.Add(this.TypeIdentifierAst(brunch.Children[pos]));
+                                ++pos;
+                            }
+                            else
+                            {
+                                while (true)
+                                {
+                                    if (brunch.Children[pos] is Token<KjuAlphabet> arrowToken && arrowToken.Text == "->")
+                                        break;
+
+                                    argTypes.Add(this.TypeIdentifierAst(brunch.Children[pos]));
+                                    pos += 2;
+                                }
                             }
 
                             DataType returnType = this.TypeIdentifierAst(brunch.Children[pos + 1]);
