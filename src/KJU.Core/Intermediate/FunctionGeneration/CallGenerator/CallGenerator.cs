@@ -2,6 +2,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
 {
     using System.Collections.Generic;
     using System.Linq;
+    using AST.Types;
     using CallingSiblingFinder;
     using ReadWrite;
 
@@ -57,6 +58,19 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
             return preCall.MakeTreeChain(this.labelFactory, controlFlow);
         }
 
+        public (Node readLink, StructType linkType) GetClosureForFunction(Function.Function callerFunction, Function.Function parentFunction)
+        {
+            if (callerFunction == parentFunction)
+            {
+                return (this.readWriteGenerator.GenerateRead(callerFunction, callerFunction.ClosurePointer), parentFunction.ClosureType);
+            }
+            else
+            {
+                var sibling = this.callingSiblingFinder.GetCallingSibling(callerFunction, parentFunction);
+                return (this.readWriteGenerator.GenerateRead(callerFunction, sibling.Link), parentFunction.ClosureType);
+            }
+        }
+
         /*
                     Argument position on wrt. stack frame (if needed):
                            |             ...            |
@@ -73,17 +87,8 @@ namespace KJU.Core.Intermediate.FunctionGeneration.CallGenerator
             Function.Function parentFunction)
         {
             Node readStaticLink = null;
-            if (callerFunction == parentFunction)
-            {
-                readStaticLink = this.readWriteGenerator.GenerateRead(callerFunction, callerFunction.ClosurePointer);
-            }
-            else if (parentFunction != null)
-            {
-                var siblingLink = this.callingSiblingFinder.GetCallingSibling(callerFunction, parentFunction).Link;
-                readStaticLink = this.readWriteGenerator.GenerateRead(
-                    callerFunction,
-                    siblingLink);
-            }
+            if (parentFunction != null)
+                readStaticLink = this.GetClosureForFunction(callerFunction, parentFunction).readLink;
 
             var values = argRegisters
                 .Select(argVR => (Node)new RegisterRead(argVR)).ToList();

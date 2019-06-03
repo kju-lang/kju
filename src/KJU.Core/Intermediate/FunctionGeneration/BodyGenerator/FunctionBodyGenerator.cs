@@ -3,6 +3,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using AST.BuiltinTypes;
     using CallGenerator;
     using NameMangler;
     using PrologueEpilogue;
@@ -629,7 +630,50 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
             private Computation ConvertNode(AST.UnApplication node, ILabel after)
             {
-                return new Computation(after, new LabelImmediateValue(node.FunctionName));
+                var structPtr = new VirtualRegister();
+                var structPtrRead = new RegisterRead(structPtr);
+
+                var (readClosure, closureType) = this.callGenerator.GetClosureForFunction(this.function, node.Declaration.Function);
+
+                var writeFunAddr = new MemoryWrite(
+                    new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, structPtrRead, new IntegerImmediateValue(0)),
+                    new LabelImmediateValue(node.Declaration.Function.MangledName));
+
+                var writeClosureType = new MemoryWrite(
+                    new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, structPtrRead, new IntegerImmediateValue(8)),
+                    new LabelImmediateValue(this.function.ClosureType.LayoutLabel));
+
+                var writeClosure = new MemoryWrite(
+                    new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, structPtrRead, new IntegerImmediateValue(16)),
+                    readClosure);
+
+                ILabel writeValuesLabel = new List<Node>() { writeFunAddr, writeClosureType, writeClosure }.MakeTreeChain(this.labelFactory, after);
+                ILabel allocLabel = this.AllocateStruct(3, structPtr, writeValuesLabel);
+                return new Computation(allocLabel, new RegisterRead(structPtr));
+            }
+
+            private ILabel AllocateStruct(int fieldCount, ILocation target, ILabel after)
+            {
+                if (fieldCount == 0)
+                    return after;
+
+                var allocateFunctionName = NameMangler.GetMangledName("allocate", new List<AST.DataType>() { IntType.Instance }, null);
+
+                var allocateFunc = new Function.Function(
+                    null,
+                    allocateFunctionName,
+                    new List<AST.VariableDeclaration>() { new AST.VariableDeclaration(null, IntType.Instance, "size", null) },
+                    isEntryPoint: false,
+                    isForeign: true);
+
+                var sizeRegister = new VirtualRegister();
+
+                var call = this.callGenerator.GenerateCall(target, new List<VirtualRegister>() { sizeRegister }, after, callerFunction: this.function, function: allocateFunc);
+
+                var writeSize = new RegisterWrite(sizeRegister, new IntegerImmediateValue(fieldCount * 8));
+                var startLabel = this.labelFactory.GetLabel(new Tree(writeSize, new UnconditionalJump(call)));
+
+                return startLabel;
             }
         }
     }
