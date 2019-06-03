@@ -17,6 +17,14 @@
         {
         }
 
+        public override string LayoutLabel
+        {
+            get
+            {
+                return "1";
+            }
+        }
+
         public IReadOnlyList<DataType> ArgTypes { get; }
 
         public DataType ResultType { get; }

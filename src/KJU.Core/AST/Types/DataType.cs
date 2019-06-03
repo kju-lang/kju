@@ -6,7 +6,7 @@ namespace KJU.Core.AST
 
     public abstract class DataType
     {
-        public string LayoutLabel
+        public virtual string LayoutLabel
         {
             get
             {

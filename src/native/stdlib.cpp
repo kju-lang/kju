@@ -27,6 +27,12 @@ void disable_gc() {
     gc_enabled = false;
 }
 
+struct function_t {
+    pointer code_ptr;
+    pointer closure_type;
+    pointer closure;
+};
+
 // This one is for internal use only!
 __attribute__((sysv_abi))
 void mark_and_sweep_run(pointer stack_frame_addr) {
@@ -69,15 +75,23 @@ void mark_and_sweep_run(pointer stack_frame_addr) {
         queue.pop();
         
         pointer type_addr = (pointer) addr_type[variable_addr];
-        pointer array_of_type = (pointer) *type_addr;
 
-        if (array_of_type == nullptr) {
-            pushReachableAddr(variable_addr, type_addr + 1);            
+        if ((long long) type_addr == 1) {
+            function_t* fun = (function_t*) variable_addr;
+            if (fun->closure != nullptr) {
+                pushToQueue(fun->closure, fun->closure_type);
+            }
         } else {
-            pointer array = variable_addr;
-            long long size = *(array - 1) / 8;
-            for (long long i = 0; i < size; ++i) {
-                pushToQueue((pointer) *(array + i), array_of_type);
+            pointer array_of_type = (pointer) *type_addr;
+
+            if (array_of_type == nullptr) {
+                pushReachableAddr(variable_addr, type_addr + 1);
+            } else {
+                pointer array = variable_addr;
+                long long size = *(array - 1) / 8;
+                for (long long i = 0; i < size; ++i) {
+                    pushToQueue((pointer) *(array + i), array_of_type);
+                }
             }
         }
     }

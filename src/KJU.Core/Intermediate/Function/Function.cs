@@ -69,7 +69,7 @@ namespace KJU.Core.Intermediate.Function
             public MemoryLocation ReserveStackFrameLocation(DataType dataType)
         {
             this.StackBytes += 8;
-            if (dataType is ArrayType || dataType is StructType)
+            if (dataType.IsHeapType())
             {
                 this.stackLayoutInfo.Add((offset: -this.StackBytes / 8, target: dataType));
             }
@@ -86,13 +86,7 @@ namespace KJU.Core.Intermediate.Function
         public IEnumerable<string> GenerateStackLayout()
         {
             return this.stackLayoutInfo
-                .Select(pointer =>
-                        {
-                            if (pointer.target is FunType)
-                                return $"dq {pointer.offset}, 1";
-                            else
-                                return $"dq {pointer.offset}, {pointer.target.LayoutLabel}";
-                        })
+                .Select(pointer => $"dq {pointer.offset}, {pointer.target.LayoutLabel}")
                 .Append("dq 0, 0");
         }
     }

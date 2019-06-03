@@ -1,0 +1,29 @@
+fun write(a : Int) : Unit import
+fun enforce_gc() : Int import
+
+
+fun f(a: Int) : Unit {
+}
+
+fun make_f() : (Int) -> Unit {
+    var a: [Int] = new(Int, 10);
+    fun f1(x: Int) : Unit {
+        write(a[0] + x);
+    };
+    return unapply(f1);
+}
+
+fun kju() : Int {
+    var lambda : (Int) -> Unit = unapply(f);
+    var lam1 : (Int) -> Unit = make_f();
+
+    var i : Int = 100;
+    while (i > 0) {
+        lambda = unapply(f);
+        lam1 = make_f();
+        i -= 1;
+    };
+
+    write(enforce_gc());
+    return 0;
+}
