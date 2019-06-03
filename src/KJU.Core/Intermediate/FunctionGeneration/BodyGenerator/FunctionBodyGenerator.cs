@@ -633,7 +633,11 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 var structPtr = new VirtualRegister();
                 var structPtrRead = new RegisterRead(structPtr);
 
-                var (readClosure, closureType) = this.callGenerator.GetClosureForFunction(this.function, node.Declaration.Function);
+                Node readClosure;
+                if (node.Declaration.Function.Parent == null)
+                    readClosure = new IntegerImmediateValue(0);
+                else
+                    readClosure = this.callGenerator.GetClosureForFunction(this.function, node.Declaration.Function.Parent).readLink;
 
                 var writeFunAddr = new MemoryWrite(
                     new ArithmeticBinaryOperation(AST.ArithmeticOperationType.Addition, structPtrRead, new IntegerImmediateValue(0)),
