@@ -73,6 +73,81 @@
         /*
          * fun a()
          * {
+         * }
+         * fun b()
+         * {
+         *   a();
+         *   fun a(x: Int)
+         *   {
+         *   };
+         *   a();
+         * }
+         */
+        [TestMethod]
+        public void TestShadowing()
+        {
+            var functions = new List<FunctionDeclaration>();
+            var calls = new List<FunctionCall>();
+
+            var body = new InstructionBlock(
+                    new Range(new StringLocation(0), new StringLocation(1)),
+                    new List<Expression>());
+            var fun = new FunctionDeclaration(
+                    new Range(new StringLocation(0), new StringLocation(1)),
+                    "a",
+                    UnitType.Instance,
+                    new List<VariableDeclaration>(),
+                    body,
+                    false);
+
+            var functionCall1 = new FunctionCall(
+                    new Range(new StringLocation(0), new StringLocation(1)),
+                    "a",
+                    new List<Expression>());
+            calls.Add(functionCall1);
+
+            var inner = new FunctionDeclaration(
+                new Range(new StringLocation(0), new StringLocation(1)),
+                "a",
+                UnitType.Instance,
+                new List<VariableDeclaration> { new VariableDeclaration(new Range(new StringLocation(0), new StringLocation(1)), IntType.Instance, "x", null) },
+                new InstructionBlock(new Range(new StringLocation(0), new StringLocation(1)), new List<Expression>()),
+                false);
+
+            var functionCall2 = new FunctionCall(
+                    new Range(new StringLocation(0), new StringLocation(1)),
+                    "a",
+                    new List<Expression>());
+            calls.Add(functionCall2);
+
+            var fun2 = new FunctionDeclaration(
+                    new Range(new StringLocation(0), new StringLocation(1)),
+                    "b",
+                    UnitType.Instance,
+                    new List<VariableDeclaration>(),
+                    new InstructionBlock(
+                        new Range(new StringLocation(0), new StringLocation(1)),
+                        new List<Expression> { functionCall1, inner, functionCall2 }),
+                    false);
+
+            functions.Add(fun);
+            functions.Add(fun2);
+
+            var root = new Program(
+                new Range(new StringLocation(0), new StringLocation(1)),
+                new List<StructDeclaration>(),
+                functions);
+            var resolver = new NameResolver();
+            resolver.Run(root, null);
+            var expected = new List<FunctionDeclaration> { fun };
+            CollectionAssert.AreEqual(expected, calls[0].DeclarationCandidates);
+            expected = new List<FunctionDeclaration> { inner };
+            CollectionAssert.AreEqual(expected, calls[1].DeclarationCandidates);
+        }
+
+        /*
+         * fun a()
+         * {
          *   unapply(a);
          * }
          */
