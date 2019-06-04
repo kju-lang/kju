@@ -12,8 +12,10 @@ namespace KJU {
 /* ****************** GC ********************** */
 using pointer = long long *;
 
-std::list<pointer> references;
+std::list<std::pair<pointer, long long>> references;
 size_t lastsize = 0;
+long long current_memory = 0;
+long long last_memory = 0;
 
 bool gc_enabled = true;
 
@@ -97,10 +99,11 @@ void mark_and_sweep_run(pointer stack_frame_addr) {
     }
 
     for (auto it = references.begin(); it != references.end();) {
-        pointer addr = *it;
+        pointer addr = it->first;
         if (!visited_addr.count(addr)) {
             it = references.erase(it);
             free(addr - 1);
+            current_memory -= it->second;
         } else {
             ++it;
         }
@@ -167,19 +170,26 @@ long long allocate(long long size) {
     stack_frame_addr = (pointer) *stack_frame_addr;
 
     bool gc_ran = false;
-    if(references.size() > lastsize + 256) {
+    const int MB = 1024*1024;
+    
+    if(current_memory - last_memory >= MB && (current_memory >= 2 * last_memory || references.size() >= 2 * lastsize))
+    {
         garbage_collection(stack_frame_addr);
         gc_ran = true;
     }
 
+    current_memory += size;
     long long* ptr = (long long*) calloc(size + 8, 1);
     *ptr = size;
     ptr++;
 
     if(gc_ran)
+    {
+        last_memory = current_memory;
         lastsize = references.size();
+    }
 
-    references.push_back((pointer) ptr);
+    references.push_back({(pointer) ptr, size});
     return (long long) ptr;
 }
 
