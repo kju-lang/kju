@@ -56,6 +56,21 @@ namespace KJU.Core.Intermediate
         }
     }
 
+    public class ComputedFunctionCall : ControlFlowInstruction
+    {
+        public ComputedFunctionCall(ILabel targetAfter)
+        {
+            this.TargetAfter = targetAfter;
+        }
+
+        public ILabel TargetAfter { get; }
+
+        public override string ToString()
+        {
+            return $"ComputedFunctionCall{{TargetAfter: {this.TargetAfter}}}";
+        }
+    }
+
     public class Ret : ControlFlowInstruction
     {
         public override string ToString()

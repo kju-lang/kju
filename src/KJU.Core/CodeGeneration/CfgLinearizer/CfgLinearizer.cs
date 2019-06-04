@@ -53,6 +53,9 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
                     case FunctionCall functionCall:
                         labelsToProcess.Push(functionCall.TargetAfter);
                         break;
+                    case ComputedFunctionCall functionCall:
+                        labelsToProcess.Push(functionCall.TargetAfter);
+                        break;
                     case Ret _:
                         break;
                     default:
@@ -98,6 +101,12 @@ namespace KJU.Core.CodeGeneration.CfgLinearizer
                     case FunctionCall functionCall: // erase TargetAfter???
                         controlFlow = order[functionCall.TargetAfter] == index + 1
                             ? new FunctionCall(functionCall.Function, null)
+                            : tree.ControlFlow;
+
+                        break;
+                    case ComputedFunctionCall computedFunctionCall: // erase TargetAfter???
+                        controlFlow = order[computedFunctionCall.TargetAfter] == index + 1
+                            ? new ComputedFunctionCall(null)
                             : tree.ControlFlow;
 
                         break;

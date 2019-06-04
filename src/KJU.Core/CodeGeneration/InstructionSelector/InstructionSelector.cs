@@ -98,6 +98,16 @@ namespace KJU.Core.CodeGeneration.InstructionSelector
                     return instructions.Append(new CallInstruction(functionInfo));
                 }
 
+                case ComputedFunctionCall call:
+                {
+                    if (call.TargetAfter != null)
+                    {
+                        throw new NotImplementedException("non-trivial calls not supported yet");
+                    }
+
+                    return instructions.Append(new ComputedCallInstruction());
+                }
+
                 case UnconditionalJump jmp:
                 {
                     return jmp.Target == null
