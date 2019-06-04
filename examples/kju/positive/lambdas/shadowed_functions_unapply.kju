@@ -9,5 +9,5 @@ fun kju() : Unit {
         return 2;
     };
     var lambda : () -> Int = unapply(f);
-    write(apply(f));
+    write(apply(lambda));
 }

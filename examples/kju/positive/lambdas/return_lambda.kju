@@ -1,7 +1,7 @@
 fun write(a : Int) : Unit import
 
 fun f(a : Bool) : Int {
-    if (a) {
+    if (a) then {
         return 2;
     } else {
         return 5;
@@ -14,5 +14,5 @@ fun g() : (Bool) -> Int {
 
 fun kju() : Unit {
     var lambda : (Bool) -> Int = g();
-    write(lambda(false));
+    write(apply(lambda, false));
 }

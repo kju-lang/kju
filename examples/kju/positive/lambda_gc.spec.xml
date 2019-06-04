@@ -1,6 +1,9 @@
 <Spec>
     <Execution>
-        <ExpectedOutput>7</ExpectedOutput>
+        <ExpectedOutput>
+            7
+            106
+        </ExpectedOutput>
     </Execution>
 </Spec>
 

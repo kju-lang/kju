@@ -7,6 +7,7 @@ fun f(a: Int) : Unit {
 
 fun make_f() : (Int) -> Unit {
     var a: [Int] = new(Int, 10);
+    a[0] = 100;
     fun f1(x: Int) : Unit {
         write(a[0] + x);
     };
@@ -25,5 +26,6 @@ fun kju() : Int {
     };
 
     write(enforce_gc());
+    apply(lam1, 6);
     return 0;
 }
