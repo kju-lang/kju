@@ -25,8 +25,8 @@
 
             private readonly Stack<HashSet<string>> variableBlocks = new Stack<HashSet<string>>();
 
-            private readonly Dictionary<string, Stack<FunctionDeclaration>> functions =
-                new Dictionary<string, Stack<FunctionDeclaration>>();
+            private readonly Dictionary<string, Stack<List<FunctionDeclaration>>> functions =
+                new Dictionary<string, Stack<List<FunctionDeclaration>>>();
 
             private readonly Stack<Dictionary<string, List<FunctionDeclaration>>> functionBlocks =
                 new Stack<Dictionary<string, List<FunctionDeclaration>>>();
@@ -158,9 +158,11 @@
                 if (!this.functionBlocks.Peek().ContainsKey(functionName))
                 {
                     this.functionBlocks.Peek().Add(functionName, new List<FunctionDeclaration>());
+                    this.functions[functionName].Push(new List<FunctionDeclaration>());
                 }
 
                 this.functionBlocks.Peek()[functionName].Add(declaration);
+                this.functions[functionName].Peek().Add(declaration);
             }
 
             private void ProcessProgram(Program program, IDiagnostics diagnostics)
@@ -175,10 +177,9 @@
 
                     if (!this.functions.ContainsKey(id))
                     {
-                        this.functions.Add(id, new Stack<FunctionDeclaration>());
+                        this.functions.Add(id, new Stack<List<FunctionDeclaration>>());
                     }
 
-                    this.functions[id].Push(fun);
                     this.AddToPeek(id, fun);
                 }
 
@@ -237,10 +238,9 @@
 
                 if (!this.functions.ContainsKey(id))
                 {
-                    this.functions.Add(id, new Stack<FunctionDeclaration>());
+                    this.functions.Add(id, new Stack<List<FunctionDeclaration>>());
                 }
 
-                this.functions[id].Push(fun);
                 this.AddToPeek(id, fun);
                 this.functionBlocks.Push(new Dictionary<string, List<FunctionDeclaration>>());
                 this.variableBlocks.Push(new HashSet<string>());
@@ -410,7 +410,7 @@
             private List<FunctionDeclaration> GetDeclarationCandidates(string identifier)
             {
                 var declarationCandidates = new List<FunctionDeclaration>();
-                foreach (var functionDeclaration in this.functions[identifier])
+                foreach (var functionDeclaration in this.functions[identifier].Peek())
                 {
                     if (!declarationCandidates.Any(
                         addedFun =>
@@ -434,10 +434,7 @@
                 var funs = this.functionBlocks.Pop();
                 foreach (var fun in funs)
                 {
-                    for (int i = 0; i < fun.Value.Count; i++)
-                    {
-                        this.functions[fun.Key].Pop();
-                    }
+                    this.functions[fun.Key].Pop();
                 }
 
                 var structs = this.structBlocks.Pop();
