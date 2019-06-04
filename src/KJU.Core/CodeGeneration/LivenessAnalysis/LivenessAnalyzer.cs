@@ -74,6 +74,14 @@ namespace KJU.Core.CodeGeneration.LivenessAnalysis
                         }
 
                         break;
+                    case ComputedFunctionCall computedFunctionCall:
+                        connectedWithNext = computedFunctionCall.TargetAfter == null;
+                        if (!connectedWithNext)
+                        {
+                            cfg[lastInstruction].Add(labelToFirstInstruction[computedFunctionCall.TargetAfter]);
+                        }
+
+                        break;
                     case Ret _:
                         connectedWithNext = false;
                         break;

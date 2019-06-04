@@ -4,6 +4,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
     using System.Collections.Generic;
     using System.Linq;
     using AST.BuiltinTypes;
+    using AST.Types;
     using CallGenerator;
     using NameMangler;
     using PrologueEpilogue;
@@ -236,6 +237,58 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
                 return new Computation(
                     argumentsLabel,
+                    this.readWriteGenerator.GenerateRead(this.function, resultLocation));
+            }
+
+            private Computation ConvertNode(AST.Application node, ILabel after)
+            {
+                var funType = (FunType)node.Function.Type;
+                var resultLocation = funType.ResultType.IsHeapType()
+                    ? (ILocation)this.function.ReserveStackFrameLocation(funType.ResultType)
+                    : new VirtualRegister();
+                var argumentRegisters = Enumerable
+                    .Range(0, node.Arguments.Count)
+                    .Select(i => new VirtualRegister())
+                    .ToList();
+
+                var funValueRegister = new VirtualRegister();
+                var callArguments = argumentRegisters.ToList();
+                callArguments.Reverse();
+                var callLabel = this.callGenerator.GenerateClosureCall(
+                    resultLocation,
+                    callArguments,
+                    after,
+                    this.function,
+                    funType,
+                    funValueRegister);
+
+                var argumentsLabel = node.Arguments
+                    .Reverse()
+                    .Zip(argumentRegisters, (argument, register) => new { Argument = argument, Register = register })
+                    .Aggregate(
+                        callLabel,
+                        (next, x) =>
+                        {
+                            var result = this.labelFactory.WithLabel(
+                                writeLabel =>
+                                {
+                                    var argValue = this.GenerateExpression(x.Argument, writeLabel);
+                                    Node write = new RegisterWrite(x.Register, argValue.Result);
+                                    return (new Tree(write, new UnconditionalJump(next)), argValue);
+                                });
+                            return result.Start;
+                        });
+
+                ILabel computeFunValue = this.labelFactory.WithLabel(
+                    writeLabel =>
+                    {
+                        var argValue = this.GenerateExpression(node.Function, writeLabel);
+                        Node write = new RegisterWrite(funValueRegister, argValue.Result);
+                        return (new Tree(write, new UnconditionalJump(argumentsLabel)), argValue);
+                    }).Start;
+
+                return new Computation(
+                    computeFunValue,
                     this.readWriteGenerator.GenerateRead(this.function, resultLocation));
             }
 
@@ -621,11 +674,6 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
 
                 call.Declaration = decl;
                 return this.ConvertNode(call, after);
-            }
-
-            private Computation ConvertNode(AST.Application node, ILabel after)
-            {
-                throw new FunctionBodyGeneratorException($"Application node conversion not implemented");
             }
 
             private Computation ConvertNode(AST.UnApplication node, ILabel after)
