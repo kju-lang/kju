@@ -657,6 +657,8 @@ namespace KJU.Core.AST
 
         public string Field { get; }
 
+        public List<StructDeclaration> StructCandidates { get; set; }
+
         public Expression Offset
         {
             get

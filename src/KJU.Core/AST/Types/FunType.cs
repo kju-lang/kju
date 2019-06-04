@@ -52,5 +52,12 @@
                 this.ResultType.GetHashCode(),
                 (acc, type) => (acc, type).GetHashCode());
         }
+
+        public override IEnumerable<IHerbrandObject> GetArguments()
+        {
+            yield return this.ResultType;
+            foreach (DataType param in this.ArgTypes)
+                yield return param;
+        }
     }
 }

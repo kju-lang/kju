@@ -39,5 +39,10 @@ namespace KJU.Core.AST.Types
         {
             return true;
         }
+
+        public override IEnumerable<IHerbrandObject> GetArguments()
+        {
+            yield return this.ElementType;
+        }
     }
 }
