@@ -16,5 +16,10 @@ namespace KJU.Core.AST.Types
         {
             throw new ArgumentException("uninstantiated variable");
         }
+
+        public override object GetTag()
+        {
+            throw new ArgumentException("attempt to use TypeVariable as a normal value");
+        }
     }
 }

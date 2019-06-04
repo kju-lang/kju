@@ -61,5 +61,11 @@ namespace KJU.Core.AST.Types
         {
             return true;
         }
+
+        public override object GetTag()
+        {
+            // two different instances of the type are always different
+            return this;
+        }
     }
 }
