@@ -77,7 +77,7 @@
                             diagnostics.Add(new Diagnostic(
                                 DiagnosticStatus.Error,
                                 NonTokenDiagnostic,
-                                $"Non-token at position {{0}} with text '{Diagnostic.EscapeForMessage(tokenText.ToString())}'",
+                                $"Non-token with text '{Diagnostic.EscapeForMessage(tokenText.ToString())}'",
                                 new List<Range> { rng }));
                             throw new LexerException($"Non-token at position {rng} with text '{tokenText}'");
                         }

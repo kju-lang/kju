@@ -153,7 +153,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                         var diag = new Diagnostic(
                             DiagnosticStatus.Error,
                             TokenCategoryErrorDiagnosticsType,
-                            $"{{0}} Unexpected token category: {token.Category}",
+                            $"Unexpected token category: {token.Category}",
                             new List<Range> { token.InputRange });
                         this.diagnostics.Add(diag);
                         throw new ParseTreeToAstConverterException("Unexpected category in token");
@@ -381,7 +381,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                             new Diagnostic(
                                 DiagnosticStatus.Error,
                                 AssignmentLhsErrorDiagnosticsType,
-                                $"Unexpected number of children: {brunch.Children.Count} at {{0}}",
+                                $"Unexpected number of children: {brunch.Children.Count}",
                                 new List<Range> { brunch.InputRange }));
 
                         throw new ParseTreeToAstConverterException(
@@ -511,7 +511,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                                 new Diagnostic(
                                     DiagnosticStatus.Error,
                                     AssignmentLhsErrorDiagnosticsType,
-                                    $"{{0}} Left operand of an assignment is not a variable nor array access but {lhs}",
+                                    $"Left operand of an assignment is not a variable nor array access but {lhs}",
                                     new List<Range> { branch.Children[0].InputRange }));
 
                             throw new ParseTreeToAstConverterException(
@@ -650,7 +650,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                                     new Diagnostic(
                                         DiagnosticStatus.Error,
                                         AstConversionErrorDiagnosticsType,
-                                        $"{{0}} {message}",
+                                        message,
                                         new List<Range> { branch.InputRange }));
                                 throw new ParseTreeToAstConverterException(
                                     message);
@@ -723,7 +723,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                             new Diagnostic(
                                 DiagnosticStatus.Error,
                                 AstConversionErrorDiagnosticsType,
-                                $"{{0}} {message}",
+                                message,
                                 new List<Range> { branch.InputRange }));
                         throw new ParseTreeToAstConverterException(message);
                 }

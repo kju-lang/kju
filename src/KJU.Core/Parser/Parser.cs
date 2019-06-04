@@ -84,7 +84,7 @@ namespace KJU.Core.Parser
                             this.diagnostics.Add(new Diagnostic(
                                 DiagnosticStatus.Error,
                                 UnexpectedSymbolDiagnosticType,
-                                $"Unexpected symbol: {Diagnostic.EscapeForMessage(currentToken.ToString())} at {{0}}",
+                                $"Unexpected symbol: {Diagnostic.EscapeForMessage(currentToken.ToString())}",
                                 new List<Range> { currentToken.InputRange }));
                             throw new ParseException($"Unexpected symbol: {currentToken} at {currentToken.InputRange}");
                         }

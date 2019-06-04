@@ -132,7 +132,7 @@
                             var diag = new Diagnostic(
                                 DiagnosticStatus.Error,
                                 TypeIdentifierErrorDiagnosticsType,
-                                $"{{0}} Unexpected type identifier: '{unresolvedType.Type}'",
+                                $"Unexpected type identifier: '{unresolvedType.Type}'",
                                 new List<Range> { unresolvedType.InputRange });
                             diagnostics.Add(diag);
                             throw new NameResolverException($"unexpected type identifier: {unresolvedType.Type}");
