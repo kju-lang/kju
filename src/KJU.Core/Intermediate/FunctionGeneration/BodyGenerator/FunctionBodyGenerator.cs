@@ -619,7 +619,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 var decl = new AST.FunctionDeclaration(
                     node.InputRange,
                     "allocate",
-                    AST.Types.ArrayType.GetInstance(node.ElementType),
+                    new AST.Types.ArrayType(node.ElementType),
                     new List<AST.VariableDeclaration> { parameter },
                     null,
                     true);

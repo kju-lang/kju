@@ -142,7 +142,7 @@
 
                     case UnresolvedArrayType unresolvedArray:
                         var childDataType = this.ResolveDataType(unresolvedArray.Child, diagnostics);
-                        return ArrayType.GetInstance(childDataType);
+                        return new ArrayType(childDataType);
 
                     case UnresolvedFunType unresolved:
                         return new FunType(

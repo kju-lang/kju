@@ -47,7 +47,7 @@ namespace KJU.Tests.CodeGeneration.DataLayout
             var dummyRange = new Core.Lexer.Range(new StringLocation(0), new StringLocation(0));
 
             var pFields = new List<StructField>() {
-                new StructField(dummyRange, "x", ArrayType.GetInstance(IntType.Instance)) };
+                new StructField(dummyRange, "x", new ArrayType(IntType.Instance)) };
 
             var pDeclaration = new StructDeclaration(dummyRange, "P", pFields);
             var pType = StructType.GetInstance(pDeclaration);
@@ -63,15 +63,15 @@ namespace KJU.Tests.CodeGeneration.DataLayout
                 dummyRange, sType, new IntegerLiteral(dummyRange, 10));
             var sVarDeclaration = new VariableDeclaration(
                 dummyRange,
-                ArrayType.GetInstance(sType),
+                new ArrayType(sType),
                 "s",
                 sAlloc);
 
             var arrAlloc = new ArrayAlloc(
-                dummyRange, ArrayType.GetInstance(BoolType.Instance), new IntegerLiteral(dummyRange, 20));
+                dummyRange, new ArrayType(BoolType.Instance), new IntegerLiteral(dummyRange, 20));
             var arrVarDeclaration = new VariableDeclaration(
                 dummyRange,
-                ArrayType.GetInstance(ArrayType.GetInstance(BoolType.Instance)),
+                new ArrayType(new ArrayType(BoolType.Instance)),
                 "arr",
                 arrAlloc);
 
@@ -84,7 +84,7 @@ namespace KJU.Tests.CodeGeneration.DataLayout
             var kjuDeclaration = new FunctionDeclaration(
                 dummyRange,
                 "kju",
-                ArrayType.GetInstance(UnitType.Instance),
+                new ArrayType(UnitType.Instance),
                 new List<VariableDeclaration>(),
                 new InstructionBlock(dummyRange, kjuInstructions),
                 false);
@@ -94,10 +94,10 @@ namespace KJU.Tests.CodeGeneration.DataLayout
             var expectedTypes = new HashSet<DataType>() {
                 pType,
                 sType,
-                ArrayType.GetInstance(BoolType.Instance),
-                ArrayType.GetInstance(IntType.Instance),
-                ArrayType.GetInstance(sType),
-                ArrayType.GetInstance(ArrayType.GetInstance(BoolType.Instance)) };
+                new ArrayType(BoolType.Instance),
+                new ArrayType(IntType.Instance),
+                new ArrayType(sType),
+                new ArrayType(new ArrayType(BoolType.Instance)) };
 
             this.CheckAnswer(root, expectedTypes);
         }
@@ -121,7 +121,7 @@ namespace KJU.Tests.CodeGeneration.DataLayout
             var kjuDeclaration = new FunctionDeclaration(
                 dummyRange,
                 "kju",
-                ArrayType.GetInstance(UnitType.Instance),
+                new ArrayType(UnitType.Instance),
                 new List<VariableDeclaration>(),
                 new InstructionBlock(dummyRange, kjuInstructions),
                 false);
@@ -142,20 +142,20 @@ namespace KJU.Tests.CodeGeneration.DataLayout
             var dummyRange = new Core.Lexer.Range(new StringLocation(0), new StringLocation(0));
 
             var xVarDeclaration = new VariableDeclaration(
-                dummyRange, ArrayType.GetInstance(IntType.Instance), "x", null);
+                dummyRange, new ArrayType(IntType.Instance), "x", null);
 
             var kjuInstructions = new List<Expression> { xVarDeclaration };
 
             var kjuDeclaration = new FunctionDeclaration(
                 dummyRange,
                 "kju",
-                ArrayType.GetInstance(UnitType.Instance),
+                new ArrayType(UnitType.Instance),
                 new List<VariableDeclaration>(),
                 new InstructionBlock(dummyRange, kjuInstructions),
                 false);
 
             var root = new Program(dummyRange, new List<StructDeclaration>(), new List<FunctionDeclaration> { kjuDeclaration });
-            this.CheckAnswer(root, new HashSet<DataType>() { ArrayType.GetInstance(IntType.Instance) });
+            this.CheckAnswer(root, new HashSet<DataType>() { new ArrayType(IntType.Instance) });
         }
 
         private void CheckAnswer(Node root, HashSet<DataType> expected)

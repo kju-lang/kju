@@ -404,7 +404,7 @@
 
             var t = new VariableDeclaration(
                 new Range(new StringLocation(0), new StringLocation(1)),
-                ArrayType.GetInstance(IntType.Instance),
+                new ArrayType(IntType.Instance),
                 "t",
                 new ArrayAlloc(
                     new Range(new StringLocation(0), new StringLocation(1)),
@@ -412,14 +412,14 @@
                     new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 5)));
             var p = new VariableDeclaration(
                 new Range(new StringLocation(0), new StringLocation(1)),
-                ArrayType.GetInstance(IntType.Instance),
+                new ArrayType(IntType.Instance),
                 "a",
                 null);
 
             var f = new FunctionDeclaration(
                 new Range(new StringLocation(0), new StringLocation(1)),
                 "f",
-                ArrayType.GetInstance(IntType.Instance),
+                new ArrayType(IntType.Instance),
                 new List<VariableDeclaration>
                 {
                     p
@@ -433,7 +433,7 @@
                             new ArrayAccess(
                                 new Range(new StringLocation(0), new StringLocation(1)),
                                 new Variable(new Range(new StringLocation(0), new StringLocation(1)), "p")
-                                    { Declaration = p, Type = ArrayType.GetInstance(IntType.Instance) },
+                                    { Declaration = p, Type = new ArrayType(IntType.Instance) },
                                 new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 2)),
                             new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 3)),
                         new ComplexCompoundAssignment(
@@ -441,14 +441,14 @@
                             new ArrayAccess(
                                 new Range(new StringLocation(0), new StringLocation(1)),
                                 new Variable(new Range(new StringLocation(0), new StringLocation(1)), "p")
-                                    { Declaration = p, Type = ArrayType.GetInstance(IntType.Instance) },
+                                    { Declaration = p, Type = new ArrayType(IntType.Instance) },
                                 new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 1)),
                             ArithmeticOperationType.Addition,
                             new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 2)),
                         new ReturnStatement(
                             new Range(new StringLocation(0), new StringLocation(1)),
                             new Variable(new Range(new StringLocation(0), new StringLocation(1)), "p")
-                                { Declaration = p, Type = ArrayType.GetInstance(IntType.Instance) })
+                                { Declaration = p, Type = new ArrayType(IntType.Instance) })
                     }),
                 false);
 
@@ -472,7 +472,7 @@
                                     new Variable(new Range(new StringLocation(0), new StringLocation(1)), "t")
                                     {
                                         Declaration = t,
-                                        Type = ArrayType.GetInstance(IntType.Instance),
+                                        Type = new ArrayType(IntType.Instance),
                                     },
                                 }) { DeclarationCandidates = new List<FunctionDeclaration>() { f } },
                             new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 4)),
@@ -500,7 +500,7 @@
 
             var a = new VariableDeclaration(
                 new Range(new StringLocation(0), new StringLocation(1)),
-                ArrayType.GetInstance(BoolType.Instance),
+                new ArrayType(BoolType.Instance),
                 "a",
                 null);
 
@@ -520,7 +520,7 @@
                             new ArrayAccess(
                                 new Range(new StringLocation(0), new StringLocation(1)),
                                 new Variable(new Range(new StringLocation(0), new StringLocation(1)), "a")
-                                    { Declaration = a, Type = ArrayType.GetInstance(BoolType.Instance) },
+                                    { Declaration = a, Type = new ArrayType(BoolType.Instance) },
                                 new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 0))),
                     }),
                 false);
@@ -556,17 +556,17 @@
                 null);
             var b = new VariableDeclaration(
                 new Range(new StringLocation(0), new StringLocation(1)),
-                ArrayType.GetInstance(IntType.Instance),
+                new ArrayType(IntType.Instance),
                 "b",
                 null);
             var c = new VariableDeclaration(
                 new Range(new StringLocation(0), new StringLocation(1)),
-                ArrayType.GetInstance(IntType.Instance),
+                new ArrayType(IntType.Instance),
                 "c",
                 null);
             var d = new VariableDeclaration(
                 new Range(new StringLocation(0), new StringLocation(1)),
-                ArrayType.GetInstance(BoolType.Instance),
+                new ArrayType(BoolType.Instance),
                 "d",
                 null);
 
@@ -582,19 +582,19 @@
                         new ArrayAccess(
                             new Range(new StringLocation(0), new StringLocation(1)),
                             new Variable(new Range(new StringLocation(0), new StringLocation(1)), "a")
-                                { Declaration = a, Type = ArrayType.GetInstance(IntType.Instance) },
+                                { Declaration = a, Type = new ArrayType(IntType.Instance) },
                             new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 2)),
                         new ArrayAccess(
                             new Range(new StringLocation(0), new StringLocation(1)),
                             new Variable(new Range(new StringLocation(0), new StringLocation(1)), "b")
-                                { Declaration = b, Type = ArrayType.GetInstance(IntType.Instance) },
+                                { Declaration = b, Type = new ArrayType(IntType.Instance) },
                             new BoolLiteral(new Range(new StringLocation(0), new StringLocation(1)), true)),
                         new ComplexAssignment(
                             new Range(new StringLocation(0), new StringLocation(1)),
                             new ArrayAccess(
                                 new Range(new StringLocation(0), new StringLocation(1)),
                                 new Variable(new Range(new StringLocation(0), new StringLocation(1)), "c")
-                                    { Declaration = c, Type = ArrayType.GetInstance(IntType.Instance) },
+                                    { Declaration = c, Type = new ArrayType(IntType.Instance) },
                                 new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 1)),
                             new BoolLiteral(new Range(new StringLocation(0), new StringLocation(1)), true)),
                         new ComplexCompoundAssignment(
@@ -602,7 +602,7 @@
                             new ArrayAccess(
                                 new Range(new StringLocation(0), new StringLocation(1)),
                                 new Variable(new Range(new StringLocation(0), new StringLocation(1)), "d")
-                                    { Declaration = d, Type = ArrayType.GetInstance(BoolType.Instance) },
+                                    { Declaration = d, Type = new ArrayType(BoolType.Instance) },
                                 new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 1)),
                             ArithmeticOperationType.Addition,
                             new IntegerLiteral(new Range(new StringLocation(0), new StringLocation(1)), 1)),
@@ -687,7 +687,7 @@
             var kjuDeclaration = new FunctionDeclaration(
                 range,
                 "kju",
-                ArrayType.GetInstance(UnitType.Instance),
+                new ArrayType(UnitType.Instance),
                 new List<VariableDeclaration>(),
                 new InstructionBlock(range, kjuInstructions),
                 false);
@@ -752,7 +752,7 @@
             var kjuDeclaration = new FunctionDeclaration(
                 range,
                 "kju",
-                ArrayType.GetInstance(UnitType.Instance),
+                new ArrayType(UnitType.Instance),
                 new List<VariableDeclaration>(),
                 new InstructionBlock(range, kjuInstructions),
                 false);
@@ -806,7 +806,7 @@
             var kjuDeclaration = new FunctionDeclaration(
                 range,
                 "kju",
-                ArrayType.GetInstance(UnitType.Instance),
+                new ArrayType(UnitType.Instance),
                 new List<VariableDeclaration>(),
                 new InstructionBlock(range, new List<Expression> { varDeclaration }),
                 false);
@@ -860,7 +860,7 @@
             var structType = StructType.GetInstance(structDeclaration);
 
             var structVarDeclaration = new VariableDeclaration(range, structType, "x", getNull());
-            var arrayVarDeclaration = new VariableDeclaration(range, ArrayType.GetInstance(IntType.Instance), "y", getNull());
+            var arrayVarDeclaration = new VariableDeclaration(range, new ArrayType(IntType.Instance), "y", getNull());
 
             var resVarDeclaration = new VariableDeclaration(range, BoolType.Instance, "res", new BoolLiteral(range, false));
 
@@ -891,7 +891,7 @@
             var kjuDeclaration = new FunctionDeclaration(
                 range,
                 "kju",
-                ArrayType.GetInstance(UnitType.Instance),
+                new ArrayType(UnitType.Instance),
                 new List<VariableDeclaration>(),
                 new InstructionBlock(range, kjuInstructions),
                 false);

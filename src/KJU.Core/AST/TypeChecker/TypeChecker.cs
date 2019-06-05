@@ -523,7 +523,7 @@ namespace KJU.Core.AST.TypeChecker
                             this.exceptions.Add(new TypeCheckerInternalException(message));
                         }
 
-                        arrayAlloc.Type = ArrayType.GetInstance(elementType);
+                        arrayAlloc.Type = new ArrayType(elementType);
                         break;
                     }
 
