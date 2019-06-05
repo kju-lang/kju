@@ -13,6 +13,26 @@ namespace KJU.Core.AST.TypeChecker
     /// </summary>
     public class Clause
     {
+        public Clause()
+        {
+        }
+
+        public Clause(List<List<(IHerbrandObject, IHerbrandObject)>> alternatives, Range inputRange)
+        {
+            this.Alternatives = alternatives;
+            this.InputRange = inputRange;
+        }
+
+        public Clause(List<(IHerbrandObject, IHerbrandObject)> onlyAlternative, Range inputRange)
+            : this(new List<List<(IHerbrandObject, IHerbrandObject)>> { onlyAlternative }, inputRange)
+        {
+        }
+
+        public Clause((IHerbrandObject, IHerbrandObject) equality, Range inputRange)
+            : this(new List<(IHerbrandObject, IHerbrandObject)> { equality }, inputRange)
+        {
+        }
+
         /// Location in the source code that produced this clause.
         public Range InputRange { get; set; }
 

@@ -5,8 +5,9 @@ namespace KJU.Core.AST.TypeChecker
     using System.Linq;
     using BuiltinTypes;
     using Diagnostics;
-    using Lexer;
     using Types;
+
+    using Alternative = System.Collections.Generic.List<(Types.IHerbrandObject, Types.IHerbrandObject)>;
 
     public class TypeChecker : IPhase
     {
@@ -29,6 +30,8 @@ namespace KJU.Core.AST.TypeChecker
         public const string IncorrectApplicationFuncDiagnostic = "TypeChecker.IncorrectApplicationFunc";
         public const string AmbiguousUnapplicationDiagnostic = "TypeChecker.AmbiguousUnapplication";
 
+        public const string TypeAssignmentDiagnostic = "TypeChecker.TypeAssignmentFail";
+
         private static readonly IDictionary<UnaryOperationType, DataType> UnaryOperationToType =
             new Dictionary<UnaryOperationType, DataType>
             {
@@ -45,8 +48,11 @@ namespace KJU.Core.AST.TypeChecker
         private class TypeCheckerProcess
         {
             private readonly IDiagnostics diagnostics;
-            private readonly List<Exception> exceptions = new List<Exception>();
             private readonly Stack<DataType> returnType = new Stack<DataType>();
+            private readonly List<Clause> clauses = new List<Clause>();
+            private readonly Dictionary<Expression, TypeVariable> expressionTypes = new Dictionary<Expression, TypeVariable>();
+            private readonly Dictionary<FunctionCall, Clause> callOptions = new Dictionary<FunctionCall, Clause>();
+            private readonly Dictionary<UnApplication, Clause> unappOptions = new Dictionary<UnApplication, Clause>();
 
             public TypeCheckerProcess(IDiagnostics diagnostics)
             {
@@ -55,735 +61,284 @@ namespace KJU.Core.AST.TypeChecker
 
             public void LinkTypes(Node root)
             {
-                this.Dfs(root);
-                if (this.exceptions.Any())
+                this.ProcessChildren(root);
+
+                try
                 {
-                    throw new TypeCheckerException("Type checking failed.", this.exceptions);
+                    Solution solution = new Solver(this.clauses).Solve();
+                    Solution normalizedSolution = SolutionNormalizer.Normalize(solution);
+                    this.SubstituteSolution(root, normalizedSolution);
+                }
+                catch (Exception ex) when (ex is TypeCheckerException || ex is SolutionNormalizerException)
+                {
+                    this.diagnostics.Add(new Diagnostic(
+                        DiagnosticStatus.Error,
+                        TypeAssignmentDiagnostic,
+                        "Could not assign types",
+                        new List<Lexer.Range>()));
+                    throw new TypeCheckerException("Could not assign types", ex);
                 }
             }
 
-            private void AddDiagnostic(
-                DiagnosticStatus status,
-                string type,
-                string message,
-                IReadOnlyList<Range> ranges)
+            private void ProcessChildren(Node node)
             {
-                this.diagnostics.Add(new Diagnostic(status, type, message, ranges));
-            }
+                if (node is FunctionDeclaration declaration) this.returnType.Push(declaration.ReturnType);
 
-            private void ProcessArguments(IEnumerable<Expression> args, IEnumerable<DataType> types)
-            {
-                var withHints = Enumerable.Zip(args, types, (arg, type) => (arg, type));
-                foreach (var (argument, type) in withHints)
-                {
-                    this.Dfs(argument, type);
-                }
-            }
-
-            private FunctionDeclaration DetermineFunctionOverload(
-                IReadOnlyCollection<FunctionDeclaration> candidates,
-                IReadOnlyList<DataType> argTypes)
-            {
-                return candidates.FirstOrDefault(
-                    candidate => FunctionDeclaration.ParametersTypesEquals(candidate, argTypes));
-            }
-
-            private FunctionDeclaration DetermineFunctionOverload(FunctionCall funCall)
-            {
-                return this.DetermineFunctionOverload(
-                    funCall.DeclarationCandidates,
-                    funCall.Arguments.Select(x => x.Type).ToList());
-            }
-
-            private void ReportOverloadNotFound(FunctionCall funCall)
-            {
-                var message =
-                    $"No matching function found for {funCall.Identifier}, found candidates: {string.Join(", ", funCall.DeclarationCandidates)}";
-                var ranges = new List<Range> { funCall.InputRange };
-                ranges.AddRange(funCall.DeclarationCandidates.Select(x => x.InputRange));
-
-                this.AddDiagnostic(
-                    DiagnosticStatus.Error,
-                    FunctionOverloadNotFoundDiagnostic,
-                    message,
-                    ranges);
-                this.exceptions.Add(new TypeCheckerInternalException(message));
-            }
-
-            private bool CanBeConverted(DataType from, DataType to)
-            {
-                if (from == null || to == null)
-                {
-                    return false;
-                }
-
-                if (from.Equals(NullType.Instance))
-                {
-                    return (to is NullType) || (to is ArrayType) || (to is StructType);
-                }
-                else
-                {
-                    return from.Equals(to);
-                }
-            }
-
-            private void ProcessChildren(Node node, DataType hint = null)
-            {
                 foreach (var child in node.Children())
                 {
-                    this.Dfs(child, hint);
+                    if (child is Expression e)
+                    {
+                        this.clauses.AddRange(this.GenerateClauses(e));
+                    }
+
+                    this.ProcessChildren(child);
                 }
+
+                if (node is FunctionDeclaration) this.returnType.Pop();
             }
 
-            private void Dfs(Node node, DataType hint = null)
+            private Clause EqualityClause(IHerbrandObject a, IHerbrandObject b, Node node)
             {
+                return new Clause((a, b), node.InputRange);
+            }
+
+            private Clause EqualityClause(Expression node, IHerbrandObject t)
+            {
+                return new Clause((node.Type, t), node.InputRange);
+            }
+
+            private (IHerbrandObject, IHerbrandObject) MatchArgument(Expression arg, VariableDeclaration param)
+            {
+                return (arg.Type, param.VariableType);
+            }
+
+            private Clause OverloadsClause(FunctionCall call)
+            {
+                Func<FunctionDeclaration, Alternative> alternative = decl =>
+                    Enumerable.Zip(call.Arguments, decl.Parameters, this.MatchArgument)
+                        .Append((call.Type, decl.ReturnType))
+                        .ToList();
+                var alternatives = call.DeclarationCandidates.Select(alternative).ToList();
+                return new Clause(alternatives, call.InputRange);
+            }
+
+            private Clause StructCandidatesClause(FieldAccess access)
+            {
+                Func<KeyValuePair<StructDeclaration, StructField>, Alternative> alternative = decl =>
+                    new Alternative
+                    {
+                        (access.Lhs.Type, decl.Key.StructType),
+                        (access.Type, decl.Value.Type),
+                    };
+                var alternatives = access.StructCandidates.Select(alternative).ToList();
+                return new Clause(alternatives, access.InputRange);
+            }
+
+            private IEnumerable<Clause> GenerateClauses(Expression node)
+            {
+                if (!(node.Type is TypeVariable))
+                {
+                    this.expressionTypes[node] = new TypeVariable();
+                    yield return this.EqualityClause(node, this.expressionTypes[node]);
+                }
+
                 switch (node)
                 {
-                    case Program p:
-                        this.ProcessChildren(node);
+                    case NullLiteral _:
                         break;
 
-                    case FunctionDeclaration fun:
-                    {
-                        if (fun.ReturnType == null)
+                    case InstructionBlock _:
+                    case FunctionDeclaration _:
+                    case StructDeclaration _:
+                    case BreakStatement _:
+                    case ContinueStatement _:
+                        yield return this.EqualityClause(node, UnitType.Instance);
+                        break;
+
+                    case VariableDeclaration decl:
+                        if (decl.Value != null)
                         {
-                            var identifier = fun.Identifier;
-                            this.exceptions.Add(
-                                new TypeCheckerInternalException($"Return type of function {identifier} is null"));
-                            throw new TypeCheckerException("Type checking failed.", this.exceptions);
+                            yield return this.EqualityClause(decl.Value, decl.VariableType);
                         }
 
-                        this.returnType.Push(fun.ReturnType);
-                        this.ProcessChildren(node);
-                        this.returnType.Pop();
-
-                        fun.Type = UnitType.Instance;
+                        yield return this.EqualityClause(node, UnitType.Instance);
                         break;
-                    }
-
-                    case InstructionBlock instruction:
-                    {
-                        this.ProcessChildren(node);
-                        instruction.Type = UnitType.Instance;
-                        break;
-                    }
-
-                    case VariableDeclaration variable:
-                    {
-                        if (variable.VariableType == null)
-                        {
-                            var identifier = variable.Identifier;
-                            this.exceptions.Add(
-                                new TypeCheckerInternalException($"Type of variable {identifier} is null"));
-                            throw new TypeCheckerException("Type checking failed.", this.exceptions);
-                        }
-
-                        if (variable.Value != null)
-                        {
-                            this.Dfs(variable.Value, variable.VariableType);
-
-                            var variableValueType = variable.Value.Type;
-                            if (variableValueType == null)
-                            {
-                                var identifier = variable.Identifier;
-                                var message =
-                                    $"Incorrect assignment variable '{identifier}' has no type.";
-                                this.AddDiagnostic(
-                                    DiagnosticStatus.Error,
-                                    AssignedValueHasNoTypeDiagnostic,
-                                    message,
-                                    new List<Range> { variable.InputRange });
-                                this.exceptions.Add(new TypeCheckerInternalException(message));
-                            }
-                            else if (!this.CanBeConverted(variableValueType, variable.VariableType))
-                            {
-                                var identifier = variable.Identifier;
-                                var message =
-                                    $"Incorrect assignment value type of '{identifier}'. Expected {variable.VariableType}, got {variableValueType}";
-                                this.AddDiagnostic(
-                                    DiagnosticStatus.Error,
-                                    IncorrectAssigmentTypeDiagnostic,
-                                    message,
-                                    new List<Range> { variable.InputRange });
-                                this.exceptions.Add(new TypeCheckerInternalException(message));
-                            }
-                        }
-
-                        variable.Type = UnitType.Instance;
-                        break;
-                    }
 
                     case WhileStatement whileNode:
-                    {
-                        this.ProcessChildren(node);
-                        whileNode.Type = UnitType.Instance;
+                        yield return this.EqualityClause(whileNode.Condition, BoolType.Instance);
+                        yield return this.EqualityClause(node, UnitType.Instance);
                         break;
-                    }
 
                     case IfStatement ifNode:
-                    {
-                        this.ProcessChildren(node);
-                        var conditionType = ifNode.Condition.Type;
-                        if (!BoolType.Instance.Equals(conditionType))
-                        {
-                            var message =
-                                $"If type must be {BoolType.Instance} got {conditionType}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectIfPredicateTypeDiagnostic,
-                                message,
-                                new List<Range> { ifNode.Condition.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        ifNode.Type = UnitType.Instance;
+                        yield return this.EqualityClause(ifNode.Condition, BoolType.Instance);
+                        yield return this.EqualityClause(node, UnitType.Instance);
                         break;
-                    }
 
                     case FunctionCall funCall:
                     {
-                        var argTypeHints = funCall.DeclarationCandidates.Count == 1
-                            ? funCall.DeclarationCandidates[0].Parameters.Select(param => param.VariableType)
-                            : Enumerable.Repeat<DataType>(null, funCall.Arguments.Count);
-                        this.ProcessArguments(funCall.Arguments, argTypeHints);
-
-                        FunctionDeclaration overload = this.DetermineFunctionOverload(funCall);
-                        if (overload != null)
-                        {
-                            funCall.Declaration = overload;
-                            funCall.Type = funCall.Declaration.ReturnType;
-                        }
-                        else
-                        {
-                            this.ReportOverloadNotFound(funCall);
-                        }
-
+                        Clause clause = this.OverloadsClause(funCall);
+                        this.callOptions[funCall] = clause;
+                        yield return clause;
                         break;
                     }
 
                     case ReturnStatement returnNode:
-                    {
-                        var expectedType = this.returnType.Peek();
-                        if (returnNode.Value != null)
-                        {
-                            this.Dfs(returnNode.Value, expectedType);
-                        }
-
-                        returnNode.Type = returnNode.Value?.Type ?? UnitType.Instance;
-
-                        if (!this.CanBeConverted(returnNode.Type, expectedType))
-                        {
-                            var message = $"Incorrect return type. Expected '{expectedType}', got '{returnNode.Type}'";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectReturnTypeDiagnostic,
-                                message,
-                                new List<Range> { node.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
+                        yield return returnNode.Value == null
+                            ? this.EqualityClause(this.returnType.Peek(), UnitType.Instance, returnNode)
+                            : this.EqualityClause(returnNode.Value, this.returnType.Peek());
+                        yield return this.EqualityClause(returnNode, returnNode.Value?.Type ?? UnitType.Instance);
                         break;
-                    }
 
                     case Variable variable:
-                    {
-                        variable.Type = variable.Declaration.VariableType;
+                        yield return this.EqualityClause(variable, variable.Declaration.VariableType);
                         break;
-                    }
 
                     case BoolLiteral boolNode:
-                    {
-                        boolNode.Type = BoolType.Instance;
+                        yield return this.EqualityClause(boolNode, BoolType.Instance);
                         break;
-                    }
 
                     case IntegerLiteral integerNode:
-                    {
-                        integerNode.Type = IntType.Instance;
+                        yield return this.EqualityClause(integerNode, IntType.Instance);
                         break;
-                    }
 
                     case UnitLiteral unitNode:
-                    {
-                        unitNode.Type = UnitType.Instance;
+                        yield return this.EqualityClause(unitNode, UnitType.Instance);
                         break;
-                    }
 
-                    case NullLiteral nullNode:
-                    {
-                        nullNode.Type = NullType.Instance;
+                    case Assignment assignment:
+                        yield return this.EqualityClause(assignment.Value, assignment.Lhs.Declaration.VariableType);
+                        yield return this.EqualityClause(assignment, assignment.Value.Type);
                         break;
-                    }
 
-                    case Assignment assignmentNode:
-                    {
-                        this.Dfs(assignmentNode.Lhs);
-                        if (assignmentNode.Value == null)
-                        {
-                            var identifier = assignmentNode.Lhs.Identifier;
-                            this.exceptions.Add(
-                                new TypeCheckerInternalException($"Assignment value of '{identifier}' is null"));
-                            throw new TypeCheckerException("Type checking failed.", this.exceptions);
-                        }
-
-                        this.Dfs(assignmentNode.Value, assignmentNode.Lhs.Type);
-                        if (!this.CanBeConverted(assignmentNode.Value.Type, assignmentNode.Lhs.Type))
-                        {
-                            var identifier = assignmentNode.Lhs.Identifier;
-                            var message =
-                                $"Incorrect assignment value type of '{identifier}'. Expected {assignmentNode.Lhs.Type}, got {assignmentNode.Value.Type}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectAssigmentTypeDiagnostic,
-                                message,
-                                new List<Range>() { assignmentNode.Lhs.InputRange, assignmentNode.Value.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        assignmentNode.Type = assignmentNode.Lhs.Type;
+                    case CompoundAssignment assignment:
+                        yield return this.EqualityClause(assignment.Lhs.Declaration.VariableType, IntType.Instance, assignment.Lhs);
+                        yield return this.EqualityClause(assignment.Value, IntType.Instance);
+                        yield return this.EqualityClause(assignment, IntType.Instance);
                         break;
-                    }
-
-                    case CompoundAssignment compoundNode:
-                    {
-                        this.ProcessChildren(node);
-
-                        if (compoundNode.Value == null)
-                        {
-                            var identifier = compoundNode.Lhs.Identifier;
-                            this.exceptions.Add(
-                                new TypeCheckerInternalException($"Compound assignment '{identifier}' value is null"));
-                            throw new TypeCheckerException("Type checking failed.", this.exceptions);
-                        }
-
-                        if (!compoundNode.Lhs.Type.Equals(IntType.Instance))
-                        {
-                            var message =
-                                $"Incorrect left hand side type: expected {IntType.Instance}, got {compoundNode.Lhs.Type}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectLeftSideTypeDiagnostic,
-                                message,
-                                new List<Range> { compoundNode.Lhs.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        if (!compoundNode.Value.Type.Equals(IntType.Instance))
-                        {
-                            var message =
-                                $"Incorrect right hand side type: expected {IntType.Instance}, got {compoundNode.Value.Type}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectRightSideTypeDiagnostic,
-                                message,
-                                new List<Range> { compoundNode.Value.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        compoundNode.Type = compoundNode.Lhs.Type;
-                        break;
-                    }
 
                     case ArithmeticOperation operationNode:
-                    {
-                        this.ProcessChildren(node);
-                        foreach (var operand in new List<Expression>()
-                            { operationNode.LeftValue, operationNode.RightValue })
-                        {
-                            var type = operand.Type;
-                            if (type == null)
-                                throw new TypeCheckerInternalException("Operand type is null");
+                        yield return this.EqualityClause(operationNode.LeftValue, IntType.Instance);
+                        yield return this.EqualityClause(operationNode.RightValue, IntType.Instance);
+                        yield return this.EqualityClause(operationNode, IntType.Instance);
+                        break;
 
-                            if (!type.Equals(IntType.Instance))
-                            {
-                                var message = $"Incorrect operand type: expected {IntType.Instance}, got {type}";
-                                this.AddDiagnostic(
-                                    DiagnosticStatus.Error,
-                                    IncorrectOperandTypeDiagnostic,
-                                    message,
-                                    new List<Range> { operand.InputRange });
-                                this.exceptions.Add(new TypeCheckerInternalException(message));
-                            }
+                    case Comparison cmp:
+                    {
+                        switch (cmp.OperationType)
+                        {
+                            case ComparisonType.Equal:
+                            case ComparisonType.NotEqual:
+                                yield return this.EqualityClause(cmp.LeftValue.Type, cmp.RightValue.Type, cmp);
+                                break;
+                            case ComparisonType.Less:
+                            case ComparisonType.LessOrEqual:
+                            case ComparisonType.Greater:
+                            case ComparisonType.GreaterOrEqual:
+                                yield return this.EqualityClause(cmp.LeftValue, IntType.Instance);
+                                yield return this.EqualityClause(cmp.RightValue, IntType.Instance);
+                                break;
                         }
 
-                        operationNode.Type = IntType.Instance;
+                        yield return this.EqualityClause(cmp, BoolType.Instance);
                         break;
                     }
 
-                    case Comparison comparisonNode:
+                    case UnaryOperation op:
                     {
-                        this.ProcessChildren(node);
-                        var lhsType = comparisonNode.LeftValue.Type;
-                        var rhsType = comparisonNode.RightValue.Type;
-                        var opType = comparisonNode.OperationType;
-
-                        bool canBeCompared;
-                        if (opType.Equals(ComparisonType.Equal) || opType.Equals(ComparisonType.NotEqual))
-                        {
-                            canBeCompared = this.CanBeConverted(lhsType, rhsType) || this.CanBeConverted(rhsType, lhsType);
-                        }
-                        else
-                        {
-                            canBeCompared = lhsType.Equals(rhsType);
-                        }
-
-                        if (!canBeCompared)
-                        {
-                            var message =
-                                $"Comparison type mismatch. Left hand size {lhsType}, right hand side {rhsType}";
-                            var ranges = new List<Range> { comparisonNode.InputRange };
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectComparisonTypeDiagnostic,
-                                message,
-                                ranges);
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        comparisonNode.Type = BoolType.Instance;
+                        IHerbrandObject type = UnaryOperationToType[op.UnaryOperationType];
+                        yield return this.EqualityClause(op.Value, type);
+                        yield return this.EqualityClause(op, type);
                         break;
                     }
 
-                    case UnaryOperation unaryOperation:
-                    {
-                        this.ProcessChildren(node);
-                        var operation = unaryOperation.UnaryOperationType;
-                        var expectedType = UnaryOperationToType[operation];
-                        var actualType = unaryOperation.Value.Type;
-                        if (expectedType != actualType)
-                        {
-                            var message =
-                                $"Unary operation type mismatch. Operation: '{operation}', expected type: '{expectedType}', actual type: '{actualType}'";
-                            var ranges = new List<Range> { unaryOperation.InputRange };
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectUnaryExpressionTypeDiagnostic,
-                                message,
-                                ranges);
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        unaryOperation.Type = expectedType;
-                        break;
-                    }
-
-                    case LogicalBinaryOperation logicalBinaryOperation:
-                    {
-                        this.ProcessChildren(node);
-                        foreach (var operand in new List<Expression>()
-                            { logicalBinaryOperation.LeftValue, logicalBinaryOperation.RightValue })
-                        {
-                            var type = operand.Type;
-                            if (type == null)
-                            {
-                                throw new TypeCheckerInternalException("Operand type is null");
-                            }
-
-                            if (!type.Equals(BoolType.Instance))
-                            {
-                                var message = $"Incorrect operand type: expected {BoolType.Instance}, got {type}";
-                                this.AddDiagnostic(
-                                    DiagnosticStatus.Error,
-                                    IncorrectOperandTypeDiagnostic,
-                                    message,
-                                    new List<Range> { operand.InputRange });
-                                this.exceptions.Add(new TypeCheckerInternalException(message));
-                            }
-                        }
-
-                        logicalBinaryOperation.Type = BoolType.Instance;
-                        break;
-                    }
-
-                    case BreakStatement _:
+                    case LogicalBinaryOperation op:
+                        yield return this.EqualityClause(op.LeftValue, BoolType.Instance);
+                        yield return this.EqualityClause(op.RightValue, BoolType.Instance);
+                        yield return this.EqualityClause(op, BoolType.Instance);
                         break;
 
-                    case ArrayAlloc arrayAlloc:
-                    {
-                        this.ProcessChildren(node);
-                        var elementType = arrayAlloc.ElementType;
-                        var sizeType = arrayAlloc.Size.Type;
-                        if (elementType == null)
-                        {
-                            throw new TypeCheckerInternalException("Array type is null");
-                        }
-
-                        if (sizeType == null)
-                        {
-                            throw new TypeCheckerInternalException("Size type is null");
-                        }
-                        else if (!sizeType.Equals(IntType.Instance))
-                        {
-                            var message = $"Incorrect array size type: expected {IntType.Instance}, got {sizeType}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectArraySizeTypeDiagnostic,
-                                message,
-                                new List<Range> { arrayAlloc.Size.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        arrayAlloc.Type = new ArrayType(elementType);
+                    case ArrayAlloc alloc:
+                        yield return this.EqualityClause(alloc.Size, IntType.Instance);
+                        yield return this.EqualityClause(alloc, new ArrayType(alloc.ElementType));
                         break;
-                    }
 
-                    case ArrayAccess arrayAccess:
-                    {
-                        this.ProcessChildren(node);
-                        var array = arrayAccess.Lhs;
-                        var index = arrayAccess.Index;
-
-                        if (array.Type == null)
-                        {
-                            throw new TypeCheckerInternalException("Array type is null");
-                        }
-                        else if (!(array.Type is ArrayType))
-                        {
-                            var message = $"Expected array type, got {array.Type}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectArrayAccessUseDiagnostic,
-                                message,
-                                new List<Range> { array.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        if (index.Type == null)
-                        {
-                            throw new TypeCheckerInternalException("Index type is null");
-                        }
-                        else if (!index.Type.Equals(IntType.Instance))
-                        {
-                            var message = $"Incorrect array index type: expected {IntType.Instance}, got {index.Type}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectArrayIndexTypeDiagnostic,
-                                message,
-                                new List<Range> { index.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        arrayAccess.Type = (array.Type as ArrayType)?.ElementType;
+                    case ArrayAccess access:
+                        yield return this.EqualityClause(access.Index, IntType.Instance);
+                        yield return this.EqualityClause(access.Lhs, new ArrayType(access.Type));
                         break;
-                    }
 
-                    case ComplexAssignment complexAssignment:
-                    {
-                        this.Dfs(complexAssignment.Lhs);
-                        var lhsType = complexAssignment.Lhs.Type;
-                        if (lhsType == null)
-                        {
-                            throw new TypeCheckerInternalException("Left hand side type is null");
-                        }
-
-                        this.Dfs(complexAssignment.Value, lhsType);
-                        var valueType = complexAssignment.Value.Type;
-                        if (valueType == null)
-                        {
-                            throw new TypeCheckerInternalException("Value type is null");
-                        }
-
-                        if (!this.CanBeConverted(valueType, lhsType))
-                        {
-                            var message = $"Assignment type mismatch: {lhsType}, value type {valueType}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectAssigmentTypeDiagnostic,
-                                message,
-                                new List<Range> { complexAssignment.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        complexAssignment.Type = lhsType;
+                    case ComplexAssignment assignment:
+                        yield return this.EqualityClause(assignment.Lhs, assignment.Value.Type);
+                        yield return this.EqualityClause(assignment, assignment.Value.Type);
                         break;
-                    }
 
-                    case ComplexCompoundAssignment complexCompoundAssignment:
-                    {
-                        this.ProcessChildren(node);
-                        var lhsType = complexCompoundAssignment.Lhs.Type;
-                        var valueType = complexCompoundAssignment.Value.Type;
-
-                        if (lhsType == null)
-                        {
-                            throw new TypeCheckerInternalException("Left hand side type is null");
-                        }
-                        else if (!lhsType.Equals(IntType.Instance))
-                        {
-                            var message = $"Compound assignment left hand side type mismatch: got {lhsType}, expected {IntType.Instance}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectLeftSideTypeDiagnostic,
-                                message,
-                                new List<Range> { complexCompoundAssignment.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        if (valueType == null)
-                        {
-                            throw new TypeCheckerInternalException("Value type is null");
-                        }
-                        else if (!valueType.Equals(IntType.Instance))
-                        {
-                            var message = $"Compound assignment value type mismatch: got {valueType}, expected {IntType.Instance}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectRightSideTypeDiagnostic,
-                                message,
-                                new List<Range> { complexCompoundAssignment.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-
-                        complexCompoundAssignment.Type = IntType.Instance;
+                    case ComplexCompoundAssignment assignment:
+                        yield return this.EqualityClause(assignment.Lhs, IntType.Instance);
+                        yield return this.EqualityClause(assignment.Value, IntType.Instance);
+                        yield return this.EqualityClause(assignment, IntType.Instance);
                         break;
-                    }
 
-                    case FieldAccess fieldAccess:
-                    {
-                        this.ProcessChildren(node);
-                        var lhsType = fieldAccess.Lhs.Type;
-
-                        if (lhsType == null)
-                        {
-                            throw new TypeCheckerInternalException("Struct type is null");
-                        }
-                        else if (!(lhsType is StructType))
-                        {
-                            var message = $"Expected struct type, got {lhsType}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectStructTypeDiagnostic,
-                                message,
-                                new List<Range> { fieldAccess.Lhs.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-                        else
-                        {
-                            var fieldName = fieldAccess.Field;
-                            var allFields = (lhsType as StructType).Fields;
-                            var matchingFields = allFields.Where(field => field.Name.Equals(fieldName));
-
-                            var numberOfMatchingField = matchingFields.Count();
-                            if (numberOfMatchingField == 0)
-                            {
-                                var message =
-                                    $"Incorrect field name: expected one of {allFields}, got {fieldName}";
-                                this.AddDiagnostic(
-                                    DiagnosticStatus.Error,
-                                    IncorrectFieldNameDiagnostic,
-                                    message,
-                                    new List<Range> { fieldAccess.InputRange });
-                                this.exceptions.Add(new TypeCheckerInternalException(message));
-                            }
-                            else if (numberOfMatchingField > 1)
-                            {
-                                throw new TypeCheckerInternalException($"Many fields matching name {fieldName}");
-                            }
-                            else
-                            {
-                                var fieldType = matchingFields.First().Type;
-                                if (fieldType == null)
-                                {
-                                    throw new TypeCheckerInternalException("Field type is null");
-                                }
-
-                                fieldAccess.Type = fieldType;
-                            }
-                        }
-
+                    case FieldAccess access:
+                        yield return this.StructCandidatesClause(access);
                         break;
-                    }
 
-                    case StructDeclaration structDeclaration:
-                    {
-                        this.ProcessChildren(node);
-                        structDeclaration.Type = UnitType.Instance;
+                    case StructAlloc alloc:
+                        yield return this.EqualityClause(alloc, StructType.GetInstance(alloc.Declaration));
                         break;
-                    }
-
-                    case StructAlloc structAlloc:
-                    {
-                        var structType = StructType.GetInstance(structAlloc.Declaration);
-
-                        if (structType == null)
-                        {
-                            throw new TypeCheckerInternalException("Structure type for struct declaration is null");
-                        }
-                        else
-                        {
-                            structAlloc.Type = structType;
-                        }
-
-                        break;
-                    }
 
                     case Application app:
+                        yield return this.EqualityClause(
+                            app.Function,
+                            new FunType(app.Arguments.Select(arg => arg.Type), app.Type));
+                        break;
+
+                    case UnApplication unapp:
                     {
-                        this.Dfs(app.Function);
-                        FunType funType = app.Function.Type as FunType;
-                        if (funType == null)
-                        {
-                            var message = "Attempting to apply a non-function value {0}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                IncorrectApplicationFuncDiagnostic,
-                                message,
-                                new List<Range> { app.Function.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-                        else
-                        {
-                            this.ProcessArguments(app.Arguments, funType.ArgTypes);
-                            if (!FunctionDeclaration.ParametersTypesEquals(app.Arguments, funType.ArgTypes))
-                            {
-                                var message = "Application arguments don't match function parameters {0}";
-                                this.AddDiagnostic(
-                                    DiagnosticStatus.Error,
-                                    IncorrectApplicationArgsDiagnostic,
-                                    message,
-                                    new List<Range> { app.InputRange });
-                                this.exceptions.Add(new TypeCheckerInternalException(message));
-                            }
+                        Clause clause = new Clause(
+                            unapp.Candidates
+                                .Select(decl => new Alternative { (unapp.Type, new FunType(decl)) })
+                                .ToList(), unapp.InputRange);
+                        this.unappOptions[unapp] = clause;
+                        yield return clause;
+                        break;
+                    }
 
-                            app.Type = funType.ResultType;
-                        }
+                    case Expression e:
+                        throw new TypeCheckerException($"Unrecognized node type: {node.GetType()}");
+                }
+            }
 
+            private void SubstituteSolution(Node node, Solution solution)
+            {
+                this.FillChoice(node, solution);
+                if (node is Expression e)
+                {
+                    var typeVar = (e.Type as TypeVariable) ?? this.expressionTypes[e];
+                    e.Type = solution.TypeVariableMapping[typeVar] as DataType;
+                }
+
+                foreach (var child in node.Children())
+                {
+                    this.SubstituteSolution(child, solution);
+                }
+            }
+
+            private void FillChoice(Node node, Solution solution)
+            {
+                switch (node)
+                {
+                    case FunctionCall call:
+                    {
+                        int ix = solution.ChosenAlternative[this.callOptions[call]];
+                        call.Declaration = call.DeclarationCandidates[ix];
                         break;
                     }
 
                     case UnApplication unapp:
                     {
-                        unapp.Declaration = unapp.Candidates.Count == 1
-                            ? unapp.Candidates.FirstOrDefault() : null;
-
-                        if (unapp.Declaration == null && hint is FunType funHint)
-                        {
-                            unapp.Declaration = this.DetermineFunctionOverload(unapp.Candidates, funHint.ArgTypes);
-                        }
-
-                        if (unapp.Declaration == null)
-                        {
-                            var message = "Ambigous choice of function at {0}";
-                            this.AddDiagnostic(
-                                DiagnosticStatus.Error,
-                                AmbiguousUnapplicationDiagnostic,
-                                message,
-                                new List<Range> { unapp.InputRange });
-                            this.exceptions.Add(new TypeCheckerInternalException(message));
-                        }
-                        else
-                        {
-                            unapp.Type = new FunType(unapp.Declaration);
-                        }
-
+                        int ix = solution.ChosenAlternative[this.unappOptions[unapp]];
+                        unapp.Declaration = unapp.Candidates[ix];
                         break;
-                    }
-
-                    case Expression e:
-                    {
-                        this.exceptions.Add(
-                            new TypeCheckerInternalException($"Unrecognized node type: {node.GetType()}"));
-                        throw new TypeCheckerException("Type checking failed.", this.exceptions);
                     }
                 }
             }

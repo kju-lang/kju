@@ -805,7 +805,7 @@ namespace KJU.Core.AST
 
         public string FunctionName { get; }
 
-        public IReadOnlyCollection<FunctionDeclaration> Candidates { get; set; }
+        public IReadOnlyList<FunctionDeclaration> Candidates { get; set; }
 
         public FunctionDeclaration Declaration { get; set; }
 
