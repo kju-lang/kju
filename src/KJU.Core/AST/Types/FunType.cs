@@ -6,6 +6,8 @@
 
     public class FunType : DataType, IEquatable<FunType>
     {
+        private static Stack<Tuple<FunType, FunType>> equalsStack = new Stack<Tuple<FunType, FunType>>();
+
         public FunType(IEnumerable<DataType> argTypes, DataType resultType)
         {
             this.ArgTypes = argTypes.ToList();
@@ -42,8 +44,7 @@
         public bool Equals(FunType other)
         {
             return other != null
-                && this.ResultType.Equals(other.ResultType)
-                && Enumerable.SequenceEqual(this.ArgTypes, other.ArgTypes);
+                && SmartEquals(this, other);
         }
 
         public override int GetHashCode()
@@ -58,6 +59,21 @@
             yield return this.ResultType;
             foreach (DataType param in this.ArgTypes)
                 yield return param;
+        }
+
+        private static bool SmartEquals(FunType first, FunType second)
+        {
+            if (equalsStack.Any(entry => entry.Item1 == first && entry.Item2 == second))
+                return true;
+
+            equalsStack.Push(new Tuple<FunType, FunType>(first, second));
+
+            bool result =
+                first.ResultType.Equals(second.ResultType) && Enumerable.SequenceEqual(first.ArgTypes, second.ArgTypes);
+
+            equalsStack.Pop();
+
+            return result;
         }
     }
 }
