@@ -38,7 +38,7 @@ namespace KJU.Core.Diagnostics
 
         private string FormatMessage(Diagnostic diag)
         {
-            return $"{statusPrefix[diag.Status]} ({diag.ToString()}";
+            return $"{statusPrefix[diag.Status]}: {diag.ToString()}";
         }
     }
 }
