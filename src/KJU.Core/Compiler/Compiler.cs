@@ -1,6 +1,7 @@
 namespace KJU.Core.Compiler
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using AST;
     using AST.ReturnChecker;
@@ -22,6 +23,8 @@ namespace KJU.Core.Compiler
 
     public class Compiler : ICompiler
     {
+        public const string NoEntryPointDiagnosticType = "Compiler.NoEntryPoint";
+
         private readonly Preprocessor preprocessor = new Preprocessor();
         private readonly Lexer<KjuAlphabet> lexer = KjuLexerFactory.CreateLexer();
 
@@ -63,6 +66,17 @@ namespace KJU.Core.Compiler
                 this.returnChecker.Run(ast, diagnostics);
                 this.variableAndFunctionBuilder.BuildFunctionsAndVariables(ast);
                 var functionsIR = this.intermediateGenerator.CreateIR(ast);
+
+                if (!functionsIR.Any(x => x.Key.MangledName == "_ZN3KJU3kjuEv"))
+                {
+                    diagnostics.Add(new Diagnostic(
+                        DiagnosticStatus.Error,
+                        NoEntryPointDiagnosticType,
+                        "No kju function",
+                        new List<Range> { }));
+                    throw new CompilerException("No kju function", new Exception());
+                }
+
                 var dataSectionHeader = this.asmHeaderGenerator.GenerateDataSectionHeader();
                 var dataSection = this.dataTypeLayoutGenerator.GenerateDataLayouts(ast).Prepend(dataSectionHeader);
                 var asmHeader = this.asmHeaderGenerator.GenerateHeader();
