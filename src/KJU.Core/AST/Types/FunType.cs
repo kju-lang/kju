@@ -27,9 +27,9 @@
             }
         }
 
-        public IReadOnlyList<DataType> ArgTypes { get; }
+        public IReadOnlyList<DataType> ArgTypes { get; set; }
 
-        public DataType ResultType { get; }
+        public DataType ResultType { get; set; }
 
         public override bool IsHeapType()
         {

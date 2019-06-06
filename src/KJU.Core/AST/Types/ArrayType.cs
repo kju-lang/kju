@@ -10,7 +10,7 @@ namespace KJU.Core.AST.Types
             this.ElementType = elementType;
         }
 
-        public DataType ElementType { get; }
+        public DataType ElementType { get; set; }
 
         public override string ToString()
         {

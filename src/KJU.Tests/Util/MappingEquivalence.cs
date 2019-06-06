@@ -65,7 +65,7 @@ namespace KJU.Tests.Util
             }
         }
 
-        public static bool AssertAreEquivalent<Key, Value>(
+        public static bool AreEquivalent<Key, Value>(
             IReadOnlyDictionary<Key, Value> first,
             IReadOnlyDictionary<Key, Value> second)
         {
