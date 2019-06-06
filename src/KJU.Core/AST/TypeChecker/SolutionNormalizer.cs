@@ -100,40 +100,43 @@ namespace KJU.Core.AST.TypeChecker
         private static bool ContainsUninstantiatedTypeVariables(IDictionary<TypeVariable, IHerbrandObject> mapping)
         {
             return mapping.Values
-                .SelectMany(GetTypeVariables)
-                .Any(argument => argument is TypeVariable && !mapping.ContainsKey((TypeVariable)argument));
+                .SelectMany(GetAllTypeVariables)
+                .Any(var => !mapping.ContainsKey(var));
         }
 
-        private static IEnumerable<TypeVariable> GetTypeVariables(IHerbrandObject obj)
+        private static IEnumerable<IHerbrandObject> GetAllHerbrandObjects(IHerbrandObject root)
         {
-            if (obj is TypeVariable)
-                yield return (TypeVariable)obj;
+            yield return root;
 
-            foreach (var typeVariable in obj.GetArguments().SelectMany(GetTypeVariables))
-                yield return typeVariable;
+            foreach (var obj in root.GetArguments().SelectMany(GetAllHerbrandObjects))
+                yield return obj;
+        }
+
+        private static IEnumerable<TypeVariable> GetAllTypeVariables(IHerbrandObject root)
+        {
+            return GetAllHerbrandObjects(root)
+                .Where(obj => obj is TypeVariable)
+                .Select(obj => (TypeVariable)obj);
         }
 
         private static bool ContainsArrayRecursion(IDictionary<TypeVariable, IHerbrandObject> mapping)
         {
-            var arrayTypes = new HashSet<TypeVariable>(
-                mapping.Where(entry => entry.Value is ArrayType).Select(entry => entry.Key));
-
-            if (arrayTypes.Count == 0)
-                return false;
-
             var graph = mapping.ToDictionary(
-                entry => entry.Key,
-                entry => (ICollection<TypeVariable>)entry.Value
-                    .GetArguments()
-                    .Where(argument => argument is TypeVariable)
-                    .Select(argument => (TypeVariable)argument)
-                    .ToList());
+                entry => (IHerbrandObject)entry.Key,
+                entry => (ICollection<IHerbrandObject>)new List<IHerbrandObject>() { entry.Value });
+
+            mapping.Values
+                .SelectMany(GetAllHerbrandObjects)
+                .Where(obj => !(obj is TypeVariable))
+                .Distinct()
+                .ToList()
+                .ForEach(obj => graph[obj] = (ICollection<IHerbrandObject>)obj.GetArguments().ToList());
 
             // Check if there is an ArrayType that lies on a directed cycle
             return GetStronglyConnectedComponents(graph)
                 .Where(component => component.Count > 1)
                 .SelectMany(component => component)
-                .Any(arrayTypes.Contains);
+                .Any(obj => obj is ArrayType);
         }
 
         private static ICollection<ICollection<T>> GetStronglyConnectedComponents<T>(IDictionary<T, ICollection<T>> graph)

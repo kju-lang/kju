@@ -1,5 +1,7 @@
+#pragma warning disable SA1008 // Opening parenthesis must not be preceded by a space
 namespace KJU.Tests.AST
 {
+    using System;
     using System.Collections.Generic;
     using KJU.Core.AST;
     using KJU.Core.AST.BuiltinTypes;
@@ -89,6 +91,21 @@ namespace KJU.Tests.AST
         }
 
         [TestMethod]
+        public void TestVeryNested()
+        {
+            var var0 = new TypeVariable();
+            var var1 = new TypeVariable();
+            var var2 = new TypeVariable();
+
+            var input = new Dictionary<TypeVariable, IHerbrandObject>() {
+                { var0, Bury(var1) },
+                { var1, Bury(new ArrayType(Bury(var2))) },
+                { var2, Bury(var0) } };
+
+            CheckThrows(input);
+        }
+
+        [TestMethod]
         public void TestFunRecursion()
         {
             var var = new TypeVariable();
@@ -128,6 +145,20 @@ namespace KJU.Tests.AST
         private static void CheckThrows(IDictionary<TypeVariable, IHerbrandObject> input)
         {
             Assert.ThrowsException<SolutionNormalizerException>(() => GetOutput(input));
+        }
+
+        private static DataType Bury(DataType type, int times = 5)
+        {
+            if (times == 0)
+                return type;
+
+            DataType one = Bury(IntType.Instance, times - 1);
+            DataType two = Bury(type, times - 1);
+
+            if (times % 2 == 1)
+                (one, two) = (two, one);
+
+            return new FunType(new List<DataType>() { BoolType.Instance, one, BoolType.Instance }, two);
         }
     }
 }
