@@ -17,6 +17,14 @@ namespace KJU.Core.Parser
                 KjuAlphabet.StructDefinition.ToRegex()).Starred()
         };
 
+        public static readonly Rule<KjuAlphabet> TypeDeclaration = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.TypeDeclaration,
+            Rhs = Concat(
+                KjuAlphabet.Colon.ToRegex(),
+                KjuAlphabet.TypeIdentifier.ToRegex())
+        };
+
         public static readonly Rule<KjuAlphabet> FunctionDefinition = new Rule<KjuAlphabet>
         {
             Lhs = KjuAlphabet.FunctionDefinition,
@@ -26,8 +34,7 @@ namespace KJU.Core.Parser
                 KjuAlphabet.LParen.ToRegex(),
                 KjuAlphabet.FunctionParameter.ToRegex().SeparatedBy(KjuAlphabet.Comma.ToRegex()),
                 KjuAlphabet.RParen.ToRegex(),
-                KjuAlphabet.Colon.ToRegex(),
-                KjuAlphabet.TypeIdentifier.ToRegex(),
+                KjuAlphabet.TypeDeclaration.ToRegex().Optional(),
                 Sum(
                     KjuAlphabet.Block.ToRegex(),
                     KjuAlphabet.Import.ToRegex()))
@@ -61,8 +68,7 @@ namespace KJU.Core.Parser
             Lhs = KjuAlphabet.FunctionParameter,
             Rhs = Concat(
                 KjuAlphabet.VariableFunctionIdentifier.ToRegex(),
-                KjuAlphabet.Colon.ToRegex(),
-                KjuAlphabet.TypeIdentifier.ToRegex())
+                KjuAlphabet.TypeDeclaration.ToRegex().Optional())
         };
 
         public static readonly Rule<KjuAlphabet> FunctionCall = new Rule<KjuAlphabet>
@@ -74,20 +80,51 @@ namespace KJU.Core.Parser
                 KjuAlphabet.RParen.ToRegex())
         };
 
+        public static readonly Rule<KjuAlphabet> ArrayTypeIdentifier = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.ArrayTypeIdentifier,
+            Rhs = Concat(
+                KjuAlphabet.LBracket.ToRegex(),
+                KjuAlphabet.TypeIdentifier.ToRegex(),
+                KjuAlphabet.RBracket.ToRegex())
+        };
+
+        public static readonly Rule<KjuAlphabet> FunctionTypeArgumentType = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.FunctionTypeArgumentType,
+            Rhs = KjuAlphabet.TypeIdentifier.ToRegex()
+        };
+
+        public static readonly Rule<KjuAlphabet> FunctionTypeResultType = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.FunctionTypeResultType,
+            Rhs = KjuAlphabet.TypeIdentifier.ToRegex()
+        };
+
+        public static readonly Rule<KjuAlphabet> FunctionTypeIdentifier = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.FunctionTypeIdentifier,
+            Rhs = Concat(
+                KjuAlphabet.LParen.ToRegex(),
+                KjuAlphabet.FunctionTypeArgumentType.ToRegex().SeparatedBy(KjuAlphabet.Comma.ToRegex()),
+                KjuAlphabet.RParen.ToRegex(),
+                KjuAlphabet.Arrow.ToRegex(),
+                KjuAlphabet.FunctionTypeResultType.ToRegex())
+        };
+
+        public static readonly Rule<KjuAlphabet> UnknownTypeIdentifier = new Rule<KjuAlphabet>
+        {
+            Lhs = KjuAlphabet.UnknownTypeIdentifier,
+            Rhs = KjuAlphabet.Question.ToRegex()
+        };
+
         public static readonly Rule<KjuAlphabet> TypeIdentifier = new Rule<KjuAlphabet>
         {
             Lhs = KjuAlphabet.TypeIdentifier,
             Rhs = Sum(
-                Concat(
-                    KjuAlphabet.LBracket.ToRegex(),
-                    KjuAlphabet.TypeIdentifier.ToRegex(),
-                    KjuAlphabet.RBracket.ToRegex()),
-                Concat(
-                    KjuAlphabet.LParen.ToRegex(),
-                    KjuAlphabet.TypeIdentifier.ToRegex().SeparatedBy(KjuAlphabet.Comma.ToRegex()),
-                    KjuAlphabet.RParen.ToRegex(),
-                    KjuAlphabet.Arrow.ToRegex(),
-                    KjuAlphabet.TypeIdentifier.ToRegex()))
+                KjuAlphabet.FunctionTypeIdentifier.ToRegex(),
+                KjuAlphabet.ArrayTypeIdentifier.ToRegex(),
+                KjuAlphabet.UnknownTypeIdentifier.ToRegex())
         };
 
         public static readonly Rule<KjuAlphabet> IfStatement = new Rule<KjuAlphabet>
@@ -126,8 +163,7 @@ namespace KJU.Core.Parser
             Rhs = Concat(
                 KjuAlphabet.Var.ToRegex(),
                 KjuAlphabet.VariableFunctionIdentifier.ToRegex(),
-                KjuAlphabet.Colon.ToRegex(),
-                KjuAlphabet.TypeIdentifier.ToRegex(),
+                KjuAlphabet.TypeDeclaration.ToRegex().Optional(),
                 Concat(
                     KjuAlphabet.Assign.ToRegex(),
                     KjuAlphabet.Expression.ToRegex()).Optional())
@@ -332,8 +368,7 @@ namespace KJU.Core.Parser
             Lhs = KjuAlphabet.StructField,
             Rhs = Concat(
                 KjuAlphabet.VariableFunctionIdentifier.ToRegex(),
-                KjuAlphabet.Colon.ToRegex(),
-                KjuAlphabet.TypeIdentifier.ToRegex(),
+                KjuAlphabet.TypeDeclaration.ToRegex().Optional(),
                 KjuAlphabet.Semicolon.ToRegex())
         };
 
@@ -370,7 +405,14 @@ namespace KJU.Core.Parser
                     StructFields,
                     StructField,
 
+                    TypeDeclaration,
                     TypeIdentifier,
+                    FunctionTypeIdentifier,
+                    ArrayTypeIdentifier,
+                    UnknownTypeIdentifier,
+
+                    FunctionTypeArgumentType,
+                    FunctionTypeResultType,
 
                     Alloc,
 

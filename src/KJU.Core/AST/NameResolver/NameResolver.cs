@@ -144,7 +144,7 @@
                         var childDataType = this.ResolveDataType(unresolvedArray.Child, diagnostics);
                         return new ArrayType(childDataType);
 
-                    case UnresolvedFunType unresolved:
+                    case UnresolvedFunctionType unresolved:
                         return new FunType(
                             argTypes: unresolved.ArgTypes.Select(x => this.ResolveDataType(x, diagnostics)).ToList(),
                             resultType: this.ResolveDataType(unresolved.ResultType, diagnostics));

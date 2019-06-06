@@ -4,9 +4,9 @@ namespace KJU.Core.AST.Types
     using System.Collections.Generic;
     using System.Linq;
 
-    public class UnresolvedFunType : DataType
+    public class UnresolvedFunctionType : DataType
     {
-        public UnresolvedFunType(IEnumerable<DataType> argTypes, DataType resultType)
+        public UnresolvedFunctionType(IEnumerable<DataType> argTypes, DataType resultType)
         {
             this.ArgTypes = argTypes.ToList();
             this.ResultType = resultType;

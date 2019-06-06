@@ -179,6 +179,25 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                 }
             }
 
+            private DataType FunctionTypeIdentifierAst(Brunch<KjuAlphabet> brunch)
+            {
+                var argumentsTypes = brunch.Children
+                    .Where(child => child.Category == KjuAlphabet.FunctionTypeArgumentType)
+                    .Select(this.TypeIdentifierAst);
+
+                var returnType = brunch.Children
+                    .Where(child => child.Category == KjuAlphabet.FunctionTypeResultType)
+                    .Select(this.TypeIdentifierAst)
+                    .Single();
+                return new UnresolvedFunctionType(argumentsTypes, returnType);
+            }
+
+            private DataType ArrayTypeIdentifierAst(Brunch<KjuAlphabet> brunch)
+            {
+                var childDataType = this.TypeIdentifierAst(brunch.Children[1]);
+                return new UnresolvedArrayType(childDataType);
+            }
+
             private DataType TypeIdentifierAst(ParseTree<KjuAlphabet> tree)
             {
                 switch (tree)
@@ -186,35 +205,24 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                     case Token<KjuAlphabet> token:
                         return new UnresolvedType(token.Text, token.InputRange);
                     case Brunch<KjuAlphabet> brunch:
-                        var parseTreeChild = brunch.Children[1];
-
-                        if (brunch.Children[0] is Token<KjuAlphabet> parenToken && parenToken.Text == "(")
+                        Console.WriteLine(brunch);
+                        var child = brunch.Children[0];
+                        switch (child.Category)
                         {
-                            List<DataType> argTypes = new List<DataType>();
-                            int pos = 1;
-                            if (brunch.Children[pos] is Token<KjuAlphabet> rbrace && rbrace.Text == ")")
-                            {
-                                ++pos;
-                            }
-                            else
-                            {
-                                while (true)
-                                {
-                                    if (brunch.Children[pos] is Token<KjuAlphabet> arrowToken && arrowToken.Text == "->")
-                                        break;
-
-                                    argTypes.Add(this.TypeIdentifierAst(brunch.Children[pos]));
-                                    pos += 2;
-                                }
-                            }
-
-                            DataType returnType = this.TypeIdentifierAst(brunch.Children[pos + 1]);
-                            return new UnresolvedFunType(argTypes, returnType);
-                        }
-                        else
-                        {
-                            var childDataType = this.TypeIdentifierAst(parseTreeChild);
-                            return new UnresolvedArrayType(childDataType);
+                            case KjuAlphabet.TypeIdentifier:
+                                return this.TypeIdentifierAst(brunch.Children[0]);
+                            case KjuAlphabet.FunctionTypeArgumentType:
+                                return this.TypeIdentifierAst(brunch.Children[0]);
+                            case KjuAlphabet.FunctionTypeResultType:
+                                return this.TypeIdentifierAst(brunch.Children[0]);
+                            case KjuAlphabet.FunctionTypeIdentifier:
+                                return this.FunctionTypeIdentifierAst((Brunch<KjuAlphabet>)brunch.Children[0]);
+                            case KjuAlphabet.ArrayTypeIdentifier:
+                                return this.ArrayTypeIdentifierAst((Brunch<KjuAlphabet>)brunch.Children[0]);
+                            case KjuAlphabet.UnknownTypeIdentifier:
+                                return null;
+                            default:
+                                throw new ParseTreeToAstConverterException($"Unknown type category: {child.Category}");
                         }
 
                     default:
@@ -264,8 +272,8 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                         case KjuAlphabet.VariableFunctionIdentifier:
                             identifier = ((Token<KjuAlphabet>)child).Text;
                             break;
-                        case KjuAlphabet.TypeIdentifier:
-                            type = this.TypeIdentifierAst(child);
+                        case KjuAlphabet.TypeDeclaration:
+                            type = this.TypeDeclarationAst((Brunch<KjuAlphabet>)child);
                             break;
                         case KjuAlphabet.Block:
                             body = this.BlockToAst((Brunch<KjuAlphabet>)child);
@@ -307,10 +315,17 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                 return this.StatementToAst((Brunch<KjuAlphabet>)branch.Children[0]);
             }
 
+            private DataType TypeDeclarationAst(Brunch<KjuAlphabet> brunch)
+            {
+                return this.TypeIdentifierAst(brunch.Children[1]);
+            }
+
             private VariableDeclaration FunctionParameterToAst(Brunch<KjuAlphabet> branch)
             {
                 var identifier = ((Token<KjuAlphabet>)branch.Children[0]).Text;
-                var type = this.TypeIdentifierAst(branch.Children[2]);
+                var type = branch.Children.Count == 2
+                    ? this.TypeDeclarationAst((Brunch<KjuAlphabet>)branch.Children[1])
+                    : null;
                 return new VariableDeclaration(branch.InputRange, type, identifier, null);
             }
 
@@ -418,8 +433,8 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                         case KjuAlphabet.VariableFunctionIdentifier:
                             identifier = ((Token<KjuAlphabet>)child).Text;
                             break;
-                        case KjuAlphabet.TypeIdentifier:
-                            type = this.TypeIdentifierAst(child);
+                        case KjuAlphabet.TypeDeclaration:
+                            type = this.TypeDeclarationAst((Brunch<KjuAlphabet>)child);
                             break;
                         case KjuAlphabet.Expression:
                             value = this.ExpressionToAst(child as Brunch<KjuAlphabet>);
@@ -735,8 +750,10 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
             {
                 var nameToken = (Token<KjuAlphabet>)branch.Children[0];
                 var name = nameToken.Text;
-                var typeParseTree = branch.Children[2];
-                var typeIdentifier = this.TypeIdentifierAst(typeParseTree);
+                var typeIdentifier = branch.Children.Count == 3
+                    ? this.TypeDeclarationAst((Brunch<KjuAlphabet>)branch.Children[1])
+                    : null;
+
                 return new StructField(branch.InputRange, name, typeIdentifier);
             }
 

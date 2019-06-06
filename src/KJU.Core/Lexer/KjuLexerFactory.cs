@@ -65,6 +65,7 @@ namespace KJU.Core.Lexer
                 { KjuAlphabet.StarAssign, "\\*=" },
                 { KjuAlphabet.SlashAssign, "/=" },
                 { KjuAlphabet.PercentAssign, "%=" },
+                { KjuAlphabet.Question, "?" },
             };
 
             return new Lexer<KjuAlphabet>(

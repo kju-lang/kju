@@ -264,6 +264,11 @@ namespace KJU.Core.Lexer
         /// </summary>
         PercentAssign,
 
+        /// <summary>
+        /// ?
+        /// </summary>
+        Question,
+
         // Nonterminals:
 
         /// <summary>
@@ -409,6 +414,13 @@ namespace KJU.Core.Lexer
         Literal,
         Statement,
         ParenEnclosedStatement,
+
+        FunctionTypeIdentifier,
+        FunctionTypeArgumentType,
+        FunctionTypeResultType,
+        ArrayTypeIdentifier,
+        UnknownTypeIdentifier,
+        TypeDeclaration,
 
         Eof,
     }
