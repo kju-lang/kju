@@ -9,8 +9,6 @@ namespace KJU.Core.AST.TypeChecker
     /// </summary>
     public class Solver
     {
-        private FindUnion<TypeVariable> findUnion = new FindUnion<TypeVariable>();
-
         public Solver(List<Clause> clauses)
         {
         }
