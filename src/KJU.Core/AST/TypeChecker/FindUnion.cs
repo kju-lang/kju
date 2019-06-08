@@ -6,7 +6,8 @@ namespace KJU.Core.AST.TypeChecker
     /// <summary>
     /// For each set in the structure we want to be able to return the "representant" of the set.
     /// When we merge to sets the representant of the new set is decided by the arbiter
-    /// i.e. representant[union(x, y)] := (x if arbiter(representant[x], representant[y]) < 0 else y).
+    /// When arbiter is not 0, then representant[x] wins for negative values, else representant[y] is chosen.
+    /// When arbiter is 0, bigger tree wins.
     /// </summary>
     public class FindUnion<T>
     {
@@ -14,9 +15,10 @@ namespace KJU.Core.AST.TypeChecker
         {
             this.Checkpoints = new Stack<int>();
             this.Parent = new List<int>();
+            this.Rank = new List<int>();
             this.Elems = new List<T>();
             this.ElemsRev = new Dictionary<T, int>();
-            this.History = new Stack<HistoryEntry>();
+            this.History = new Stack<int>();
             this.Arbiter = arbiter;
         }
 
@@ -24,11 +26,13 @@ namespace KJU.Core.AST.TypeChecker
 
         private IList<int> Parent { get; }
 
+        private IList<int> Rank { get; }
+
         private IList<T> Elems { get; }
 
         private IDictionary<T, int> ElemsRev { get; }
 
-        private Stack<HistoryEntry> History { get; }
+        private Stack<int> History { get; }
 
         private Comparison<T> Arbiter { get; }
 
@@ -52,7 +56,7 @@ namespace KJU.Core.AST.TypeChecker
                 return;
             var rep = this.Arbiter(this.Elems[ra], this.Elems[rb]);
             if (rep == 0)
-                throw new TypeCheckerInternalException("Nodes considered equal occuring twice in Find-Union");
+                rep = this.Rank[ra] >= this.Rank[rb] ? -1 : 1;
             if (rep > 0)
                 this.SetParent(ra, rb);
             else
@@ -77,34 +81,29 @@ namespace KJU.Core.AST.TypeChecker
             this.ElemsRev.Add(x, ret);
             this.Elems.Add(x);
             this.Parent.Add(ret);
+            this.Rank.Add(1);
             return ret;
         }
 
         private void PopHistoryEntry()
         {
-            var entry = this.History.Pop();
-            this.Parent[entry.Index] = entry.OldValue;
+            int idx = this.History.Pop();
+            this.Rank[this.Parent[idx]] -= this.Rank[idx];
+            this.Parent[idx] = idx;
         }
 
         private void SetParent(int index, int parent)
         {
-            this.History.Push(new HistoryEntry { Index = index, OldValue = this.Parent[index] });
+            this.History.Push(index);
+            this.Rank[parent] += this.Rank[index];
             this.Parent[index] = parent;
         }
 
         private int Find(int index)
         {
-            if (this.Parent[index] == index)
-                return index;
-            int ret = this.Find(this.Parent[index]);
-            this.SetParent(index, ret);
-            return ret;
-        }
-
-        private struct HistoryEntry
-        {
-            public int Index;
-            public int OldValue;
+            while (this.Parent[index] != index)
+                index = this.Parent[index];
+            return index;
         }
     }
 }
