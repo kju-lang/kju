@@ -19,7 +19,15 @@ namespace KJU.Core.AST.TypeChecker
         public Solver(List<Clause> clauses)
         {
             this.clauses = clauses;
-            this.findUnion = new FindUnion<IHerbrandObject>((x, y) => x is TypeVariable ? 1 : -1);
+            this.findUnion = new FindUnion<IHerbrandObject>((x, y) =>
+            {
+                if (x is TypeVariable == y is TypeVariable)
+                {
+                    return 0;
+                }
+
+                return x is TypeVariable ? 1 : -1;
+            });
         }
 
         /// <summary>
