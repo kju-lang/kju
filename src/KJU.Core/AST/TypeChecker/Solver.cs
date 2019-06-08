@@ -53,10 +53,13 @@ namespace KJU.Core.AST.TypeChecker
         {
             if (consideredClause == this.clauses.Count)
             {
-                if (this.solution.HasValue)
+                Console.WriteLine(choices.Count);
+                this.solution = this.ConstructSolution(choices);
+                this.solution.Value.TypeVariableMapping.ToList().ForEach(kvp => Console.WriteLine($"Key: {kvp.Key}, Value: {kvp.Value}"));
+                /*if (this.solution.HasValue)
                 {
                     throw new TypeCheckerException(MultipleSolutionExceptionMessage);
-                }
+                }*/
 
                 this.solution = this.ConstructSolution(choices);
                 return;
@@ -67,7 +70,7 @@ namespace KJU.Core.AST.TypeChecker
             for (var i = 0; i < alternatives.Count; ++i)
             {
                 this.findUnion.PushCheckpoint();
-                choices.Add(clause, i);
+                choices[clause] = i;
 
                 var satisfied = alternatives[i].All(tuple => this.Unify(tuple.Item1, tuple.Item2));
                 if (satisfied)
@@ -81,7 +84,7 @@ namespace KJU.Core.AST.TypeChecker
 
         private bool Unify(IHerbrandObject x, IHerbrandObject y)
         {
-            if (x is TypeVariable)
+            if (y is TypeVariable)
             {
                 (x, y) = (y, x);
             }
