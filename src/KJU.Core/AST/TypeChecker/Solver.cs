@@ -11,7 +11,6 @@ namespace KJU.Core.AST.TypeChecker
     public class Solver
     {
         public const string NoSolutionExceptionMessage = "Cannot satify the given clauses";
-        public const string MultipleSolutionExceptionMessage = "Multiple solutions are possible for the given clauses";
 
         private List<Clause> clauses;
         private FindUnion<IHerbrandObject> findUnion;
@@ -37,20 +36,22 @@ namespace KJU.Core.AST.TypeChecker
             this.solution = null;
             var choices = new Dictionary<Clause, int>();
 
-            this.Backtrack(0, choices);
+            var clauseId = this.Backtrack(0, choices);
 
             switch (this.solution)
             {
                 case null:
-                    throw new TypeCheckerException(NoSolutionExceptionMessage);
+                    throw new TypeCheckerException(
+                        $"Cannot satisfy the clause {this.clauses[clauseId].InputRange}");
 
                 case Solution finalSolution:
                     return finalSolution;
             }
         }
 
-        private void Backtrack(int consideredClause, IDictionary<Clause, int> choices)
+        private int Backtrack(int consideredClause, IDictionary<Clause, int> choices)
         {
+            var result = consideredClause;
             if (consideredClause == this.clauses.Count)
             {
                 if (this.solution is Solution firstSolution)
@@ -75,7 +76,7 @@ namespace KJU.Core.AST.TypeChecker
                 }
 
                 this.solution = this.ConstructSolution(choices);
-                return;
+                return result;
             }
 
             var clause = this.clauses[consideredClause];
@@ -88,11 +89,13 @@ namespace KJU.Core.AST.TypeChecker
                 var satisfied = alternatives[i].All(tuple => this.Unify(tuple.Item1, tuple.Item2));
                 if (satisfied)
                 {
-                    this.Backtrack(consideredClause + 1, choices);
+                    result = Math.Max(result, this.Backtrack(consideredClause + 1, choices));
                 }
 
                 this.findUnion.PopCheckpoint();
             }
+
+            return result;
         }
 
         private bool Unify(IHerbrandObject x, IHerbrandObject y)
