@@ -1,0 +1,9 @@
+struct A
+{
+    a : ?;
+}
+
+
+fun kju() : Unit
+{
+}

@@ -1,0 +1,23 @@
+fun write(a: Int): Unit import
+
+fun s(x : ?, y : ?, z : ?) : ?
+{
+    return x(z)(y(z));
+}
+
+fun k(x : ?, y : ?) : ?
+{
+    return x;
+}
+
+fun i(x : ?) : ?
+{
+    return s(k, k, x);
+}
+
+fun kju() : Unit
+{
+	var a : ?;
+    a = i(43);
+    write(a);
+}

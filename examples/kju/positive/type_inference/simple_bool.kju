@@ -1,0 +1,5 @@
+fun kju() : Unit
+{
+    var a : ?;
+    a = true;
+}

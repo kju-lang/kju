@@ -1,0 +1,40 @@
+fun write(a : Int) : Unit import
+
+fun f(x : ?) : ? {
+    return x;
+}
+
+fun g(x : ?) : ? {
+    return x;
+}
+
+fun h(x : Int) : ? {
+    return x;
+}
+
+fun i(x : Int) : ? {
+    return x;
+}
+
+fun kju() : Unit {
+    fun f(x : ?) : ? {
+        return x * 2;
+    };
+
+    fun g(x : Int) : ? {
+        return x * 2;
+    };
+
+    fun h(x : ?) : ? {
+        return x * 2;
+    };
+
+    fun i(x : Int) : ? {
+        return x * 2;
+    };
+
+    write(f(43));
+    write(g(43));
+    write(h(43));
+    write(i(43));
+}

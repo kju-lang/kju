@@ -1,0 +1,16 @@
+fun write(a: Int): Unit import
+
+fun f(x : ?) : ?
+{
+    return x;
+}
+
+fun kju() : Unit
+{
+	var xs : ? = new(Int, 2);
+    xs[0] = 42;
+    xs[1] = 43;
+	var ys : ? = f(xs);
+    write(foo[0]);
+    write(foo[1]);
+}
