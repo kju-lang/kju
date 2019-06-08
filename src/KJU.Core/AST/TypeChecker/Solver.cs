@@ -20,7 +20,7 @@ namespace KJU.Core.AST.TypeChecker
         public Solver(List<Clause> clauses)
         {
             this.clauses = clauses;
-            this.findUnion = new FindUnion<IHerbrandObject>((x, y) => x is TypeVariable ? -1 : +1);
+            this.findUnion = new FindUnion<IHerbrandObject>((x, y) => x is TypeVariable ? 1 : -1);
         }
 
         /// <summary>
@@ -53,13 +53,26 @@ namespace KJU.Core.AST.TypeChecker
         {
             if (consideredClause == this.clauses.Count)
             {
-                Console.WriteLine(choices.Count);
-                this.solution = this.ConstructSolution(choices);
-                this.solution.Value.TypeVariableMapping.ToList().ForEach(kvp => Console.WriteLine($"Key: {kvp.Key}, Value: {kvp.Value}"));
-                /*if (this.solution.HasValue)
+                if (this.solution is Solution firstSolution)
                 {
-                    throw new TypeCheckerException(MultipleSolutionExceptionMessage);
-                }*/
+                    var secondSolution = this.ConstructSolution(choices);
+
+                    var firstVarMapping = firstSolution.TypeVariableMapping;
+                    var secondVarMapping = secondSolution.TypeVariableMapping;
+
+                    var differentKey = firstVarMapping.Keys
+                        .FirstOrDefault(key => !firstVarMapping[key].Equals(secondVarMapping[key]));
+
+                    switch (differentKey)
+                    {
+                        case null:
+                            throw new TypeCheckerInternalException(
+                                "Found two same solutions with different choices of clauses");
+
+                        case TypeVariable typeVar:
+                            throw new TypeCheckerException($"Cannot deduce type for {typeVar.InputRange}");
+                    }
+                }
 
                 this.solution = this.ConstructSolution(choices);
                 return;
@@ -84,6 +97,9 @@ namespace KJU.Core.AST.TypeChecker
 
         private bool Unify(IHerbrandObject x, IHerbrandObject y)
         {
+            x = this.findUnion.GetRepresentant(x);
+            y = this.findUnion.GetRepresentant(y);
+
             if (y is TypeVariable)
             {
                 (x, y) = (y, x);
@@ -125,7 +141,7 @@ namespace KJU.Core.AST.TypeChecker
 
         private void Dfs(
             IHerbrandObject v,
-            HashSet<IHerbrandObject> visited,
+            ISet<IHerbrandObject> visited,
             IDictionary<TypeVariable, IHerbrandObject> variableMapping)
         {
             if (visited.Contains(v))
