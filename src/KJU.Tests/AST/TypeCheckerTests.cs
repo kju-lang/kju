@@ -366,6 +366,8 @@
         }
 
         [TestMethod]
+        [Ignore]
+        //After change to type checker, this program should fail later, in Solver.
         public void DetectErrors()
         {
             var root = GenWrongAst();

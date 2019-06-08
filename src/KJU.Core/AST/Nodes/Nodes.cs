@@ -13,12 +13,27 @@ namespace KJU.Core.AST
 
     public class Expression : Node
     {
+        private DataType type;
+
         public Expression(Range inputRange)
-            : base(inputRange)
+: base(inputRange)
         {
         }
 
-        public DataType Type { get; set; }
+        public DataType Type
+        {
+            get
+            {
+                if (this.type == null)
+                    this.type = new TypeVariable { InputRange = this.InputRange };
+                return this.type;
+            }
+
+            set
+            {
+                this.type = value;
+            }
+        }
     }
 
     public class Program : Node
@@ -657,7 +672,8 @@ namespace KJU.Core.AST
 
         public string Field { get; }
 
-        public List<StructDeclaration> StructCandidates { get; set; }
+        // Warning: The AST builder holds a reference to the below list and modifies it. Do not copy it.
+        public List<KeyValuePair<StructDeclaration, StructField>> StructCandidates { get; set; }
 
         public Expression Offset
         {

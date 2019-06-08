@@ -72,6 +72,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
             private readonly Dictionary<KjuAlphabet, ComparisonType> symbolToComparisonType;
             private readonly Dictionary<KjuAlphabet, UnaryOperationType> symbolToUnaryOperationType;
             private readonly IDiagnostics diagnostics;
+            private readonly Dictionary<string, List<KeyValuePair<StructDeclaration, StructField>>> fieldsToStructDeclarations = new Dictionary<string, List<KeyValuePair<StructDeclaration, StructField>>>();
 
             private readonly Dictionary<KjuAlphabet, Func<Brunch<KjuAlphabet>, Expression>>
                 symbolToGenFunction;
@@ -656,7 +657,20 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                             {
                                 var labelToken = (Token<KjuAlphabet>)accessType.Children[1];
                                 var label = labelToken.Text;
-                                return new FieldAccess(branch.InputRange, expression, label);
+                                    // Warning: the below list gets modified later by StructDeclarations.
+                                    List<KeyValuePair<StructDeclaration, StructField>> candidates;
+                                try
+                                {
+                                    candidates = this.fieldsToStructDeclarations[label];
+                                }
+                                catch (KeyNotFoundException)
+                                {
+                                    candidates = new List<KeyValuePair<StructDeclaration, StructField>>();
+                                    this.fieldsToStructDeclarations.Add(label, candidates);
+                                }
+                                var ret = new FieldAccess(branch.InputRange, expression, label);
+                                ret.StructCandidates = candidates;
+                                return ret;
                             }
 
                             default:
@@ -768,7 +782,24 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                 var name = nameToken.Text;
                 var fieldsBranch = (Brunch<KjuAlphabet>)branch.Children[3];
                 var fieldsNodes = this.StructFieldsAstList(fieldsBranch);
-                return new StructDeclaration(branch.InputRange, name, fieldsNodes);
+                var ret = new StructDeclaration(branch.InputRange, name, fieldsNodes);
+                foreach (StructField field in fieldsNodes)
+                {
+                    List<KeyValuePair<StructDeclaration, StructField>> candidates;
+                    try
+                    {
+                        candidates = this.fieldsToStructDeclarations[field.Name];
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        candidates = new List<KeyValuePair<StructDeclaration, StructField>>();
+                        this.fieldsToStructDeclarations.Add(field.Name, candidates);
+                    }
+
+                    candidates.Add(new KeyValuePair<StructDeclaration, StructField>(ret, field));
+                }
+
+                return ret;
             }
         }
     }
