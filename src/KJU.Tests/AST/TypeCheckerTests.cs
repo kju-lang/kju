@@ -14,6 +14,7 @@
     using Moq;
     using Util;
     using Range = KJU.Core.Lexer.Range;
+    using StructCandidate = System.Collections.Generic.KeyValuePair<Core.AST.StructDeclaration, Core.AST.StructField>;
 
 #pragma warning disable SA1118  // Parameter must not span multiple lines
     [TestClass]
@@ -671,7 +672,14 @@
             var resVarDeclaration = new VariableDeclaration(range, IntType.Instance, "res", new IntegerLiteral(range, 0));
 
             Func<Variable> getStructVar = () => new Variable(range, "s") { Declaration = structVarDeclaration };
-            Func<string, Expression> getFieldAccess = field => new FieldAccess(range, getStructVar(), field);
+            Func<string, StructCandidate> getCandidate =
+                field => new StructCandidate(structDeclaration, structFields.Single(f => f.Name == field));
+
+            Func<string, List<StructCandidate>> getCandidates =
+                field => new List<StructCandidate>() { getCandidate(field) };
+
+            Func<string, Expression> getFieldAccess =
+                field => new FieldAccess(range, getStructVar(), field) { StructCandidates = getCandidates(field) };
 
             Func<Variable> getResVar = () => new Variable(range, "res") { Declaration = resVarDeclaration };
             Func<Expression, Expression> saveResultInRes = expresssion => new Assignment(range, getResVar(), expresssion);
@@ -932,10 +940,10 @@
             // var x: Int = apply(x, false);
             // x = unapply(g);
 
-            var intLiteral = new IntegerLiteral(MockRange, 0);
-            var functionF = ShortFunction("f", new[] { BoolType.Instance }, IntType.Instance, intLiteral);
-            var functionG1 = ShortFunction("g", IntType.Instance, intLiteral);
-            var functionG2 = ShortFunction("g", new[] { BoolType.Instance }, IntType.Instance, intLiteral);
+            Func<IntegerLiteral> intLiteral = () => new IntegerLiteral(MockRange, 0);
+            var functionF = ShortFunction("f", new[] { BoolType.Instance }, IntType.Instance, intLiteral());
+            var functionG1 = ShortFunction("g", IntType.Instance, intLiteral());
+            var functionG2 = ShortFunction("g", new[] { BoolType.Instance }, IntType.Instance, intLiteral());
 
             Func<string, FunctionDeclaration[], UnApplication> makeUnapplication =
                 (name, candidates) => new UnApplication(MockRange, name) { Candidates = candidates.ToList() };
@@ -982,16 +990,16 @@
             // apply(x, 0);
             // unapply(g);
 
-            var intLiteral = new IntegerLiteral(MockRange, 0);
-            var functionF = ShortFunction("f", new[] { BoolType.Instance }, IntType.Instance, intLiteral);
-            var functionG1 = ShortFunction("g", IntType.Instance, intLiteral);
-            var functionG2 = ShortFunction("g", new[] { BoolType.Instance }, IntType.Instance, intLiteral);
+            Func<IntegerLiteral> intLiteral = () => new IntegerLiteral(MockRange, 0);
+            var functionF = ShortFunction("f", new[] { BoolType.Instance }, IntType.Instance, intLiteral());
+            var functionG1 = ShortFunction("g", IntType.Instance, intLiteral());
+            var functionG2 = ShortFunction("g", new[] { BoolType.Instance }, IntType.Instance, intLiteral());
 
             Func<string, FunctionDeclaration[], UnApplication> makeUnapplication =
                 (name, candidates) => new UnApplication(MockRange, name) { Candidates = candidates.ToList() };
 
             var declX = new VariableDeclaration(MockRange, new FunType(functionF), "x", makeUnapplication("f", new[] { functionF }));
-            var declY = new VariableDeclaration(MockRange, IntType.Instance, "y", intLiteral);
+            var declY = new VariableDeclaration(MockRange, IntType.Instance, "y", intLiteral());
 
             var root = ShortProgram(
                 functionF,
@@ -1000,7 +1008,7 @@
                 declX,
                 declY,
                 new Application(MockRange, new Variable(MockRange, "y") { Declaration = declY }, new List<Expression>()),
-                new Application(MockRange, new Variable(MockRange, "x") { Declaration = declX }, new List<Expression> { intLiteral }),
+                new Application(MockRange, new Variable(MockRange, "x") { Declaration = declX }, new List<Expression> { intLiteral() }),
                 makeUnapplication("g", new[] { functionG1, functionG2 }));
 
             var diagnosticsMock = new Mock<IDiagnostics>();
