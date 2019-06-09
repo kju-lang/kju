@@ -206,7 +206,6 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                     case Token<KjuAlphabet> token:
                         return new UnresolvedType(token.Text, token.InputRange);
                     case Brunch<KjuAlphabet> brunch:
-                        Console.WriteLine(brunch);
                         var child = brunch.Children[0];
                         switch (child.Category)
                         {

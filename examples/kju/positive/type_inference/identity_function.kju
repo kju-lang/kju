@@ -6,5 +6,4 @@ fun f(x : ?) : ?
 fun kju() : Unit
 {
 	var a : ? = f(3);
-	var b : ? = f(true);
 }

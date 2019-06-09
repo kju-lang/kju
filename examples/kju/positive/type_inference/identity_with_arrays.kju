@@ -11,6 +11,6 @@ fun kju() : Unit
     xs[0] = 42;
     xs[1] = 43;
 	var ys : ? = f(xs);
-    write(foo[0]);
-    write(foo[1]);
+    write(xs[0]);
+    write(ys[1]);
 }

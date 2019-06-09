@@ -523,7 +523,6 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                         return bodyComputation;
 
                     default:
-                        Console.WriteLine($"default {expr}");
                         throw new FunctionBodyGeneratorException(errorMessage);
                 }
             }
