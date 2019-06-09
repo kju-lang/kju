@@ -724,7 +724,16 @@
             var resVarDeclaration = new VariableDeclaration(range, IntType.Instance, "res", new IntegerLiteral(range, 0));
 
             Func<Variable> getStructVar = () => new Variable(range, "s") { Declaration = structVarDeclaration };
-            Func<string, Expression> getFieldAccess = field => new FieldAccess(range, getStructVar(), field);
+            Func<string, StructCandidate> getCandidate =
+                field => new StructCandidate(structDeclaration, structFields.FirstOrDefault(f => f.Name == field));
+
+            Func<string, List<StructCandidate>> getCandidates =
+                field => new List<StructCandidate>() { getCandidate(field) }
+                    .Where(candidate => candidate.Value != null)
+                    .ToList();
+
+            Func<string, Expression> getFieldAccess =
+                field => new FieldAccess(range, getStructVar(), field) { StructCandidates = getCandidates(field) };
 
             var kjuInstructions = new List<Expression> {
                 structDeclaration,
@@ -734,7 +743,7 @@
                 new ComplexAssignment(range, getFieldAccess("x"), getFieldAccess("y")),
                 new ComplexCompoundAssignment(range, getFieldAccess("x"), ArithmeticOperationType.Addition, getFieldAccess("y")),
                 new ComplexCompoundAssignment(range, getFieldAccess("y"), ArithmeticOperationType.Addition, new IntegerLiteral(range, 1)),
-                new FieldAccess(range, getFieldAccess("x"), "x"),
+                new FieldAccess(range, getFieldAccess("x"), "x") { StructCandidates = getCandidates("x") },
                 getFieldAccess("z") };
 
             var kjuDeclaration = new FunctionDeclaration(
