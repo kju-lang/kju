@@ -105,7 +105,9 @@ namespace KJU.Core.AST.TypeChecker
                     Enumerable.Zip(call.Arguments, decl.Parameters, this.MatchArgument)
                         .Append((call.Type, decl.ReturnType))
                         .ToList();
-                var alternatives = call.DeclarationCandidates.Select(alternative).ToList();
+                var alternatives = call.DeclarationCandidates
+                    .Where(decl => call.Arguments.Count == decl.Parameters.Count)
+                    .Select(alternative).ToList();
                 return new Clause(alternatives, call.InputRange);
             }
 
