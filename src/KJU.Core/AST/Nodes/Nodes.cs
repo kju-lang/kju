@@ -16,23 +16,15 @@ namespace KJU.Core.AST
         private DataType type;
 
         public Expression(Range inputRange)
-: base(inputRange)
+            : base(inputRange)
         {
+            this.Type = new TypeVariable { InputRange = this.InputRange };
         }
 
         public DataType Type
         {
-            get
-            {
-                if (this.type == null)
-                    this.type = new TypeVariable { InputRange = this.InputRange };
-                return this.type;
-            }
-
-            set
-            {
-                this.type = value;
-            }
+            get => this.type;
+            set => this.type = value ?? new TypeVariable { InputRange = this.InputRange };
         }
     }
 
@@ -63,6 +55,8 @@ namespace KJU.Core.AST
 
     public class FunctionDeclaration : Expression
     {
+        private DataType returnType;
+
         public FunctionDeclaration(
             Range inputRange,
             string identifier,
@@ -73,7 +67,7 @@ namespace KJU.Core.AST
             : base(inputRange)
         {
             this.Identifier = identifier;
-            this.ReturnType = returnType;
+            this.ReturnType = returnType ?? new TypeVariable { InputRange = inputRange };
             this.Parameters = parameters;
             this.Body = body;
             this.IsForeign = isForeign;
@@ -81,7 +75,11 @@ namespace KJU.Core.AST
 
         public string Identifier { get; }
 
-        public DataType ReturnType { get; set; }
+        public DataType ReturnType
+        {
+            get => this.returnType;
+            set => this.returnType = value ?? new TypeVariable { InputRange = this.InputRange };
+        }
 
         public IReadOnlyList<VariableDeclaration> Parameters { get; }
 
@@ -150,15 +148,21 @@ namespace KJU.Core.AST
 
     public class VariableDeclaration : Expression
     {
+        private DataType variableType;
+
         public VariableDeclaration(Range inputRange, DataType variableType, string identifier, Expression value)
             : base(inputRange)
         {
-            this.VariableType = variableType;
+            this.VariableType = variableType ?? new TypeVariable { InputRange = inputRange };
             this.Identifier = identifier;
             this.Value = value;
         }
 
-        public DataType VariableType { get; set; }
+        public DataType VariableType
+        {
+            get => this.variableType;
+            set => this.variableType = value ?? new TypeVariable { InputRange = this.InputRange };
+        }
 
         public string Identifier { get; }
 
@@ -637,14 +641,20 @@ namespace KJU.Core.AST
 
     public class ArrayAlloc : Expression
     {
+        private DataType elementType;
+
         public ArrayAlloc(Range inputRange, DataType elementType, Expression size)
             : base(inputRange)
         {
-            this.ElementType = elementType;
+            this.ElementType = elementType ?? new TypeVariable { InputRange = inputRange };
             this.Size = size;
         }
 
-        public DataType ElementType { get; set; }
+        public DataType ElementType
+        {
+            get => this.elementType;
+            set => this.elementType = value ?? new TypeVariable { InputRange = this.InputRange };
+        }
 
         public Expression Size { get; }
 
@@ -731,16 +741,22 @@ namespace KJU.Core.AST
 
     public class StructField : Node
     {
+        private DataType type;
+
         public StructField(Range inputRange, string name, DataType type)
             : base(inputRange)
         {
             this.Name = name;
-            this.Type = type;
+            this.Type = type ?? new TypeVariable { InputRange = inputRange };
         }
 
         public string Name { get; }
 
-        public DataType Type { get; set; }
+        public DataType Type
+        {
+            get => this.type;
+            set => this.type = value ?? new TypeVariable { InputRange = this.InputRange };
+        }
 
         public override string ToString()
         {
@@ -750,13 +766,19 @@ namespace KJU.Core.AST
 
     public class StructAlloc : Expression
     {
+        private DataType allocType;
+
         public StructAlloc(Range inputRange, DataType allocType)
             : base(inputRange)
         {
-            this.AllocType = allocType;
+            this.AllocType = allocType ?? new TypeVariable { InputRange = inputRange };
         }
 
-        public DataType AllocType { get; set; }
+        public DataType AllocType
+        {
+            get => this.allocType;
+            set => this.allocType = value ?? this.allocType;
+        }
 
         public StructDeclaration Declaration { get; set; }
 
