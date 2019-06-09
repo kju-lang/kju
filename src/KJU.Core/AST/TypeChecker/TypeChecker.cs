@@ -11,25 +11,6 @@ namespace KJU.Core.AST.TypeChecker
 
     public class TypeChecker : IPhase
     {
-        public const string IncorrectReturnTypeDiagnostic = "TypeChecker.IncorrectReturnType";
-        public const string IncorrectAssigmentTypeDiagnostic = "TypeChecker.IncorrectAssigmentType";
-        public const string IncorrectIfPredicateTypeDiagnostic = "TypeChecker.IncorrectIfPredicateType";
-        public const string IncorrectLeftSideTypeDiagnostic = "TypeChecker.IncorrectLeftSideType";
-        public const string IncorrectRightSideTypeDiagnostic = "TypeChecker.IncorrectRightSideType";
-        public const string IncorrectOperandTypeDiagnostic = "TypeChecker.IncorrectOperandType";
-        public const string IncorrectComparisonTypeDiagnostic = "TypeChecker.IncorrectComparisonType";
-        public const string IncorrectUnaryExpressionTypeDiagnostic = "TypeChecker.IncorrectUnaryExpressionType";
-        public const string IncorrectArraySizeTypeDiagnostic = "TypeChecker.IncorrectArraySizeType";
-        public const string IncorrectArrayIndexTypeDiagnostic = "TypeChecker.IncorrectArrayIndexType";
-        public const string IncorrectArrayAccessUseDiagnostic = "TypeChecker.IncorrectArrayAccessUse";
-        public const string AssignedValueHasNoTypeDiagnostic = "TypeChecker.AssignedValueHasNoType";
-        public const string FunctionOverloadNotFoundDiagnostic = "TypeChecker.FunctionOverloadNotFound";
-        public const string IncorrectStructTypeDiagnostic = "TypeChecker.IncorrectStructType";
-        public const string IncorrectFieldNameDiagnostic = "TypeChecker.IncorrectFieldName";
-        public const string IncorrectApplicationArgsDiagnostic = "TypeChecker.IncorrectApplicationArgs";
-        public const string IncorrectApplicationFuncDiagnostic = "TypeChecker.IncorrectApplicationFunc";
-        public const string AmbiguousUnapplicationDiagnostic = "TypeChecker.AmbiguousUnapplication";
-
         public const string TypeAssignmentDiagnostic = "TypeChecker.TypeAssignmentFail";
 
         private static readonly IDictionary<UnaryOperationType, DataType> UnaryOperationToType =

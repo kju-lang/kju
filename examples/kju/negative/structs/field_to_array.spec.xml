@@ -2,6 +2,6 @@
     <IsDisabled>true</IsDisabled>
     <IsPositive>false</IsPositive>
     <ExpectedMagicStrings>
-        <MagicString>TypeChecker.IncorrectAssigmentType</MagicString>
+        <MagicString>TypeChecker.TypeAssignmentFail</MagicString>
     </ExpectedMagicStrings>
 </Spec>

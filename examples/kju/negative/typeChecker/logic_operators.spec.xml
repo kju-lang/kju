@@ -1,8 +1,6 @@
 <Spec>
     <IsPositive>false</IsPositive>
     <ExpectedMagicStrings>
-        <MagicString>TypeChecker.IncorrectOperandType</MagicString>
-        <MagicString>TypeChecker.IncorrectOperandType</MagicString>
-        <MagicString>TypeChecker.IncorrectUnaryExpressionType</MagicString>
+        <MagicString>TypeChecker.TypeAssignmentFail</MagicString>
     </ExpectedMagicStrings>
 </Spec>

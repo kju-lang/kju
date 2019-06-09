@@ -1,6 +1,6 @@
 <Spec>
     <IsPositive>false</IsPositive>
     <ExpectedMagicStrings>
-        <MagicString>TypeChecker.FunctionOverloadNotFound</MagicString>
+        <MagicString>TypeChecker.TypeAssignmentFail</MagicString>
     </ExpectedMagicStrings>
 </Spec>

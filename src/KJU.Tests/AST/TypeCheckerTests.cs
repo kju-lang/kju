@@ -84,10 +84,7 @@
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
-            MockDiagnostics.Verify(
-                diagnosticsMock,
-                TypeChecker.FunctionOverloadNotFoundDiagnostic,
-                TypeChecker.IncorrectAssigmentTypeDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         [TestMethod]
@@ -142,11 +139,7 @@
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
-            MockDiagnostics.Verify(
-                diagnosticsMock,
-                TypeChecker.IncorrectLeftSideTypeDiagnostic,
-                TypeChecker.IncorrectRightSideTypeDiagnostic,
-                TypeChecker.IncorrectComparisonTypeDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         [TestMethod]
@@ -335,11 +328,7 @@
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
-            MockDiagnostics.Verify(
-                diagnosticsMock,
-                TypeChecker.IncorrectUnaryExpressionTypeDiagnostic,
-                TypeChecker.IncorrectUnaryExpressionTypeDiagnostic,
-                TypeChecker.IncorrectUnaryExpressionTypeDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         [TestMethod]
@@ -375,12 +364,7 @@
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
-            MockDiagnostics.Verify(
-                diagnosticsMock,
-                TypeChecker.FunctionOverloadNotFoundDiagnostic,
-                TypeChecker.AssignedValueHasNoTypeDiagnostic,
-                TypeChecker.IncorrectOperandTypeDiagnostic,
-                TypeChecker.IncorrectReturnTypeDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         [TestMethod]
@@ -623,13 +607,7 @@
 
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
 
-            MockDiagnostics.Verify(
-                diagnosticsMock,
-                TypeChecker.IncorrectArrayAccessUseDiagnostic,
-                TypeChecker.IncorrectArrayIndexTypeDiagnostic,
-                TypeChecker.IncorrectAssigmentTypeDiagnostic,
-                TypeChecker.IncorrectLeftSideTypeDiagnostic,
-                TypeChecker.IncorrectArraySizeTypeDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         [TestMethod]
@@ -770,15 +748,7 @@
             var root = new Program(range, new List<StructDeclaration>(), new List<FunctionDeclaration> { kjuDeclaration });
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
 
-            MockDiagnostics.Verify(
-                diagnosticsMock,
-                TypeChecker.IncorrectAssigmentTypeDiagnostic,
-                TypeChecker.IncorrectAssigmentTypeDiagnostic,
-                TypeChecker.IncorrectAssigmentTypeDiagnostic,
-                TypeChecker.IncorrectRightSideTypeDiagnostic,
-                TypeChecker.IncorrectLeftSideTypeDiagnostic,
-                TypeChecker.IncorrectStructTypeDiagnostic,
-                TypeChecker.IncorrectFieldNameDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         [TestMethod]
@@ -827,7 +797,7 @@
                 new List<FunctionDeclaration> { kjuDeclaration });
 
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
-            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.IncorrectAssigmentTypeDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         [TestMethod]
@@ -926,7 +896,7 @@
             var diagnosticsMock = new Mock<IDiagnostics>();
             var diagnostics = diagnosticsMock.Object;
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnostics));
-            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.IncorrectReturnTypeDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         [TestMethod]
@@ -1013,11 +983,7 @@
 
             var diagnosticsMock = new Mock<IDiagnostics>();
             Assert.ThrowsException<TypeCheckerException>(() => this.typeChecker.Run(root, diagnosticsMock.Object));
-            MockDiagnostics.Verify(
-                diagnosticsMock,
-                TypeChecker.IncorrectApplicationFuncDiagnostic,
-                TypeChecker.IncorrectApplicationArgsDiagnostic,
-                TypeChecker.AmbiguousUnapplicationDiagnostic);
+            MockDiagnostics.Verify(diagnosticsMock, TypeChecker.TypeAssignmentDiagnostic);
         }
 
         private static Node GenUntypedAst()
