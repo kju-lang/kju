@@ -31,7 +31,12 @@ namespace KJU.Core.AST.TypeChecker
             private readonly IDiagnostics diagnostics;
             private readonly Stack<DataType> returnType = new Stack<DataType>();
             private readonly List<Clause> clauses = new List<Clause>();
+
             private readonly Dictionary<Expression, TypeVariable> expressionTypes = new Dictionary<Expression, TypeVariable>();
+            private readonly Dictionary<FunctionDeclaration, TypeVariable> functionReturnTypes = new Dictionary<FunctionDeclaration, TypeVariable>();
+            private readonly Dictionary<VariableDeclaration, TypeVariable> variableTypes = new Dictionary<VariableDeclaration, TypeVariable>();
+            private readonly Dictionary<StructField, TypeVariable> structFieldTypes = new Dictionary<StructField, TypeVariable>();
+
             private readonly Dictionary<FunctionCall, Clause> callOptions = new Dictionary<FunctionCall, Clause>();
             private readonly Dictionary<UnApplication, Clause> unappOptions = new Dictionary<UnApplication, Clause>();
 
@@ -72,6 +77,7 @@ namespace KJU.Core.AST.TypeChecker
                         this.clauses.AddRange(this.GenerateClauses(e));
                     }
 
+                    this.clauses.AddRange(this.CreateProxyVariables(child));
                     this.ProcessChildren(child);
                 }
 
@@ -117,12 +123,6 @@ namespace KJU.Core.AST.TypeChecker
 
             private IEnumerable<Clause> GenerateClauses(Expression node)
             {
-                if (!(node.Type is TypeVariable))
-                {
-                    this.expressionTypes[node] = new TypeVariable();
-                    yield return this.EqualityClause(node, this.expressionTypes[node]);
-                }
-
                 switch (node)
                 {
                     case NullLiteral _:
@@ -289,19 +289,74 @@ namespace KJU.Core.AST.TypeChecker
                 }
             }
 
+            private IEnumerable<Clause> CreateProxyVariables(Node node)
+            {
+                var clauses = new List<Clause>();
+
+                if (node is Expression expr)
+                {
+                    clauses.Add(this.CreateProxyVariable(expr, expr.Type, this.expressionTypes));
+                }
+
+                switch (node)
+                {
+                    case FunctionDeclaration decl:
+                        clauses.Add(this.CreateProxyVariable(decl, decl.ReturnType, this.functionReturnTypes));
+                        break;
+                    case VariableDeclaration decl:
+                        clauses.Add(this.CreateProxyVariable(decl, decl.VariableType, this.variableTypes));
+                        break;
+                    case StructField field:
+                        clauses.Add(this.CreateProxyVariable(field, field.Type, this.structFieldTypes));
+                        break;
+                }
+
+                return clauses.Where(x => x != null);
+            }
+
+            private Clause CreateProxyVariable<T>(T node, IHerbrandObject type, Dictionary<T, TypeVariable> proxies)
+                where T : Node
+            {
+                if (!(type is TypeVariable))
+                {
+                    proxies[node] = new TypeVariable();
+                    return this.EqualityClause(type, proxies[node], node);
+                }
+
+                return null;
+            }
+
             private void SubstituteSolution(Node node, Solution solution)
             {
                 this.FillChoice(node, solution);
                 if (node is Expression e)
                 {
-                    var typeVar = (e.Type as TypeVariable) ?? this.expressionTypes[e];
-                    e.Type = solution.TypeVariableMapping[typeVar] as DataType;
+                    e.Type = this.GetResolvedType(e, e.Type, this.expressionTypes, solution);
+                }
+
+                switch (node)
+                {
+                    case FunctionDeclaration decl:
+                        decl.ReturnType = this.GetResolvedType(decl, decl.ReturnType, this.functionReturnTypes, solution);
+                        break;
+                    case VariableDeclaration decl:
+                        decl.VariableType = this.GetResolvedType(decl, decl.VariableType, this.variableTypes, solution);
+                        break;
+                    case StructField field:
+                        field.Type = this.GetResolvedType(field, field.Type, this.structFieldTypes, solution);
+                        break;
                 }
 
                 foreach (var child in node.Children())
                 {
                     this.SubstituteSolution(child, solution);
                 }
+            }
+
+            private DataType GetResolvedType<T>(T node, IHerbrandObject type, Dictionary<T, TypeVariable> proxies, Solution solution)
+                where T : Node
+            {
+                return solution.TypeVariableMapping[(type as TypeVariable) ?? proxies[node]] as DataType;
             }
 
             private void FillChoice(Node node, Solution solution)
