@@ -26,7 +26,7 @@ namespace KJU.Core.AST.TypeChecker
                     return 0;
                 }
 
-                return x is TypeVariable ? 1 : -1;
+                return x is TypeVariable ? -1 : 1;
             });
         }
 

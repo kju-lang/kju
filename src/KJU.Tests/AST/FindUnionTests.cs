@@ -74,9 +74,48 @@ namespace KJU.Tests.AST
                 Assert.AreEqual(i, fu.GetRepresentant(i));
         }
 
+        [TestMethod]
+        public void TestSmartArbiter()
+        {
+            var fu = new FindUnion<int>(TakeEvenArbiter);
+            fu.PushCheckpoint();
+            fu.PushCheckpoint();
+            fu.PushCheckpoint();
+            fu.Union(0, 1);
+            Assert.AreEqual(0, fu.GetRepresentant(0));
+            Assert.AreEqual(0, fu.GetRepresentant(1));
+
+            fu.PopCheckpoint();
+            fu.Union(1, 0);
+            Assert.AreEqual(0, fu.GetRepresentant(0));
+            Assert.AreEqual(0, fu.GetRepresentant(1));
+
+            fu.PopCheckpoint();
+            for (int i = 3; i < 10; i += 2)
+                fu.Union(1, i);
+            fu.Union(0, 1);
+            Assert.AreEqual(0, fu.GetRepresentant(0));
+            for (int i = 1; i < 10; i += 2)
+                Assert.AreEqual(0, fu.GetRepresentant(i));
+
+            fu.PopCheckpoint();
+            Assert.AreEqual(0, fu.GetRepresentant(0));
+            for (int i = 1; i < 10; i += 2)
+                Assert.AreEqual(i, fu.GetRepresentant(i));
+        }
+
         private static int FixedArbiter<T>(T a, T b)
         {
-            return -1;
+            return 1;
+        }
+
+        private static int TakeEvenArbiter(int a, int b)
+        {
+            if (a % 2 == 0 && b % 2 == 1)
+                return 1;
+            if (b % 2 == 0 && a % 2 == 1)
+                return -1;
+            return 0;
         }
     }
 }
