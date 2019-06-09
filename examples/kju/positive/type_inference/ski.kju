@@ -2,7 +2,7 @@ fun write(a: Int): Unit import
 
 fun s(x : ?, y : ?, z : ?) : ?
 {
-    return x(z)(y(z));
+    return apply(x, z, apply(y, z, z));
 }
 
 fun k(x : ?, y : ?) : ?
@@ -10,14 +10,14 @@ fun k(x : ?, y : ?) : ?
     return x;
 }
 
-fun i(x : ?) : ?
+fun i(x)
 {
-    return s(k, k, x);
+    return s(unapply(k), unapply(k), x);
 }
 
 fun kju() : Unit
 {
-	var a : ?;
+	var a;
     a = i(43);
     write(a);
 }
