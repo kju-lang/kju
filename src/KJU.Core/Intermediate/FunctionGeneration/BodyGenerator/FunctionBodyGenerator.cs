@@ -558,6 +558,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                 var rhsRegisterValue = new RegisterRead(rhsRegister);
 
                 var root = new MemoryWrite(addrRegisterValue, rhsRegisterValue);
+
                 var finalLabel = this.labelFactory.GetLabel(new Tree(root, new UnconditionalJump(after)));
 
                 var rhsValueLabel = this.labelFactory.WithLabel(label =>
@@ -578,7 +579,7 @@ namespace KJU.Core.Intermediate.FunctionGeneration.BodyGenerator
                         addrComputation.Start);
                 });
 
-                return new Computation(getAddrLabel, root);
+                return new Computation(getAddrLabel, rhsRegisterValue);
             }
 
             private Computation ConvertNode(AST.ComplexAssignment node, ILabel after)
