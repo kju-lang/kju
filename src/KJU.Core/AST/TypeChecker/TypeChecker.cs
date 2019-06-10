@@ -365,7 +365,19 @@ namespace KJU.Core.AST.TypeChecker
             private DataType GetResolvedType<T>(T node, IHerbrandObject type, Dictionary<T, TypeVariable> proxies, Solution solution)
                 where T : Node
             {
-                return solution.TypeVariableMapping[(type as TypeVariable) ?? proxies[node]] as DataType;
+                if (type is TypeVariable typeVariable)
+                {
+                    if (solution.TypeVariableMapping.ContainsKey(typeVariable))
+                    {
+                        return solution.TypeVariableMapping[typeVariable] as DataType;
+                    }
+
+                    throw new TypeCheckerException($"Cannot deduce type for {typeVariable.InputRange}");
+                }
+                else
+                {
+                    return solution.TypeVariableMapping[proxies[node]] as DataType;
+                }
             }
 
             private void FillChoice(Node node, Solution solution)
