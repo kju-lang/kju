@@ -1,5 +1,7 @@
 <Spec>
     <!-- Created for compatibility reasons -->
     <IsPositive>false</IsPositive>
-    <IsDisabled>true</IsDisabled>
+    <ExpectedMagicStrings>
+        <MagicString>TypeChecker.TypeAssignmentFail</MagicString>
+    </ExpectedMagicStrings>
 </Spec>

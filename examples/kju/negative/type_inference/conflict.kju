@@ -1,6 +1,6 @@
 fun kju() : Unit
 {
-    var a : ?;
+    var a;
     a = true;
-    a = bool;
+    a = 123;
 }

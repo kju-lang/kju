@@ -5,7 +5,7 @@ fun enforce_gc() : Int import
 fun f() : Unit {
 }
 
-fun kju() : Int {
+fun kju() : Unit {
     var lambda : () -> Unit;
 
     var i : Int = 100;
