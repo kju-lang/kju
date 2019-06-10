@@ -1,11 +1,10 @@
 <Spec>
-    <IsDisabled>true</IsDisabled>
     <Execution>
         <ExpectedOutput>
-            86
-            86
-            86
-            86
+            43
+            43
+            43
+            43
         </ExpectedOutput>
     </Execution>
 </Spec>

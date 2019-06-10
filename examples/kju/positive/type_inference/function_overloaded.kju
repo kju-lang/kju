@@ -17,19 +17,19 @@ fun i(x : Int) : ? {
 }
 
 fun kju() : Unit {
-    fun f(x : ?) : ? {
+    fun f1(x : ?) : ? {
         return x * 2;
     };
 
-    fun g(x : Int) : ? {
+    fun g1(x : Int) : ? {
         return x * 2;
     };
 
-    fun h(x : ?) : ? {
+    fun h1(x : ?) : ? {
         return x * 2;
     };
 
-    fun i(x : Int) : ? {
+    fun i1(x : Int) : ? {
         return x * 2;
     };
 
