@@ -60,7 +60,7 @@ namespace KJU.Core.AST.TypeChecker
                     this.diagnostics.Add(new Diagnostic(
                         DiagnosticStatus.Error,
                         TypeAssignmentDiagnostic,
-                        "Could not assign types",
+                        $"Could not assign types: {ex.Message}",
                         new List<Lexer.Range>()));
                     throw new TypeCheckerException("Could not assign types", ex);
                 }
@@ -344,8 +344,14 @@ namespace KJU.Core.AST.TypeChecker
                     case VariableDeclaration decl:
                         decl.VariableType = this.GetResolvedType(decl, decl.VariableType, this.variableTypes, solution);
                         break;
+
                     case StructField field:
                         field.Type = this.GetResolvedType(field, field.Type, this.structFieldTypes, solution);
+                        break;
+
+                    case NullLiteral lit:
+                        if (lit.Type == IntType.Instance || lit.Type == BoolType.Instance)
+                            throw new TypeCheckerException($"Assigned null to {lit.Type} at {lit.InputRange}");
                         break;
                 }
 
