@@ -147,7 +147,7 @@ namespace KJU.Core.AST.TypeChecker
                 }
             }
 
-            return new Solution { ChosenAlternative = choices, TypeVariableMapping = variableMapping };
+            return new Solution { ChosenAlternative = new Dictionary<Clause, int>(choices), TypeVariableMapping = variableMapping };
         }
 
         private void Dfs(
