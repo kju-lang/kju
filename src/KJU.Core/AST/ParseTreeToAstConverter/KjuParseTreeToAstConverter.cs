@@ -220,7 +220,7 @@ namespace KJU.Core.AST.ParseTreeToAstConverter
                             case KjuAlphabet.ArrayTypeIdentifier:
                                 return this.ArrayTypeIdentifierAst((Brunch<KjuAlphabet>)brunch.Children[0]);
                             case KjuAlphabet.UnknownTypeIdentifier:
-                                return null;
+                                return new TypeVariable { InputRange = brunch.InputRange };
                             default:
                                 throw new ParseTreeToAstConverterException($"Unknown type category: {child.Category}");
                         }
