@@ -111,6 +111,11 @@ namespace KJU.Core.AST.TypeChecker
             x = this.findUnion.GetRepresentant(x);
             y = this.findUnion.GetRepresentant(y);
 
+            if (x == y)
+            {
+                return true;
+            }
+
             if (y is TypeVariable)
             {
                 (x, y) = (y, x);
